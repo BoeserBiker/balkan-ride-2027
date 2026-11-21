@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "Balkan-Ride-2027",
+			"path": "."
+		},
+		{
+			"name": "VS_CODE_Tools",
+			"path": "../VS_CODE_Tools"
+		}
+	],
+	"settings": {
+		"window.autoDetectColorScheme": false,
+		"window.density.editorTabHeight": "compact",
+		"window.density.layout": "compact",
+		"window.zoomLevel": 1,
+		"window.titleSeparator": "0"
+	}
+}

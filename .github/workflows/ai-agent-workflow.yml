@@ -1,0 +1,73 @@
+name: AI Roadbook 2-Stage Agent
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+env:
+  ALLOWED_GITHUB_USER: ${{ vars.ROADBOOK_AGENT_USER }}
+  ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+  ISSUE_NUMBER: ${{ github.event.issue.number }}
+  REPOSITORY: ${{ github.repository }}
+
+jobs:
+  plan-stage:
+    if: |
+      github.event_name == 'issues' &&
+      vars.ROADBOOK_AGENT_USER != '' &&
+      github.event.issue.user.login == vars.ROADBOOK_AGENT_USER
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: python -m pip install requests anthropic PyYAML
+      - name: Stufe 1 - Plan erstellen
+        env:
+          MODE: plan
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/agent_runner.py
+
+  implement-stage:
+    if: |
+      github.event_name == 'issue_comment' &&
+      vars.ROADBOOK_AGENT_USER != '' &&
+      github.event.comment.user.login == vars.ROADBOOK_AGENT_USER &&
+      !github.event.issue.pull_request &&
+      github.event.comment.body == '/implement-item'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: roadbook-implement-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: python -m pip install requests anthropic PyYAML
+      - name: Stufe 2 - Umsetzung & Pull Request
+        env:
+          MODE: implement
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/agent_runner.py

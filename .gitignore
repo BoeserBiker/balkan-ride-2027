@@ -1,0 +1,9 @@
+# Betriebssystem und Editor
+.DS_Store
+.obsidian/
+.vscode/
+
+# Lokale Werkzeuge und Indizes
+VS_CODE_Tools/
+.codebase-memory/
+node_modules/
