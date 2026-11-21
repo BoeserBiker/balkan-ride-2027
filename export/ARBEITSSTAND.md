@@ -55,8 +55,13 @@
   `.codebase-memory/` und `node_modules/` ergänzt.
 - Lokale Chat-Sicherungen bleiben durch die vorhandene Ignore-Regel unter
   [`daten/chat_verlauf/`](../daten/chat_verlauf/) vom Commit ausgeschlossen.
-- Remote, erster Commit und GitHub-Push werden für
-  `https://github.com/BoeserBiker/balkan-ride-2027.git` verifiziert.
+- Remote `origin` ist auf
+  `https://github.com/BoeserBiker/balkan-ride-2027.git` gesetzt.
+- Der erste Commit `befd159aeb4888828e2b44f4288ba0b5c838775d` trägt die
+  Nachricht `Setup V4 Grundgerüst`.
+- Nach Autorisierung des GitHub-CLI-Zugangs einschließlich des Scopes
+  `workflow` wurde `main` erfolgreich gepusht und ist als
+  `origin/main` verifiziert.
 
 ### 2026-11-19 – Projektgrundgerüst
 
