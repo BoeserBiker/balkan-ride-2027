@@ -8,12 +8,14 @@
 ## Phase 1: Vorbereitung, Repository & Branch-Schutz (Tag 1)
 *Ziel: Den VS-Code-Workspace und das abgesicherte GitHub-Repository `balkan-ride-2027` startklar machen.*
 
-* [ ] **Git & GitHub Repository anlegen**◊◊
+* [x] **Git & GitHub Repository anlegen**◊◊
   * [x] Privaten GitHub-Account einrichten (2FA aktivieren) und das neue Repository **`balkan-ride-2027`** erstellen.
-  * [ ] Lokalen Workspace-Ordner `Balkan-Ride-2027` im Terminal öffnen und mit Git verknüpfen (`git init`, `git branch -M main`, `git remote add origin ...`).
+  * [x] Lokalen Workspace-Ordner `Balkan-Ride-2027` im Terminal öffnen und mit Git verknüpfen (`git init`, `git branch -M main`, `git remote add origin ...`).
 * [ ] **Sicherheit & Branch-Protection konfigurieren**
-  * [ ] Anthropic API-Key erstellen und in GitHub unter `Settings` → `Secrets and variables` → `Actions` als Secret `ANTHROPIC_API_KEY` hinterlegen.
-* [ ] **Workspace-Dokumente & Ordnerstruktur anlegen**
+  * [x] Anthropic API-Key erstellen und in GitHub unter `Settings` → `Secrets and variables` → `Actions` als Secret `ANTHROPIC_API_KEY` hinterlegen.
+  * [x] Repository-Variablen `ROADBOOK_AGENT_USER` und `ANTHROPIC_MODEL` setzen.
+  * [ ] Branch-Schutz für `main` mit PR-Pflicht aktivieren. GitHub meldet für das private Repository, dass diese Funktion ein Upgrade oder ein öffentliches Repository voraussetzt.
+* [x] **Workspace-Dokumente & Ordnerstruktur anlegen**
   * [x] Alle 4 Planungs- und Vorgabedateien in `docs/` ablegen (`Balkan_Tour_Pflichtenheft_V4.md`, `master_ablauf_prompt_plan_v4.md`, `todo_plan_v4.md`, `motorrad_checkliste_logistik.md`) und `.github/copilot-instructions.md` prüfen.
   * [x] Projektordner anlegen: `.github/workflows/`, `.github/scripts/`, `config/commands/`, `config/skills/plan-item/`, `config/skills/implement-item/`, `content/`, `assets/icons/`, `assets/gpx/`, `assets/media/`.
 
@@ -22,15 +24,15 @@
 ## Phase 2: Einheitliche Skills & zweistufige Automatisierung (Tag 2)
 *Ziel: Das Regelwerk („Erst planen, dann bauen“) definieren und den Cloud-Agenten für Issues & Pull Requests scharfstellen.*
 
-* [ ] **Einheitliche Befehlsdateien & Skills anlegen (Single Source of Truth)**
-  * [ ] `config/commands/plan-item.md` mit YAML-Frontmatter (`description`) und Regeln für Analyse, YAML-V4-Prüfung und Erstellung des `## Umsetzungsplan`-Kommentars anlegen.
-  * [ ] `config/commands/implement-item.md` mit Regeln für Branch-Erstellung (`feature/issue-XX`), Beibehaltung des V4-YAML-Schemas (inkl. Koordinaten & Medien) und Pull-Request-Eröffnung anlegen.
-  * [ ] Passende Skill-Hüllen unter `config/skills/plan-item/SKILL.md` und `config/skills/implement-item/SKILL.md` anlegen.
-* [ ] **GitHub Action & Python-Skript einfügen**
-  * [ ] `.github/workflows/ai-agent-workflow.yml` anlegen (Trigger auf `issues: [opened]` und `issue_comment: [created]`, Benutzer-Filter auf eigenen Account, Berechtigungen `contents: write`, `issues: write`, `pull-requests: write`).
-  * [ ] `.github/scripts/agent_runner.py` anlegen (liest Command-Dateien aus `config/commands/`, erstellt Branches und Pull Requests statt direkter `main`-Commits).
-* [ ] **Ersten Basis-Upload durchführen**
-  * [ ] Grundstruktur mit `git add .`, `git commit -m "Setup v4"` und `git push` auf GitHub hochladen.
+* [x] **Einheitliche Befehlsdateien & Skills anlegen (Single Source of Truth)**
+  * [x] `config/commands/plan-item.md` mit YAML-Frontmatter (`description`) und Regeln für Analyse, YAML-V4-Prüfung und Erstellung des `## Umsetzungsplan`-Kommentars anlegen.
+  * [x] `config/commands/implement-item.md` mit Regeln für Branch-Erstellung (`feature/issue-XX`), Beibehaltung des V4-YAML-Schemas (inkl. Koordinaten & Medien) und Pull-Request-Eröffnung anlegen.
+  * [x] Passende Skill-Hüllen unter `config/skills/plan-item/SKILL.md` und `config/skills/implement-item/SKILL.md` anlegen.
+* [x] **GitHub Action & Python-Skript einfügen**
+  * [x] `.github/workflows/ai-agent-workflow.yml` anlegen (Trigger auf `issues: [opened]` und `issue_comment: [created]`, Benutzer-Filter auf eigenen Account, Berechtigungen `contents: write`, `issues: write`, `pull-requests: write`).
+  * [x] `.github/scripts/agent_runner.py` anlegen (liest Command-Dateien aus `config/commands/`, erstellt Branches und Pull Requests statt direkter `main`-Commits).
+* [x] **Ersten Basis-Upload durchführen**
+  * [x] Grundstruktur mit `git add .`, `git commit` und `git push` auf GitHub hochladen (Commit `Setup V4 Grundgerüst` auf `main`).
 
 ---
 

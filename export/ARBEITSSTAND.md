@@ -8,9 +8,17 @@
 
 - Das Grundgerüst der Phasen 1 und 2 ist angelegt: GitHub-Workflow, Runner,
   Befehlsdateien, Skill-Hüllen und Referenzetappe `content/tag-01.md`.
-- Beim Workspace-Review am 2026-11-20 ließ sich im aktuellen Ordner kein
-  Git-Repository feststellen (`git rev-parse` schlägt fehl). GitHub-Verbindung
-  und Branch-Protection sind daher lokal nicht verifizierbar.
+- Das private GitHub-Repository
+  `https://github.com/BoeserBiker/balkan-ride-2027` ist mit lokalem `main`
+  verbunden; der erste Commit `Setup V4 Grundgerüst` wurde gepusht.
+- GitHub Actions ist aktiviert. Das Secret `ANTHROPIC_API_KEY` sowie die
+  Repository-Variablen `ROADBOOK_AGENT_USER` und `ANTHROPIC_MODEL` sind
+  vorhanden. Der Secret-Wert wurde nicht ausgelesen.
+- Der Workflow ist aktiv, hat aber noch keinen Lauf. Planungs- und
+  Implementierungsstufe wurden daher noch nicht live gegen GitHub getestet.
+- Branch Protection für `main` ist nicht aktiviert: GitHub meldet, dass die
+  Funktion für dieses private Repository ein Upgrade oder ein öffentliches
+  Repository voraussetzt. Die Sichtbarkeit wurde nicht geändert.
 - Die Befehlsdateien wurden mit den Vorlagen des Master-Plans verglichen; das
   YAML der Referenzetappe wurde gegen Abschnitt 3A geprüft. Der Agent wurde
   lokal mit simulierten API-Aufrufen getestet; ein echter Git-Push wurde nur
@@ -46,6 +54,21 @@
   Repository aufnehmen.
 
 ## Chronologie
+
+### 2026-11-21 – To-do-Fortschritt und Actions-Konfiguration geprüft
+
+- Die GitHub-Konfiguration bestätigt das Secret `ANTHROPIC_API_KEY` und die
+  Repository-Variablen `ROADBOOK_AGENT_USER=BoeserBiker` sowie
+  `ANTHROPIC_MODEL=claude-sonnet-5-5`. Secret-Inhalte wurden nicht gelesen.
+- Der Workflow `AI Roadbook 2-Stage Agent` ist aktiv; die GitHub-API meldet
+  bisher keine Workflow-Läufe. Der Live-End-to-End-Test mit einem Issue ist
+  offen.
+- Für das private Repository verweigert GitHub den Abruf/Einrichten von
+  Branch Protection mit HTTP 403 und dem Hinweis, dass ein Upgrade oder ein
+  öffentliches Repository erforderlich ist. Die Sichtbarkeit blieb privat.
+- Die vorhandenen Befehlsdateien, Skill-Hüllen, Workflow- und Runner-Dateien
+  sowie der erste Push sind im To-do als erledigt markiert. Phase 3 (Tourdaten
+  und Web-App/PWA) ist noch offen; aktuell liegt nur `content/tag-01.md` vor.
 
 ### 2026-11-21 – Git-Repository eingerichtet
 
