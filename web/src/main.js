@@ -59,9 +59,9 @@ function renderShell() {
           <nav class="day-picker" aria-label="Etappe auswählen">
             <div class="day-picker-label">ETAPPEN</div>
             <div class="day-picker-controls">
-              <button id="day-scroll-back" class="day-scroll" type="button" aria-label="Etappen nach links scrollen" aria-controls="day-list">‹</button>
+              <button id="day-picker-previous" class="day-scroll" type="button" aria-label="Vorherige Etappe auswählen" aria-controls="day-list">‹</button>
               <ol id="day-list" class="day-list"></ol>
-              <button id="day-scroll-forward" class="day-scroll" type="button" aria-label="Etappen nach rechts scrollen" aria-controls="day-list">›</button>
+              <button id="day-picker-next" class="day-scroll" type="button" aria-label="Nächste Etappe auswählen" aria-controls="day-list">›</button>
             </div>
           </nav>
 
@@ -102,6 +102,8 @@ function renderApp() {
 
   const dayList = document.querySelector('#day-list');
   const dayDetail = document.querySelector('#day-detail');
+  const previousDayButton = document.querySelector('#day-picker-previous');
+  const nextDayButton = document.querySelector('#day-picker-next');
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
   const lightboxCaption = lightbox.querySelector('.lightbox-caption');
@@ -121,7 +123,11 @@ function renderApp() {
     </li>
   `).join('');
 
-  function selectDay(index, { moveMap = true, centerDay = true } = {}) {
+  function selectDay(index, {
+    moveMap = true,
+    centerDay = true,
+    centerScrollBehavior = scrollBehavior(),
+  } = {}) {
     if (!Number.isInteger(index) || index < 0 || index >= roadbookDays.length) {
       return;
     }
@@ -139,19 +145,21 @@ function renderApp() {
     });
     if (centerDay) {
       dayList.querySelector(`[data-day-index="${index}"]`).scrollIntoView({
-        behavior: scrollBehavior(), block: 'nearest', inline: 'center',
+        behavior: centerScrollBehavior, inline: 'center', block: 'nearest',
       });
     }
+    previousDayButton.disabled = index === 0;
+    nextDayButton.disabled = index === roadbookDays.length - 1;
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
     map.selectDay(index, { moveMap });
   }
 
-  document.querySelector('#day-scroll-back').addEventListener('click', () => {
-    dayList.scrollBy({ left: -dayList.clientWidth * 0.8, behavior: scrollBehavior() });
+  previousDayButton.addEventListener('click', () => {
+    selectDay(activeIndex - 1, { centerScrollBehavior: 'smooth' });
   });
-  document.querySelector('#day-scroll-forward').addEventListener('click', () => {
-    dayList.scrollBy({ left: dayList.clientWidth * 0.8, behavior: scrollBehavior() });
+  nextDayButton.addEventListener('click', () => {
+    selectDay(activeIndex + 1, { centerScrollBehavior: 'smooth' });
   });
   dayList.addEventListener('wheel', (event) => {
     if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {

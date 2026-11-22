@@ -136,8 +136,9 @@ h1, h2, h3, p { margin-top: 0; }
 .day-picker-label { margin-bottom: 12px; }
 .day-picker-controls { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .day-scroll { flex: 0 0 40px; min-height: 44px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--muted); font-size: 24px; cursor: pointer; }
-.day-scroll:hover, .day-scroll:focus-visible { color: var(--accent); border-color: var(--accent); }
-.day-list { display: flex; flex: 1 1 auto; min-width: 0; gap: 7px; overflow-x: auto; margin: 0; padding: 1px 1px 7px; list-style: none; scrollbar-color: #536056 transparent; scrollbar-width: thin; }
+.day-scroll:not(:disabled):hover, .day-scroll:focus-visible { color: var(--accent); border-color: var(--accent); }
+.day-scroll:disabled { opacity: .38; cursor: not-allowed; }
+.day-list { display: flex; flex: 1 1 auto; min-width: 0; gap: 7px; overflow-x: auto; margin: 0; padding: 1px 8px 7px; scroll-padding-inline: 8px; list-style: none; scrollbar-color: #536056 transparent; scrollbar-width: thin; }
 .day-link {
   display: flex;
   min-width: 145px;
