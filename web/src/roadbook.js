@@ -14,15 +14,13 @@ function formatDate(value) {
 }
 
 function formatDuration(value) {
-  const match = value.match(/^\s*(\d+(?:[,.]\d+)?)\s*Modell-h\s*$/);
-  if (!match) {
-    return value;
-  }
-  const minutes = Math.round(Number(match[1].replace(',', '.')) * 60);
-  if (minutes === 0) {
-    return '0 Std.';
-  }
-  return `ca. ${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')} h`;
+  return value.replace(/(\d+(?:[,.]\d+)?)\s*Modell-h/g, (_match, amount) => {
+    const minutes = Math.round(Number(amount.replace(',', '.')) * 60);
+    if (minutes === 0) {
+      return '0 Std.';
+    }
+    return `ca. ${Math.floor(minutes / 60)} Std. ${String(minutes % 60).padStart(2, '0')} Min.`;
+  });
 }
 
 function mediaPathMap(assets) {
@@ -165,7 +163,7 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
   const videos = frontmatter.videos.length
     ? frontmatter.videos.map((video) => renderVideo(video, urls)).join('')
     : '<div class="media-placeholder"><small>NOCH KEINE VIDEOS HINTERLEGT</small></div>';
-  const safeBody = DOMPurify.sanitize(marked.parse(body));
+  const safeBody = DOMPurify.sanitize(marked.parse(formatDuration(body)));
 
   return `
     <div class="day-meta">
