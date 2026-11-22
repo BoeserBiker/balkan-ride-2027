@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-import json, os, sys, urllib.parse, urllib.request, urllib.error
+import json, os, ssl, sys, urllib.parse, urllib.request, urllib.error
+try:
+    import certifi
+    CTX = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    CTX = ssl._create_unverified_context()
 
 def search_youtube(query, max_results=3):
     key = os.environ.get("YOUTUBE_API_KEY", "").strip()
@@ -13,7 +18,7 @@ def search_youtube(query, max_results=3):
     path = "/" + "youtube/v3/search?" + params
     url = "https://" + host + path
     try:
-        with urllib.request.urlopen(url, timeout=15) as resp:
+        with urllib.request.urlopen(url, timeout=15, context=CTX) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         return f"YouTube API HTTP-Fehler {e.code}: {e.read().decode('utf-8', 'ignore')[:300]}"
