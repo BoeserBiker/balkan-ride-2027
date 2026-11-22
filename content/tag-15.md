@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/0kPNA7FyAls
     titel: Albania Przełęcz Llogara
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/orZU-hq8z0w
+    titel: Amazing view on the motorcycle route ,llogara pass, SH8 Albania
 ---
 
 ## Über den Llogara an die Riviera

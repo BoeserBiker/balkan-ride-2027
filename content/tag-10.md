@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/P2BV9uiEwNk
     titel: Exploring the beauty of Kotor Bay, Montwnegro
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/P263UreG3s4
+    titel: 'Riding motorcycles through the Perast town in Kotor Bay Montenegro #bmwmotorrad'
 ---
 
 ## Von Durmitor an die Bucht

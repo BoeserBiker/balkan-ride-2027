@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/59-xN6i8AUI
     titel: 'Theth Albania #motorcycle #theth #albania #motoguzziv9'
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/oB5vuhrqE_U
+    titel: Albania Theth and SH21 Road on a Motorcycle | Montenegro Ride tour to Albania
 ---
 
 ## Der lange Tag über SH20 und SH21

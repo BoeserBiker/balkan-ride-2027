@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/Ybnmd8mglMY
     titel: VrSic pass- discesa in moto verso Kranjska Gora
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/mxCQWM7AyM4
+    titel: 'VRSIC PASS, SLOVENIA 🇸🇮 #roadtrip #roads #travel #roadtripping #cars #alps #slovenia'
 ---
 
 ## Von den Kehren ins Soča-Tal

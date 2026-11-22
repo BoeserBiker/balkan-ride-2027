@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/o3cOs7qokGU
     titel: Road To Primosten 2019
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/03QusEPNVyI
+    titel: Motorcycle ride , view point Primosten Loreta
 ---
 
 ## Immer weiter an der Küste entlang

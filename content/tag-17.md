@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/8b7R5J2Fjdk
     titel: Meteora from Above - A Breathtaking Aerial Tour Over Kalambaka, Greece in 4K
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/qkPFKyJEQgk
+    titel: 'Magical Greece: Motorcycle Route through the Meteora Monasteries 🏍️🙏'
 ---
 
 ## Klöster am Morgen, Meer am Abend

@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/bni9vfVR8Yk
     titel: Karlobag
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/O-rmy39KPZc
+    titel: 🏍️💨 Z900 flowing to KARLOBAG 🏍️💨
 ---
 
 ## Küstenkurven bis Biograd

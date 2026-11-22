@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/cueWohh0bMY
     titel: Durrës Albania 2026 | Dyrrakium Resort Hotel & Apartments Construction Update
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/YYrimcDRj8k
+    titel: 'Durrës-Albania,Motorcycle ride  #motorcycle #motor #motorrad #bmw #bmwr1200rt #destination #travel'
 ---
 
 ## Luft holen vor der Riviera

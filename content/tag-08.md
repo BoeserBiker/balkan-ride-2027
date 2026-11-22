@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/waAFjju_wTs
     titel: ENDURO TRAVELING Βοσνια Ζελενγκορα ( ZELENGORA Bosnia and Herzegovina ) . MEGATESTONOFF2021 THESTORY
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/PIrqwotfTDk
+    titel: 'Nevesinje Ovčiji Brod #enduro #tet #bosnia #honda'
 ---
 
 ## Über die Hochflächen ins Drina-Tal

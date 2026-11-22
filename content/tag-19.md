@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/nEseNqhK-As
     titel: Magistrala adriatycka - Senj - Zadar
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/nVLRV1jmWMo
+    titel: The best motorcycle route in Croatia
 ---
 
 ## Ein Tag auf See

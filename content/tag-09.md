@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/B5Ttq36CTqw
     titel: PIVA LAKE - Montenegro's Hidden Gem  | 4K Cinematic Drone Film
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/2xuetztIpDA
+    titel: 'Riding Yamaha Tracer over the Piva Canyon in Montenegro #motorcycle #yamaha #montenegro'
 ---
 
 ## Königsetappe durch Montenegro

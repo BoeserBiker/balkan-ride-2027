@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/o4WEHYOPulM
     titel: Villacher Alpenstraße
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/mUtB9pC0H-E
+    titel: '#europeanbikeweek  #harleydavidson #harley #villach #austria #motorcycle #bikerlife #shorts'
 ---
 
 ## Rückfahrt im Gespann – Teil eins

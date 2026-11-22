@@ -64,8 +64,14 @@ class StageMediaTests(unittest.TestCase):
     @patch.object(media, "request_json")
     def test_youtube_embed_uses_nocookie_and_header(self, request):
         request.side_effect = [
-            {"items": [{"id": {"videoId": "abcdefghijk"}, "snippet": {"title": "Tour &amp; Pass"}}]},
-            {"items": [{"id": "abcdefghijk", "contentDetails": {"duration": "PT1M30S"}}]},
+            {"items": [
+                {"id": {"videoId": "abcdefghijk"}, "snippet": {"title": "Tour &amp; Pass"}},
+                {"id": {"videoId": "lmnopqrstuv"}, "snippet": {"title": "Küstenfahrt"}},
+            ]},
+            {"items": [
+                {"id": "abcdefghijk", "contentDetails": {"duration": "PT1M30S"}},
+                {"id": "lmnopqrstuv", "contentDetails": {"duration": "PT2M"}},
+            ]},
         ]
         source = '---\ntag: 3\nbilder: []\nvideos: []\n---\nText.\n'
         with tempfile.TemporaryDirectory() as directory:
@@ -75,11 +81,13 @@ class StageMediaTests(unittest.TestCase):
             _, stage = media.load_stage(path)
         self.assertEqual(stage["videos"][0]["quelle"], "https://www.youtube-nocookie.com/embed/abcdefghijk")
         self.assertEqual(stage["videos"][0]["titel"], "Tour & Pass")
+        self.assertEqual(stage["videos"][1]["quelle"], "https://www.youtube-nocookie.com/embed/lmnopqrstuv")
         search, details = request.call_args_list
         self.assertEqual(search.args[1]["videoDuration"], "short")
         self.assertEqual(search.args[1]["videoEmbeddable"], "true")
+        self.assertEqual(search.args[1]["maxResults"], 25)
         self.assertEqual(details.args[0], media.YOUTUBE_VIDEOS_API)
-        self.assertEqual(details.args[1], {"part": "contentDetails", "id": "abcdefghijk"})
+        self.assertEqual(details.args[1], {"part": "contentDetails", "id": "abcdefghijk,lmnopqrstuv"})
         self.assertEqual(details.args[2], {"X-Goog-Api-Key": "test-key"})
 
     @patch.object(media, "request_json")
@@ -101,8 +109,7 @@ class StageMediaTests(unittest.TestCase):
                     media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
                     self.assertEqual(len(media.load_stage(path)[1]["videos"]), 1)
                 else:
-                    with self.assertRaisesRegex(RuntimeError, "5–120 Sekunden"):
-                        media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
+                    media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
                     self.assertEqual(path.read_text(encoding="utf-8"), source)
 
     @patch.object(media, "request_json")
@@ -122,8 +129,43 @@ class StageMediaTests(unittest.TestCase):
             self.assertTrue(media.load_stage(path)[1]["videos"][0]["quelle"].endswith("/ccccccccccc"))
 
     @patch.object(media, "request_json")
-    def test_existing_youtube_videos_are_not_replaced_or_queried(self, request):
-        source = '---\ntag: 3\nbilder: []\nvideos:\n  - typ: youtube\n    quelle: old\n---\nText.\n'
+    def test_existing_youtube_video_is_preserved_and_second_unique_video_added(self, request):
+        source = (
+            '---\ntag: 3\nbilder: []\nvideos:\n'
+            '  - typ: youtube\n    quelle: https://www.youtube-nocookie.com/embed/abcdefghijk\n'
+            '    titel: Bereits vorhanden\n---\nText.\n'
+        )
+        request.side_effect = [
+            {"items": [
+                {"id": {"videoId": "abcdefghijk"}},
+                {"id": {"videoId": "lmnopqrstuv"}, "snippet": {"title": "Neuer Treffer"}},
+                {"id": {"videoId": "lmnopqrstuv"}},
+            ]},
+            {"items": [{"id": "lmnopqrstuv", "contentDetails": {"duration": "PT30S"}}]},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "stage.md"
+            path.write_text(source, encoding="utf-8")
+            text, stage = media.load_stage(path)
+            media.add_videos(path, text, stage, "test-key")
+            updated = media.load_stage(path)[1]["videos"]
+        self.assertEqual(updated[0], {
+            "typ": "youtube",
+            "quelle": "https://www.youtube-nocookie.com/embed/abcdefghijk",
+            "titel": "Bereits vorhanden",
+        })
+        self.assertEqual(len(updated), 2)
+        self.assertEqual(updated[1]["quelle"], "https://www.youtube-nocookie.com/embed/lmnopqrstuv")
+        self.assertEqual(request.call_args_list[1].args[1]["id"], "lmnopqrstuv")
+
+    @patch.object(media, "request_json")
+    def test_two_existing_youtube_videos_are_left_untouched(self, request):
+        source = (
+            '---\ntag: 3\nbilder: []\nvideos:\n'
+            '  - typ: youtube\n    quelle: https://www.youtube-nocookie.com/embed/abcdefghijk\n'
+            '  - typ: youtube\n    quelle: https://www.youtube-nocookie.com/embed/lmnopqrstuv\n'
+            '---\nText.\n'
+        )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "stage.md"
             path.write_text(source, encoding="utf-8")

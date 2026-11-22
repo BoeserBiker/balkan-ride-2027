@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/HRNLNaiRNBI
     titel: BBT 54 USING GOPRO HYPERSMOOTH PICTURE STABILIZATION - LAABER - BERATZHAUSEN
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/nCcevjhi0xU
+    titel: Bike Adventure June 30, Take 1
 ---
 
 ## Sicher nach Hause

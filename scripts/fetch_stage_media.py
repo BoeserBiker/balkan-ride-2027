@@ -14,7 +14,7 @@ import tempfile
 import time
 import unicodedata
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 import yaml
@@ -25,6 +25,7 @@ YOUTUBE_API = "https://www.googleapis.com/youtube/v3/search"
 YOUTUBE_VIDEOS_API = "https://www.googleapis.com/youtube/v3/videos"
 USER_AGENT = "BalkanRide2027/1.0 (Wikimedia Commons stage media research)"
 IMAGE_COUNT = 4
+YOUTUBE_VIDEO_COUNT = 2
 IMAGE_QUERIES = {
     1: ["Velburg Bavaria", "Recklinghausen city"],
     2: ["Villach Austria", "Velburg Bavaria"],
@@ -264,22 +265,56 @@ def duration_seconds(value):
     return int(hours or 0) * 3600 + int(minutes or 0) * 60 + Decimal((seconds or "0").replace(",", "."))
 
 
+def youtube_video_id(video):
+    if not isinstance(video, dict):
+        return None
+    source = video.get("quelle")
+    if not isinstance(source, str):
+        return None
+    parsed = urlparse(source)
+    hostname = parsed.hostname or ""
+    if hostname in {"youtube-nocookie.com", "www.youtube-nocookie.com"}:
+        match = re.fullmatch(r"/embed/([A-Za-z0-9_-]{11})/?", parsed.path)
+        return match.group(1) if match else None
+    if hostname in {"youtu.be", "www.youtu.be"}:
+        video_id = parsed.path.strip("/").split("/", 1)[0]
+    elif hostname in {"youtube.com", "www.youtube.com", "m.youtube.com"}:
+        match = re.fullmatch(r"/(?:embed|shorts)/([A-Za-z0-9_-]{11})/?", parsed.path)
+        if match:
+            return match.group(1)
+        video_id = parse_qs(parsed.query).get("v", [""])[0] if parsed.path == "/watch" else ""
+    else:
+        return None
+    return video_id if re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id) else None
+
+
 def add_videos(path, text, stage, key):
     existing = stage.get("videos")
     if not isinstance(existing, list):
         raise ValueError(f"{path}: videos ist keine Liste")
-    if existing:
+    if len(existing) >= YOUTUBE_VIDEO_COUNT:
         print(f"{path.name}: {len(existing)} Videos vorhanden; unverändert.")
         return
-    query = f"{IMAGE_QUERIES[stage['tag']][0]} motorcycle travel drone"
+    entries = list(existing)
+    initial_count = len(entries)
+    query = f"{IMAGE_QUERIES[stage['tag']][0]} motorcycle ride"
     response = request_json(YOUTUBE_API, {
         "part": "snippet", "type": "video", "videoEmbeddable": "true",
-        "videoDuration": "short", "maxResults": 5, "q": query,
+        "videoDuration": "short", "maxResults": 25, "q": query,
     }, {"X-Goog-Api-Key": key})
-    candidates = [
-        item for item in response.get("items", [])
-        if re.fullmatch(r"[A-Za-z0-9_-]{11}", item.get("id", {}).get("videoId", ""))
-    ]
+    seen = {video_id for video in existing if (video_id := youtube_video_id(video))}
+    candidates = []
+    for item in response.get("items", []):
+        item_id = item.get("id")
+        video_id = item_id.get("videoId") if isinstance(item_id, dict) else None
+        if (
+            not isinstance(video_id, str)
+            or not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id)
+            or video_id in seen
+        ):
+            continue
+        seen.add(video_id)
+        candidates.append(item)
     if candidates:
         details = request_json(YOUTUBE_VIDEOS_API, {
             "part": "contentDetails",
@@ -299,14 +334,17 @@ def add_videos(path, text, stage, key):
             if not 5 <= seconds <= 120:
                 continue
             title = html.unescape(item.get("snippet", {}).get("title", "Etappenvideo"))
-            write_field(path, text, "videos", [{
+            entries.append({
                 "typ": "youtube",
                 "quelle": f"https://www.youtube-nocookie.com/embed/{video_id}",
                 "titel": title,
-            }])
-            print(f"{path.name}: YouTube-Video eingetragen.")
-            return
-    raise RuntimeError(f"{path.name}: kein einbettbares YouTube-Video mit 5–120 Sekunden gefunden")
+            })
+            if len(entries) >= YOUTUBE_VIDEO_COUNT:
+                break
+    added = len(entries) - initial_count
+    if added:
+        write_field(path, text, "videos", entries)
+    print(f"{path.name}: {added} YouTube-Video(s) ergänzt; {len(entries)} insgesamt.")
 
 
 def main():

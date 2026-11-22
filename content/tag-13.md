@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/CTEPwSA1HTk
     titel: Motorradreise Albanien (Komani Lake Tunnel) 🇦🇱
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/Fc24zw136fQ
+    titel: 'Balkan-Reise: Komani Lake Tunnel 🇦🇱'
 ---
 
 ## Fähre ohne BMW – danach weiter nach Lezha

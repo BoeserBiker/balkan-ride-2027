@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/M243dExGCmk
     titel: 'Video Short from “Central Croatia is Sensational for Riding” S3E13 | #shorts #croatia #viajarmoto'
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/PEm79UdEFmc
+    titel: 'Video Short from “Central Croatia is Sensational for Riding” S3E13 | #shorts #croatia #viajarmoto'
 ---
 
 ## Vom Karst an die Adria

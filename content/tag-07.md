@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/zX3ZDawiSwQ
     titel: Kravice Waterfalls - Bosnia & Herzegovina
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/DMcIvuhRX8E
+    titel: 'Motorcycle ride KRAVICA WATERFALLS BIH #motorcycleadventure #kravicawaterfalls #bosna #ride #motor'
 ---
 
 ## Von der Riviera nach Mostar

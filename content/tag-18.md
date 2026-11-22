@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/IHbgaYTq2fA
     titel: Igoumenitsa Hafen - Mit dem Motorrad 🏍️ auf die Fähre
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/Ii0jc747QF0
+    titel: MARTEN'S MOTORCYCLE TOUR IN GREECE   IGOUMENITSA
 ---
 
 ## Einschiffen – nur mit bestätigter Verbindung

@@ -46,6 +46,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/xwJ3KFl2ipY
     titel: Sappada e neve
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/M5XzOTSwU3k
+    titel: GIRO D'ITALIA TARVISIO MONTE LUSSARI    2023 05 27 at 23 58 32
 ---
 
 ## Den Kreis in Villach schließen
