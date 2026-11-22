@@ -1,6 +1,7 @@
 ## Arbeitsstand – Balkan-Ride 2027
 
-**Stand:** 2026-11-21  
+**Stand:** 2026-11-22
+
 **Workspace:** `Balkan-Ride-2027`  
 **Leitdokument:** [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md)
 
@@ -8,6 +9,9 @@
 
 - Das Grundgerüst der Phasen 1 und 2 ist angelegt: GitHub-Workflow, Runner,
   Befehlsdateien, Skill-Hüllen und Referenzetappe `content/tag-01.md`.
+- [x] **Phase 2 abgeschlossen:** Beide Agentenstufen liefen live; der Agent
+  erstellte PR #2, der gemergt wurde. Alle Phase-2-Arbeitspunkte sind im
+  [To-do-Plan](../docs/todo_plan_v4.md) abgehakt.
 - Das private GitHub-Repository
   `https://github.com/BoeserBiker/balkan-ride-2027` ist mit lokalem `main`
   verbunden; der erste Commit `Setup V4 Grundgerüst` wurde gepusht.
@@ -18,13 +22,13 @@
   `b9cd272` liefen Planungs- und Implementierungsstufe am 2026-11-22
   erfolgreich; [PR #2](https://github.com/BoeserBiker/balkan-ride-2027/pull/2)
   wurde durch den Agenten erstellt und gemergt.
-- Branch Protection für `main` ist nicht aktiviert: GitHub meldet, dass die
-  Funktion für dieses private Repository ein Upgrade oder ein öffentliches
-  Repository voraussetzt. Die Sichtbarkeit wurde nicht geändert.
+- Die GitHub-API meldete, dass klassische Branch Protection für dieses private
+  Repository ein Upgrade oder ein öffentliches Repository voraussetzt. Beim
+  direkten Push auf `main` meldete GitHub außerdem, dass eine PR-Regel
+  umgangen wurde; daher weiterhin Änderungen bevorzugt über PRs einbringen.
 - Die Befehlsdateien wurden mit den Vorlagen des Master-Plans verglichen; das
-  YAML der Referenzetappe wurde gegen Abschnitt 3A geprüft. Der Agent wurde
-  lokal mit simulierten API-Aufrufen getestet; ein echter Git-Push wurde nur
-  gegen ein temporäres lokales Test-Remote geprüft. Kein Live-Lauf auf GitHub.
+  YAML der Referenzetappe wurde gegen Abschnitt 3A geprüft. Der Agent-Workflow
+  wurde mit Issue #1 live durchlaufen; PR #2 wurde am 2026-11-22 gemergt.
 - `index.html`, PWA-Dateien, die übrigen 19 Etappen, GPX-Dateien und echte
   Mediendateien sind noch nicht Bestandteil des Grundgerüsts.
 - Der Agent-Workflow verwendet die GitHub-Repository-Variable
@@ -66,6 +70,11 @@
   `/plan-item`-Kommentare von diesem Benutzer. `implement-stage` akzeptiert
   `/implement-item`-Kommentare. Die Runner-Prüfung normalisiert Rand-
   Leerraum und verlangt danach weiterhin den vollständigen exakten Befehl.
+- PR #2 wurde erfolgreich gemergt. Lokales `main` wurde mit
+  `git pull --rebase origin main` auf den Merge-Commit
+  `d5cf6da47a3c2fb43bd2a67c72c943e293ef9859` gebracht; der Vignettenhinweis
+  ist in `content/tag-01.md` enthalten. Der lokale Dokumentations-Commit
+  `85cd970` wurde danach auf `origin/main` gepusht.
 - Lokal verifiziert: Workflow-YAML geparst, Python-Syntax/Diagnosen ohne
   Fehler und erlaubte sowie abgelehnte Eventfälle geprüft. GitHub akzeptierte
   den direkten Push nach `main`, meldete dabei jedoch, dass die PR-Regel

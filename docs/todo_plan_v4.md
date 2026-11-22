@@ -24,6 +24,8 @@
 ## Phase 2: Einheitliche Skills & zweistufige Automatisierung (Tag 2)
 *Ziel: Das Regelwerk („Erst planen, dann bauen“) definieren und den Cloud-Agenten für Issues & Pull Requests scharfstellen.*
 
+* [x] **Phase 2 abgeschlossen:** Planungs- und Implementierungsstufe live ausgeführt; [PR #2](https://github.com/BoeserBiker/balkan-ride-2027/pull/2) wurde erfolgreich gemergt (2026-11-22).
+
 * [x] **Einheitliche Befehlsdateien & Skills anlegen (Single Source of Truth)**
   * [x] `config/commands/plan-item.md` mit YAML-Frontmatter (`description`) und Regeln für Analyse, YAML-V4-Prüfung und Erstellung des `## Umsetzungsplan`-Kommentars anlegen.
   * [x] `config/commands/implement-item.md` mit Regeln für Branch-Erstellung (`feature/issue-XX`), Beibehaltung des V4-YAML-Schemas (inkl. Koordinaten & Medien) und Pull-Request-Eröffnung anlegen.
