@@ -13,6 +13,18 @@ function formatDate(value) {
   }).format(date);
 }
 
+function formatDuration(value) {
+  const match = value.match(/^\s*(\d+(?:[,.]\d+)?)\s*Modell-h\s*$/);
+  if (!match) {
+    return value;
+  }
+  const minutes = Math.round(Number(match[1].replace(',', '.')) * 60);
+  if (minutes === 0) {
+    return '0 Std.';
+  }
+  return `ca. ${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')} h`;
+}
+
 function mediaPathMap(assets) {
   return Object.fromEntries(
     Object.entries(assets).map(([source, url]) => [source.replace('../../', ''), url]),
@@ -135,7 +147,7 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
     </div>
     <dl class="stats-grid">
       <div><dt>STRECKE</dt><dd>${escapeHtml(frontmatter.kilometer)} <small>km</small></dd></div>
-      <div><dt>FAHRZEIT</dt><dd>${escapeHtml(frontmatter.fahrzeit)}</dd></div>
+      <div><dt>FAHRZEIT</dt><dd>${escapeHtml(formatDuration(frontmatter.fahrzeit))}</dd></div>
       <div><dt>HÖHENMETER*</dt><dd>${escapeHtml(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
     </dl>
     <p class="muted-copy">* Vorläufig aus einer rekonstruierten Route geschätzt; eine GPX-Prüfung steht aus.</p>

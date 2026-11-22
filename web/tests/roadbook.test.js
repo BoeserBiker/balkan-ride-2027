@@ -42,3 +42,29 @@ test('gallery renders attribution links and nocookie video', () => {
   assert.match(html, /allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen/);
   assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=abcdefghijk" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen/);
 });
+
+test('model hours are displayed as rounded hours and minutes without changing the source', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
+      kilometer: 10, fahrzeit: '', hoehenmeter: 10, highlights: [], bilder: [], videos: [],
+    },
+    body: '',
+  };
+  const options = {
+    marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text }, assetUrls: {},
+  };
+  for (const [input, expected] of [
+    ['2,88 Modell-h', 'ca. 2:53 h'],
+    ['5,09 Modell-h', 'ca. 5:05 h'],
+    ['0,00 Modell-h', '0 Std.'],
+    ['0,06 Modell-h', 'ca. 0:04 h'],
+    ['1.999 Modell-h', 'ca. 2:00 h'],
+    ['1 h & Pause', '1 h &amp; Pause'],
+  ]) {
+    day.frontmatter.fahrzeit = input;
+    const html = renderDayContent(day, options);
+    assert.ok(html.includes(`<dt>FAHRZEIT</dt><dd>${expected}</dd>`), input);
+    assert.equal(day.frontmatter.fahrzeit, input);
+  }
+});
