@@ -27,12 +27,14 @@ function renderShell() {
           <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
           <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
         </a>
+      </div>
+      <div class="header-navigation">
+        <nav class="site-nav" aria-label="Hauptnavigation">
+          <a href="#roadbook">Etappen</a>
+          <a href="#logistics">Logistik</a>
+        </nav>
         <button id="version-badge" class="version-badge" type="button" aria-haspopup="dialog" aria-controls="version-history" disabled>Version lädt</button>
       </div>
-      <nav class="site-nav" aria-label="Hauptnavigation">
-        <a href="#roadbook">Etappen</a>
-        <a href="#logistics">Logistik</a>
-      </nav>
     </header>
 
     <main id="top">
@@ -129,7 +131,7 @@ async function loadVersionHistory() {
         && typeof entry.date === 'string' && typeof entry.message === 'string')) {
       throw new Error('Ungültiges Format der Versionsdatei.');
     }
-    badge.textContent = `· ${data.version}`;
+    badge.textContent = data.version;
     badge.setAttribute('aria-label', `Versionsverlauf öffnen, aktuelle Version ${data.version}`);
     list.innerHTML = data.history.map((entry) => `
       <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>

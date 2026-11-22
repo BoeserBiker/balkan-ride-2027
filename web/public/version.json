@@ -1,6 +1,11 @@
 {
-  "version": "v2.37",
+  "version": "v2.38",
   "history": [
+    {
+      "version": "v2.38",
+      "date": "2026-11-22",
+      "message": "POI-Pins mit Mouseover-Info auf Hoehenprofil ergaenzt"
+    },
     {
       "version": "v2.37",
       "date": "2026-11-22",
