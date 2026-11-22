@@ -49,6 +49,9 @@ videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/P263UreG3s4
     titel: 'Riding motorcycles through the Perast town in Kotor Bay Montenegro #bmwmotorrad'
+  - typ: "youtube"
+    quelle: "https://www.youtube-nocookie.com/embed/agPVhR3WV4M"
+    titel: "Serpentinen-Abfahrt nach Kotor bei Sonnenuntergang über der Bucht"
 ---
 
 ## Von Durmitor an die Bucht
