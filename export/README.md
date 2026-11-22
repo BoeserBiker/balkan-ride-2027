@@ -66,8 +66,10 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   vorbereitet werden. `python3 scripts/fetch_stage_media.py --images-only`
   ergänzt bis auf vier Commons-JPEGs mit CC-Lizenz und Quellenangaben pro Tag;
   bestehende Medien werden nicht überschrieben. Die Treffer sind fachlich zu
-  prüfen. `--youtube-only` sucht separat nach Videos und benötigt
-  `YOUTUBE_API_KEY` aus der Umgebung oder der ignorierten `.env`. Ohne Flag
+  prüfen. `--youtube-only` sucht separat nach Videos mit einer geprüften Länge
+  von 5 bis 120 Sekunden und benötigt `YOUTUBE_API_KEY` aus der Umgebung oder
+  der ignorierten `.env`. Bereits vorhandene Videoeinträge bleiben unverändert
+  und werden nicht erneut geprüft oder ersetzt. Ohne Flag
   werden beide Modi ausgeführt. Videos von YouTube benötigen eine Verbindung;
   lokale Bilder sind nach dem Laden im Service-Worker-Cache verfügbar.
 - Der Web-Build erzeugt das GPX-ZIP aus den 22 Tagesdateien. D19 ist darin

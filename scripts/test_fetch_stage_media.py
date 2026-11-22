@@ -63,9 +63,10 @@ class StageMediaTests(unittest.TestCase):
 
     @patch.object(media, "request_json")
     def test_youtube_embed_uses_nocookie_and_header(self, request):
-        request.return_value = {"items": [
-            {"id": {"videoId": "abcdefghijk"}, "snippet": {"title": "Tour &amp; Pass"}}
-        ]}
+        request.side_effect = [
+            {"items": [{"id": {"videoId": "abcdefghijk"}, "snippet": {"title": "Tour &amp; Pass"}}]},
+            {"items": [{"id": "abcdefghijk", "contentDetails": {"duration": "PT1M30S"}}]},
+        ]
         source = '---\ntag: 3\nbilder: []\nvideos: []\n---\nText.\n'
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "stage.md"
@@ -74,7 +75,62 @@ class StageMediaTests(unittest.TestCase):
             _, stage = media.load_stage(path)
         self.assertEqual(stage["videos"][0]["quelle"], "https://www.youtube-nocookie.com/embed/abcdefghijk")
         self.assertEqual(stage["videos"][0]["titel"], "Tour & Pass")
-        self.assertEqual(request.call_args.args[2], {"X-Goog-Api-Key": "test-key"})
+        search, details = request.call_args_list
+        self.assertEqual(search.args[1]["videoDuration"], "short")
+        self.assertEqual(search.args[1]["videoEmbeddable"], "true")
+        self.assertEqual(details.args[0], media.YOUTUBE_VIDEOS_API)
+        self.assertEqual(details.args[1], {"part": "contentDetails", "id": "abcdefghijk"})
+        self.assertEqual(details.args[2], {"X-Goog-Api-Key": "test-key"})
+
+    @patch.object(media, "request_json")
+    def test_youtube_duration_limits_and_missing_details(self, request):
+        source = '---\ntag: 3\nbilder: []\nvideos: []\n---\nText.\n'
+        for duration, accepted in [
+            ("PT4S", False), ("PT5S", True), ("PT2M", True),
+            ("PT120.01S", False), ("PT2M1S", False), ("PT1H", False),
+            ("PT", False), (None, False),
+        ]:
+            with self.subTest(duration=duration), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "stage.md"
+                path.write_text(source, encoding="utf-8")
+                request.side_effect = [
+                    {"items": [{"id": {"videoId": "abcdefghijk"}}]},
+                    {"items": [{"id": "abcdefghijk", "contentDetails": {"duration": duration}}]},
+                ]
+                if accepted:
+                    media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
+                    self.assertEqual(len(media.load_stage(path)[1]["videos"]), 1)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "5–120 Sekunden"):
+                        media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
+                    self.assertEqual(path.read_text(encoding="utf-8"), source)
+
+    @patch.object(media, "request_json")
+    def test_youtube_skips_unusable_candidates_in_search_order(self, request):
+        source = '---\ntag: 3\nbilder: []\nvideos: []\n---\nText.\n'
+        request.side_effect = [
+            {"items": [{"id": {"videoId": value}} for value in ("aaaaaaaaaaa", "bbbbbbbbbbb", "ccccccccccc")]},
+            {"items": [
+                {"id": "ccccccccccc", "contentDetails": {"duration": "PT5S"}},
+                {"id": "aaaaaaaaaaa", "contentDetails": {"duration": "PT121S"}},
+            ]},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "stage.md"
+            path.write_text(source, encoding="utf-8")
+            media.add_videos(path, source, {"tag": 3, "videos": []}, "test-key")
+            self.assertTrue(media.load_stage(path)[1]["videos"][0]["quelle"].endswith("/ccccccccccc"))
+
+    @patch.object(media, "request_json")
+    def test_existing_youtube_videos_are_not_replaced_or_queried(self, request):
+        source = '---\ntag: 3\nbilder: []\nvideos:\n  - typ: youtube\n    quelle: old\n---\nText.\n'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "stage.md"
+            path.write_text(source, encoding="utf-8")
+            text, stage = media.load_stage(path)
+            media.add_videos(path, text, stage, "test-key")
+            self.assertEqual(path.read_text(encoding="utf-8"), source)
+        request.assert_not_called()
 
     @patch.object(media, "youtube_key", side_effect=AssertionError("API-Schlüssel gelesen"))
     @patch.object(media, "add_images")

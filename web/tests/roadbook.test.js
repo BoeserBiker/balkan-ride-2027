@@ -68,3 +68,39 @@ test('model hours are displayed as rounded hours and minutes without changing th
     assert.equal(day.frontmatter.fahrzeit, input);
   }
 });
+
+test('highlights select matching available photos or fall back by index', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
+      kilometer: 10, fahrzeit: '1 h', hoehenmeter: 10,
+      highlights: ['VRŠIČ Pass', 'Kein Treffer', 'Unbekannt', 'Blick'],
+      bilder: [
+        { datei: 'assets/media/first.jpg', beschreibung: 'Dorf', alt: 'Blick' },
+        { datei: 'assets/media/second.jpg', beschreibung: 'Berge', title: 'Vrsic Pass Gipfel' },
+        { datei: 'assets/media/missing.jpg', beschreibung: 'VRŠIČ Pass' },
+      ],
+      videos: [],
+    },
+    body: '',
+  };
+  const options = {
+    marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text },
+    assetUrls: {
+      '../../assets/media/first.jpg': '/first.jpg',
+      '../../assets/media/second.jpg': '/second.jpg',
+    },
+  };
+  const html = renderDayContent(day, options);
+  const buttons = [...html.matchAll(/<button class="highlight-badge highlight-button"[^>]+>/g)].map((match) => match[0]);
+  assert.equal(buttons.length, 4);
+  assert.match(buttons[0], /data-lightbox-src="\/second\.jpg"/);
+  assert.match(buttons[1], /data-lightbox-src="\/second\.jpg"/);
+  assert.match(buttons[2], /data-lightbox-src="\/first\.jpg"/);
+  assert.match(buttons[3], /data-lightbox-src="\/first\.jpg"/);
+  assert.match(buttons[0], /data-lightbox-caption="Berge"/);
+
+  const withoutPhotos = renderDayContent(day, { ...options, assetUrls: {} });
+  assert.doesNotMatch(withoutPhotos, /class="highlight-badge highlight-button"/);
+  assert.match(withoutPhotos, /<span class="highlight-badge">VRŠIČ Pass<\/span>/);
+});

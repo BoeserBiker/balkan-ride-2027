@@ -178,7 +178,9 @@ h1, h2, h3, p { margin-top: 0; }
 .day-section, .story-section { margin-top: 25px; }
 .day-section h3, .story-section h3 { margin-bottom: 13px; font-size: 13px; font-weight: 650; letter-spacing: .01em; }
 .highlight-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.highlight-list li { padding: 7px 10px; border: 1px solid #354139; border-radius: 3px; background: rgba(131,160,139,.08); color: #c5d0c7; font-size: 10px; }
+.highlight-badge { display: inline-block; padding: 7px 10px; border: 1px solid #354139; border-radius: 3px; background: rgba(131,160,139,.08); color: #c5d0c7; font-size: 10px; text-align: left; }
+.highlight-button { cursor: pointer; }
+.highlight-button:hover, .highlight-button:focus-visible { border-color: var(--accent); color: #fff; }
 .muted-copy { color: var(--muted); font-size: 12px; }
 .story-section { padding-top: 21px; border-top: 1px solid var(--line); }
 .roadbook-copy { color: #c2c9c3; font-size: 13px; line-height: 1.78; }

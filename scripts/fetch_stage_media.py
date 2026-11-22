@@ -2,6 +2,7 @@
 """Ergänzt Etappenmedien aus Wikimedia Commons und optional YouTube."""
 
 import argparse
+from decimal import Decimal
 import html
 from html.parser import HTMLParser
 import json
@@ -21,6 +22,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3/search"
+YOUTUBE_VIDEOS_API = "https://www.googleapis.com/youtube/v3/videos"
 USER_AGENT = "BalkanRide2027/1.0 (Wikimedia Commons stage media research)"
 IMAGE_COUNT = 4
 IMAGE_QUERIES = {
@@ -252,6 +254,16 @@ def youtube_key():
     return key
 
 
+def duration_seconds(value):
+    if not isinstance(value, str):
+        raise ValueError(f"Ungültige YouTube-Dauer: {value!r}")
+    match = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:[.,]\d+)?)S)?", value)
+    if not match or not any(match.groups()):
+        raise ValueError(f"Ungültige YouTube-Dauer: {value!r}")
+    hours, minutes, seconds = match.groups()
+    return int(hours or 0) * 3600 + int(minutes or 0) * 60 + Decimal((seconds or "0").replace(",", "."))
+
+
 def add_videos(path, text, stage, key):
     existing = stage.get("videos")
     if not isinstance(existing, list):
@@ -262,11 +274,30 @@ def add_videos(path, text, stage, key):
     query = f"{IMAGE_QUERIES[stage['tag']][0]} motorcycle travel drone"
     response = request_json(YOUTUBE_API, {
         "part": "snippet", "type": "video", "videoEmbeddable": "true",
-        "maxResults": 5, "q": query,
+        "videoDuration": "short", "maxResults": 5, "q": query,
     }, {"X-Goog-Api-Key": key})
-    for item in response.get("items", []):
-        video_id = item.get("id", {}).get("videoId", "")
-        if re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+    candidates = [
+        item for item in response.get("items", [])
+        if re.fullmatch(r"[A-Za-z0-9_-]{11}", item.get("id", {}).get("videoId", ""))
+    ]
+    if candidates:
+        details = request_json(YOUTUBE_VIDEOS_API, {
+            "part": "contentDetails",
+            "id": ",".join(item["id"]["videoId"] for item in candidates),
+        }, {"X-Goog-Api-Key": key})
+        durations = {
+            item["id"]: item.get("contentDetails", {}).get("duration", "")
+            for item in details.get("items", []) if "id" in item
+        }
+        for item in candidates:
+            video_id = item["id"]["videoId"]
+            try:
+                seconds = duration_seconds(durations.get(video_id, ""))
+            except ValueError as error:
+                print(f"{path.name}: {video_id}: {error}", file=sys.stderr)
+                continue
+            if not 5 <= seconds <= 120:
+                continue
             title = html.unescape(item.get("snippet", {}).get("title", "Etappenvideo"))
             write_field(path, text, "videos", [{
                 "typ": "youtube",
@@ -275,7 +306,7 @@ def add_videos(path, text, stage, key):
             }])
             print(f"{path.name}: YouTube-Video eingetragen.")
             return
-    raise RuntimeError(f"{path.name}: kein einbettbares YouTube-Video gefunden")
+    raise RuntimeError(f"{path.name}: kein einbettbares YouTube-Video mit 5–120 Sekunden gefunden")
 
 
 def main():

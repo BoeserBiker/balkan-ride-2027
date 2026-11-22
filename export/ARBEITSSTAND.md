@@ -105,6 +105,21 @@
 
 ## Chronologie
 
+### 2026-11-22 – Highlight-Fotos und Kurzvideo-Filter
+
+- Highlights mit verfügbaren Bildern öffnen die bestehende Lightbox. Die
+  Bildauswahl nutzt Stichworttreffer in Bildtexten und andernfalls den
+  Highlight-Index; ohne verfügbare Bilder bleiben die Hinweise reiner Text.
+- Die YouTube-Suche ist für den späteren eigenen Lauf auf kurze Treffer
+  vorbereitet und prüft deren tatsächliche Dauer auf 5 bis 120 Sekunden.
+  Bereits eingetragene Videos werden weiterhin weder geprüft noch ersetzt.
+  Das Skript wurde nicht ausgeführt und es erfolgten keine YouTube-API-Aufrufe.
+- Der Service-Worker-Cache nutzt Version 7. Grenzwerte und Bildauswahl wurden
+  mit simulierten API-Antworten beziehungsweise Frontend-Tests geprüft;
+  Produktionsbuild erfolgreich. Ein serverloser Browser-Test bestätigte das
+  Öffnen des ausgewählten Bildes per Tastatur. Die Live-YouTube-Suche bleibt
+  ungeprüft.
+
 ### 2026-11-22 – Etappen-Navigation veröffentlicht
 
 - Die Zusammenführung von `feature/fahrzeit-etappen-navigation` nach `main`

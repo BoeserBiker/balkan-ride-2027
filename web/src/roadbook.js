@@ -43,6 +43,35 @@ function externalLink(url, label) {
   return escapeHtml(label);
 }
 
+function lightboxAttributes(photo, url) {
+  const caption = photo.beschreibung || photo.caption || photo.title || photo.titel || photo.alt || 'Etappenfoto';
+  const credit = photo.urheber && photo.lizenz
+    ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
+    : '';
+  return `data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeHtml(caption)}" data-lightbox-caption="${escapeHtml([caption, credit].filter(Boolean).join(' · '))}"`;
+}
+
+function keywords(text) {
+  const commonWords = new Set(['und', 'der', 'die', 'das', 'von', 'nach', 'mit', 'zum', 'zur', 'den', 'and', 'the', 'with', 'for']);
+  return new Set((text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().match(/[\p{L}\p{N}]+/gu) || [])
+    .filter((word) => word.length >= 3 && !commonWords.has(word)));
+}
+
+function highlightPhoto(highlight, index, photos) {
+  const words = keywords(highlight);
+  let bestPhoto;
+  let bestScore = 0;
+  for (const photo of photos) {
+    const photoWords = keywords([photo.beschreibung, photo.titel, photo.title, photo.caption, photo.alt].filter(Boolean).join(' '));
+    const score = [...words].filter((word) => photoWords.has(word)).length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestPhoto = photo;
+    }
+  }
+  return bestPhoto || photos[index % photos.length];
+}
+
 function renderPhoto(photo, urls) {
   const url = urls[photo.datei];
   if (!url) {
@@ -61,10 +90,7 @@ function renderPhoto(photo, urls) {
     : '';
   return `
     <figure class="photo-card">
-      <button class="photo-button" type="button"
-        data-lightbox-src="${escapeHtml(url)}"
-        data-lightbox-alt="${escapeHtml(caption)}"
-        data-lightbox-caption="${escapeHtml([caption, credit].filter(Boolean).join(' · '))}">
+      <button class="photo-button" type="button" ${lightboxAttributes(photo, url)}>
         <img src="${escapeHtml(url)}" alt="${escapeHtml(caption)}" loading="lazy">
         <span class="photo-caption">${escapeHtml(caption)}</span>
       </button>
@@ -123,8 +149,15 @@ function renderVideo(video, urls) {
 export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
   const { frontmatter, body } = day;
   const urls = mediaPathMap(assetUrls);
+  const availablePhotos = frontmatter.bilder.filter((photo) => urls[photo.datei]);
   const highlights = frontmatter.highlights.length
-    ? `<ul class="highlight-list">${frontmatter.highlights.map((highlight) => `<li>${escapeHtml(highlight)}</li>`).join('')}</ul>`
+    ? `<ul class="highlight-list">${frontmatter.highlights.map((highlight, index) => {
+      if (!availablePhotos.length) {
+        return `<li><span class="highlight-badge">${escapeHtml(highlight)}</span></li>`;
+      }
+      const photo = highlightPhoto(highlight, index, availablePhotos);
+      return `<li><button class="highlight-badge highlight-button" type="button" aria-label="Foto zum Highlight ${escapeHtml(highlight)} öffnen" ${lightboxAttributes(photo, urls[photo.datei])}><span aria-hidden="true">📷</span> ${escapeHtml(highlight)}</button></li>`;
+    }).join('')}</ul>`
     : '<p class="muted-copy">Für diese Etappe sind noch keine Highlights hinterlegt.</p>';
   const photos = frontmatter.bilder.length
     ? frontmatter.bilder.map((photo) => renderPhoto(photo, urls)).join('')
