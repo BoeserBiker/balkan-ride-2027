@@ -1,6 +1,11 @@
 {
-  "version": "v2.42",
+  "version": "v2.43",
   "history": [
+    {
+      "version": "v2.43",
+      "date": "2026-11-22",
+      "message": "Navigations-Button fuer Etappenziel und POIs ergaenzt"
+    },
     {
       "version": "v2.42",
       "date": "2026-11-22",

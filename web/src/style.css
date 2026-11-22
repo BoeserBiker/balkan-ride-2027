@@ -146,9 +146,7 @@ h1, h2, h3, p { margin-top: 0; }
 .day-picker { margin: 35px 0 27px; padding: 15px 0 13px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .day-picker-label { margin-bottom: 12px; }
 .day-picker-controls { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.day-scroll { flex: 0 0 40px; min-height: 44px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--muted); font-size: 24px; cursor: pointer; }
-.day-scroll:not(:disabled):hover, .day-scroll:focus-visible { color: var(--accent); border-color: var(--accent); }
-.day-scroll:disabled { opacity: .38; cursor: not-allowed; }
+.day-scroll { flex: 0 0 40px; min-height: 44px; font-size: 24px; cursor: pointer; }
 .day-list { display: flex; flex: 1 1 auto; min-width: 0; gap: 7px; overflow-x: auto; margin: 0; padding: 1px 8px 7px; scroll-padding-inline: 8px; list-style: none; scrollbar-color: #536056 transparent; scrollbar-width: thin; }
 .day-link {
   display: flex;
@@ -261,11 +259,12 @@ h1, h2, h3, p { margin-top: 0; }
 .video-gallery .media-caption { padding-left: 0; }
 
 .day-navigation { display: flex; justify-content: space-between; gap: 10px; margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); }
-.button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 9px; padding: 0 13px; border: 1px solid transparent; border-radius: 3px; font-size: 9px; font-weight: 700; letter-spacing: .08em; cursor: pointer; }
-.button:disabled { opacity: .38; cursor: not-allowed; }
-.button-secondary { border-color: var(--line); background: transparent; color: #c4cbc5; }
-.button-primary { background: var(--accent); color: #17140f; }
-.button:not(:disabled):hover { filter: brightness(1.09); }
+.button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 9px; padding: 0 13px; font-size: 9px; font-weight: 700; letter-spacing: .08em; cursor: pointer; }
+.button, .day-scroll { border: 1px solid var(--accent); border-radius: 4px; background: var(--accent); color: #17140f; }
+.button:disabled, .day-scroll:disabled { opacity: .38; cursor: not-allowed; }
+.button:not(:disabled):hover, .day-scroll:not(:disabled):hover { filter: brightness(1.09); }
+.button:not(:disabled):active, .day-scroll:not(:disabled):active { filter: brightness(.9); }
+.button:focus-visible, .day-scroll:focus-visible { outline: 2px solid #fff3d6; outline-offset: 2px; }
 
 .logistics-section { padding: 70px clamp(20px, 6vw, 96px) 62px; border-top: 1px solid rgba(255,255,255,.08); background: #141815; }
 .section-heading { max-width: 700px; margin: 0 auto 30px; text-align: center; }
