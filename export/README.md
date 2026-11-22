@@ -42,6 +42,10 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   App ist unter
   [boeserbiker.github.io/balkan-ride-2027](https://boeserbiker.github.io/balkan-ride-2027/)
   erreichbar.
+- Die SVG-Vorlage und die daraus erzeugten PWA-Icons liegen in
+  `../web/public/`. Bei einer Motivänderung PNGs erneut aus der SVG erzeugen,
+  die Icon-URLs in HTML, Manifest und Header sowie den Service-Worker-Cache
+  gemeinsam versionieren und die Aktualisierung auf Mobilgeräten prüfen.
 - [Chatverlauf-Inventar](../daten/chat_verlauf/README.md) – lokale
   Gesprächssicherungen und deren Einschränkungen.
 - Der lokale Final-Plan V7 liegt im Geschwister-Workspace unter

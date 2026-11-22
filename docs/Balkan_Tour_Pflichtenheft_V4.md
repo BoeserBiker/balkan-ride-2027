@@ -21,7 +21,7 @@ Entwicklung einer hochprofessionellen, mobilen und leicht bedienbaren Web-Präse
   * **Technologies:** HTML5, Tailwind CSS (Dark Adventure Design), Vanilla JavaScript (ES6+), Leaflet.js (interaktive OpenStreetMap-/Topografie-Karten).
   * **Build:** Der App-Quellcode liegt unter `web/` und wird mit Vite ohne Laufzeit-Framework gebaut. Beim Build werden alle `content/tag-*.md`-Dateien samt YAML-Frontmatter eingelesen; das Ergebnis liegt unter `web/dist/` und verwendet den GitHub-Pages-Unterpfad `/balkan-ride-2027/`.
   * **Responsives Split-/Sheet-Layout:** Desktop als Split-Screen (interaktive Karte links, scrollbare Step-Chronik rechts); Mobile/PWA mit fixierter oberer Kartenansicht und interaktivem Bottom-Sheet bzw. Step-Switcher für Einhandbedienung.
-* **PWA-Erweiterung (Pflicht):** Web App Manifest (`web/public/manifest.json`), Service Worker (`web/public/sw.js`) sowie App-Icons aus `assets/icons/` und Einbindung in `web/index.html` zur Homescreen-Installation und kontrollierten Zwischenspeicherung.
+* **PWA-Erweiterung (Pflicht):** Web App Manifest (`web/public/manifest.json`), Service Worker (`web/public/sw.js`) sowie App-Icons aus `web/public/` und Einbindung in `web/index.html` zur Homescreen-Installation und kontrollierten Zwischenspeicherung.
 * **Datenhaltung (Micro-Files & Medien):**
   * Aufteilung der 22 Reisetage des geprüften Final-Plans V7 in einzelne Markdown-Dateien (`content/tag-01.md` bis `content/tag-22.md`) mit dem erweiterten YAML-Frontmatter für Geokoordinaten, Etappendaten sowie strukturierte Medienlisten (`bilder`, `videos`). Das V4-Feldschema bleibt unverändert.
   * Ablage von komprimierten Tourfotos, Vorschaubildern (Thumbnails) und GPX-Tracks in organisierten Unterordnern unter `assets/`.
@@ -85,7 +85,6 @@ balkan-tour-2027/
 │   ├── tag-02.md
 │   └── ... (bis tag-22.md)
 ├── assets/
-│   ├── icons/          (PWA-Icons 192x192, 512x512, Apple-Touch-Icon)
 │   ├── gpx/            (Gesamtroute + tag-01.gpx bis tag-22.gpx)
 │   └── media/
 │       ├── tag-01/     (Komprimierte Fotos & Videos für Step 1)
@@ -98,7 +97,8 @@ balkan-tour-2027/
 │   ├── src/            (Vanilla-JS-App, Leaflet-Karte und Styles)
 │   └── public/
 │       ├── manifest.json
-│       └── sw.js
+│       ├── sw.js
+│       └── favicon.svg, apple-touch-icon.png, icon-192.png, icon-512.png
 ├── app_spezifikation_polarsteps.md
 ├── Balkan_Tour_Pflichtenheft_V4.md
 └── todo_plan.md

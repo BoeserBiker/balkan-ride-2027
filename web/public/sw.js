@@ -1,10 +1,15 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
+const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll([self.registration.scope, new URL('manifest.json', self.registration.scope)]);
+    await cache.addAll([
+      self.registration.scope,
+      new URL('manifest.json?v=3', self.registration.scope),
+      ...ICON_PATHS.map((path) => new URL(`${path}?v=3`, self.registration.scope)),
+    ]);
     await self.skipWaiting();
   })());
 });
@@ -47,7 +52,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (requestUrl.pathname.includes('/assets/')) {
+  if (requestUrl.pathname.includes('/assets/')
+    || ICON_PATHS.some((path) => requestUrl.pathname === new URL(path, scopeUrl).pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       if (requestUrl.pathname.includes('/assets/gpx/')) {

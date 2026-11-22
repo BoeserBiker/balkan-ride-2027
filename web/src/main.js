@@ -21,7 +21,7 @@ function renderShell() {
   app.innerHTML = `
     <header class="site-header flex items-center justify-between">
       <a class="brand" href="#top" aria-label="Balkan-Ride 2027 Startseite">
-        <span class="brand-mark" aria-hidden="true">BR</span>
+        <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
         <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
       </a>
       <nav class="site-nav" aria-label="Hauptnavigation">

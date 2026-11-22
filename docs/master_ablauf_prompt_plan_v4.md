@@ -40,7 +40,6 @@ Balkan-Ride-2027/
 │   ├── tag-01.md
 │   └── ... (bis tag-22.md)
 ├── assets/
-│   ├── icons/          (PWA-Icons 192x192, 512x512, Apple-Touch-Icon)
 │   ├── gpx/            (Gesamtroute + tag-01.gpx bis tag-22.gpx)
 │   └── media/
 │       ├── tag-01/     (Komprimierte Fotos & Videos für Step 1)
@@ -58,7 +57,8 @@ Balkan-Ride-2027/
 │   ├── src/
 │   └── public/
 │       ├── manifest.json
-│       └── sw.js
+│       ├── sw.js
+│       └── favicon.svg, apple-touch-icon.png, icon-192.png, icon-512.png
 ```
 
 ### Schritt 2.1: Einheitliche Befehlsdateien (`config/commands/`)

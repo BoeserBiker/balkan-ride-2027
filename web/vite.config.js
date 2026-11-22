@@ -7,7 +7,6 @@ import matter from 'gray-matter';
 
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
 const contentDirectory = path.resolve(webDirectory, '../content');
-const iconDirectory = path.resolve(webDirectory, '../assets/icons');
 const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
 const virtualModuleId = 'virtual:roadbook-content';
 const resolvedVirtualModuleId = `\0${virtualModuleId}`;
@@ -109,27 +108,10 @@ function roadbookContentPlugin() {
           }
           return;
         }
-        const fileName = pathname.startsWith(`${base}assets/icons/`)
-          ? path.basename(pathname)
-          : '';
-        if (!/^balkan-ride(?:-\d+|-apple-touch)?\.(?:svg|png)$/.test(fileName)) {
-          next();
-          return;
-        }
-        response.setHeader('Content-Type', fileName.endsWith('.svg') ? 'image/svg+xml' : 'image/png');
-        response.end(await readFile(path.join(iconDirectory, fileName)));
+        next();
       });
     },
     async generateBundle() {
-      const iconFiles = (await readdir(iconDirectory))
-        .filter((name) => /^balkan-ride(?:-\d+|-apple-touch)?\.(?:svg|png)$/.test(name));
-      for (const fileName of iconFiles) {
-        this.emitFile({
-          type: 'asset',
-          fileName: `assets/icons/${fileName}`,
-          source: await readFile(path.join(iconDirectory, fileName)),
-        });
-      }
       const gpxFiles = (await readdir(gpxDirectory)).filter((name) => /^tag-\d{2}\.gpx$/.test(name));
       for (const fileName of gpxFiles) {
         this.emitFile({

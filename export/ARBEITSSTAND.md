@@ -39,6 +39,13 @@
 - PWA-Manifest, Service Worker und Icons in den Größen 192, 512 und Apple
   Touch sind vorhanden. `.github/workflows/deploy-pages.yml` baut und
   veröffentlicht `web/dist/` bei Pushes auf `main`.
+- Das Reiseenduro-Motiv liegt als gemeinsame SVG-Vorlage in
+  [`web/public/favicon.svg`](../web/public/favicon.svg); die drei PNG-Icons
+  liegen daneben. Header, HTML und Manifest verwenden dasselbe Motiv.
+  Das Motorrad zeigt nach links und trägt blaue und weiße Akzente.
+  Service-Worker-Cache und Icon-URLs sind auf Version 3 gesetzt. Die
+  tatsächliche Aktualisierung bereits installierter Homescreen-Icons auf
+  iOS und Android muss auf Geräten geprüft werden.
 - Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
@@ -96,6 +103,28 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Reiseenduro auf Blau-Weiß umgestellt
+
+- Das Motorradmotiv wurde gespiegelt und zeigt nun nach links; orangefarbene
+  Akzente wurden durch Blau und Weiß ersetzt. Die drei PNG-Icons wurden aus
+  der SVG-Vorlage neu erzeugt und die Rahmenfarbe im Header angepasst.
+- Service-Worker-Cache und Icon-URLs wurden auf Version 3 erhöht. Der Build und
+  die PNG-Abmessungen wurden geprüft; ein Test auf iOS und Android bleibt offen.
+
+### 2026-11-22 – Reiseenduro-Logo und PWA-Icons
+
+- Fahrrad-Icon durch eine Reiseenduro mit Windschild, Schnabel, Speichenrädern
+  und Gepäck ersetzt. SVG und PNG-Icons (180, 192 und 512 Pixel) liegen in
+  `web/public/`; die bisherigen Fahrrad-Icons in `assets/icons/` wurden entfernt.
+- Header, HTML und Manifest verwenden die neuen Dateien. Der Service Worker
+  nutzt Cache-Version 2 und hält die versionierten Icons für Offline-Zugriffe
+  bereit. Bestehende iOS-/Android-Installationen können die Aktualisierung
+  ihres Homescreen-Icons unabhängig vom Service Worker verzögert übernehmen.
+- Verifikation: PNG-Abmessungen, Manifest- und Build-Dateien geprüft;
+  `npm run build --prefix web` erfolgreich. Service-Worker-Installation,
+  Löschen des alten Caches und Offline-Zugriffe auf Icon und Startseite wurden
+  simuliert. Ein Smartphone-Test steht aus.
 
 ### 2026-11-22 – Änderungen für lokalen Commit gebündelt
 

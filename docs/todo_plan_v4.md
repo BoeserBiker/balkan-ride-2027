@@ -53,7 +53,7 @@
   * [x] Markdown-/YAML-Inhalte beim Build einlesen; Etappen-Pins, Step-Navigation, `flyTo`, Desktop-Split-Layout und mobiles Karten-/Sheet-Layout umsetzen.
   * [x] Foto-/Video-Galerie mit Lightbox, Lazy Loading und verständlichen Leerzuständen für noch fehlende Dateien integrieren.
 * [x] **PWA-Funktionen integrieren (Pflichtszenario)**
-  * [x] `web/public/manifest.json` und App-Icons (`192x192`, `512x512`, Apple-Touch-Icon) in `assets/icons/` anlegen.
+  * [x] `web/public/manifest.json` und App-Icons (`192x192`, `512x512`, Apple-Touch-Icon) in `web/public/` anlegen.
   * [x] `web/public/sw.js` für kontrolliertes Caching und Aktualisierungen einrichten und in `web/index.html` verknüpfen.
 * [x] **GitHub-Pages-Deployment automatisieren**
   * [x] `.github/workflows/deploy-pages.yml` baut und veröffentlicht `web/dist/` bei Pushes auf `main`.
