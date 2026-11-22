@@ -1,6 +1,11 @@
 {
-  "version": "v2.41",
+  "version": "v2.42",
   "history": [
+    {
+      "version": "v2.42",
+      "date": "2026-11-22",
+      "message": "Smartphone-Optimierungen (strikt <=768px, Desktop unveraendert)"
+    },
     {
       "version": "v2.41",
       "date": "2026-11-22",

@@ -1,5 +1,5 @@
 import { distanceBetween, sampleRouteTrack } from './route-scrubber.js';
-import { escapeHtml } from './html.js';
+import { escapeHtml, googleMapsDirectionsUrl } from './html.js';
 
 const WIDTH = 420;
 const LEFT = 48;
@@ -136,6 +136,7 @@ export function renderElevationProfile(profile) {
       <strong data-poi-title></strong>
       <span data-poi-description></span>
       <span data-poi-position></span>
+      <a class="poi-navigation" data-poi-navigation target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>
     </div>
     </div>
   `;
@@ -153,6 +154,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
   const title = card.querySelector('[data-poi-title]');
   const description = card.querySelector('[data-poi-description]');
   const position = card.querySelector('[data-poi-position]');
+  const navigation = card.querySelector('[data-poi-navigation]');
 
   function showPoi(poi) {
     container.querySelectorAll('[data-elevation-poi]').forEach((button) => {
@@ -166,6 +168,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     position.textContent = `${decimal.format(poi.point.distanceKm)} km · ${Number.isFinite(poi.point.elevationMeters)
       ? `${elevation.format(poi.point.elevationMeters)} m`
       : 'Höhe n/v'}`;
+    navigation.href = googleMapsDirectionsUrl(poi.waypoint.latitude, poi.waypoint.longitude);
   }
 
   function update(progress, selectedPoi) {
@@ -218,7 +221,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     if (event.pointerType !== 'mouse' && chart.setPointerCapture) chart.setPointerCapture(event.pointerId);
     updateFromX(event.clientX, event.target);
   });
-  chart.addEventListener('pointerleave', (event) => { if (event.pointerType === 'mouse') reset(); });
+  container.addEventListener('pointerleave', (event) => { if (event.pointerType === 'mouse') reset(); });
   chart.addEventListener('pointercancel', reset);
   chart.addEventListener('touchmove', (event) => {
     if (window.matchMedia('(max-width: 768px)').matches) return;

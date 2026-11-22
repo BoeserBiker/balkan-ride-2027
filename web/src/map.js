@@ -1,4 +1,4 @@
-import { escapeHtml } from './html.js';
+import { escapeHtml, googleMapsDirectionsUrl } from './html.js';
 import { gpxDownload } from './gpx-download.js';
 
 function parseGpx(gpxText) {
@@ -211,7 +211,11 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
         const layer = L.circleMarker([waypoint.latitude, waypoint.longitude], waypointStyle(waypoint, index === activeIndex))
           .addTo(markerLayer)
           .bindTooltip(`${escapeHtml(waypoint.name)} · ${escapeHtml(waypoint.routeGroup)}`)
-          .on('click', () => map.fire('roadbook:select-day', { index }));
+          .on('click', () => map.fire('roadbook:select-day', { index }))
+          .bindPopup(`<strong>${escapeHtml(waypoint.name)}</strong><br>
+            ${escapeHtml(waypoint.type)} · ${escapeHtml(waypoint.routeGroup)}<br>
+            <a class="poi-navigation" href="${escapeHtml(googleMapsDirectionsUrl(waypoint.latitude, waypoint.longitude))}"
+              target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>`);
         waypointLayers.push({ layer, waypoint, dayIndex: index });
         bounds.extend([waypoint.latitude, waypoint.longitude]);
       });

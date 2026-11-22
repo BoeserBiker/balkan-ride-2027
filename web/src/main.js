@@ -10,7 +10,7 @@ import { renderDayContent } from './roadbook.js';
 import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
 import { bindElevationProfile, buildElevationProfile, renderElevationProfile } from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
-import { escapeDisplayText } from './html.js';
+import { escapeDisplayText, googleMapsDirectionsUrl } from './html.js';
 
 const app = document.querySelector('#app');
 const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg,png,webp,mp4,webm}', {
@@ -53,6 +53,7 @@ function renderShell() {
             <p id="map-status" class="map-status" aria-live="polite"></p>
             <div class="gpx-downloads">
               <a id="gpx-download" class="button button-primary" hidden>GPX Datei</a>
+              <a id="maps-navigation" class="button button-primary" target="_blank" rel="noopener noreferrer">In Karten-App öffnen</a>
               <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP</a>
             </div>
             <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
@@ -287,6 +288,7 @@ function renderApp() {
     map.setHighlightedWaypoint(null);
     activeIndex = index;
     const day = roadbookDays[index];
+    document.querySelector('#maps-navigation').href = googleMapsDirectionsUrl(...day.frontmatter.koordinaten_ziel);
     dayDetail.innerHTML = renderDayContent(day, {
       marked,
       DOMPurify,
