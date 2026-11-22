@@ -19,10 +19,11 @@ function readCollapsedState() {
     if (saved !== null && saved !== 'true' && saved !== 'false') {
       console.error('Gespeicherter Höhenprofil-Zustand ist ungültig.');
     }
+    if (saved === null) return window.innerWidth <= 768;
     collapsed = saved === 'true';
   } catch (error) {
     console.error('Höhenprofil-Zustand konnte nicht gelesen werden.', error);
-    collapsed = false;
+    return window.innerWidth <= 768;
   }
   return collapsed;
 }
@@ -220,6 +221,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
   chart.addEventListener('pointerleave', (event) => { if (event.pointerType === 'mouse') reset(); });
   chart.addEventListener('pointercancel', reset);
   chart.addEventListener('touchmove', (event) => {
+    if (window.matchMedia('(max-width: 768px)').matches) return;
     if (event.touches[0]) {
       event.preventDefault();
       updateFromX(event.touches[0].clientX, chart);

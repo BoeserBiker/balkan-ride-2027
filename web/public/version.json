@@ -1,6 +1,16 @@
 {
-  "version": "v2.39",
+  "version": "v2.41",
   "history": [
+    {
+      "version": "v2.41",
+      "date": "2026-11-22",
+      "message": "Hoehenprofil merkt sich eingeklappten Zustand beim Etappenwechsel"
+    },
+    {
+      "version": "v2.40",
+      "date": "2026-11-22",
+      "message": "Smartphone-Bedienung und einklappbares Höhenprofil verbessert"
+    },
     {
       "version": "v2.39",
       "date": "2026-11-22",

@@ -44,13 +44,19 @@ function renderShell() {
             <span class="eyebrow">SLOWENIEN · BALKAN · GRIECHENLAND</span>
             <span class="map-live"><i aria-hidden="true"></i> TOURKARTE</span>
           </div>
-          <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
-          <p id="map-status" class="map-status" aria-live="polite"></p>
-          <div class="gpx-downloads">
-            <a id="gpx-download" class="button button-primary" hidden>GPX Datei</a>
-            <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP</a>
+          <div class="mobile-map-controls" id="mobile-map-controls" hidden>
+            <button type="button" class="button button-secondary" id="mobile-map-toggle" aria-expanded="true" aria-controls="map-content">Karte einklappen</button>
+            <button type="button" class="button button-secondary" id="mobile-map-expand" aria-pressed="false" aria-controls="map-content">Große Kartenansicht</button>
           </div>
-          <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
+          <div id="map-content" class="map-content">
+            <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
+            <p id="map-status" class="map-status" aria-live="polite"></p>
+            <div class="gpx-downloads">
+              <a id="gpx-download" class="button button-primary" hidden>GPX Datei</a>
+              <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP</a>
+            </div>
+            <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
+          </div>
         </section>
 
         <section class="journey-panel" aria-label="Etappen und Roadbook">
@@ -86,6 +92,11 @@ function renderShell() {
         <p class="checklist-note">Deine Häkchen werden auf diesem Gerät gespeichert.</p>
       </section>
     </main>
+
+    <nav class="mobile-day-navigation" id="mobile-day-navigation" aria-label="Etappe wechseln" hidden>
+      <button type="button" class="button button-secondary" id="mobile-previous-day">← Zurück</button>
+      <button type="button" class="button button-primary" id="mobile-next-day">Weiter →</button>
+    </nav>
 
     <footer class="site-footer">
       <span>ALLZEIT GUTE FAHRT.</span>
@@ -156,6 +167,14 @@ function renderApp() {
   const dayDetail = document.querySelector('#day-detail');
   const previousDayButton = document.querySelector('#day-picker-previous');
   const nextDayButton = document.querySelector('#day-picker-next');
+  const mobilePreviousDay = document.querySelector('#mobile-previous-day');
+  const mobileNextDay = document.querySelector('#mobile-next-day');
+  const mobileDayNavigation = document.querySelector('#mobile-day-navigation');
+  const mobileMapControls = document.querySelector('#mobile-map-controls');
+  const mapPanel = document.querySelector('.map-panel');
+  const mapToggle = document.querySelector('#mobile-map-toggle');
+  const mapExpand = document.querySelector('#mobile-map-expand');
+  const mobileViewport = window.matchMedia('(max-width: 768px)');
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
   const lightboxCaption = lightbox.querySelector('.lightbox-caption');
@@ -164,6 +183,51 @@ function renderApp() {
   );
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
+
+  function updateMobileMapControls() {
+    const collapsed = mapPanel.classList.contains('is-map-collapsed');
+    const expanded = mapPanel.classList.contains('is-map-expanded');
+    mapToggle.textContent = collapsed ? 'Karte anzeigen' : 'Karte einklappen';
+    mapToggle.setAttribute('aria-expanded', String(!collapsed));
+    mapExpand.textContent = expanded ? 'Zurück zum Roadbook' : 'Große Kartenansicht';
+    mapExpand.setAttribute('aria-pressed', String(expanded));
+    mobileDayNavigation.hidden = !mobileViewport.matches || expanded;
+  }
+
+  function syncMobileViewport() {
+    const wasCollapsed = mapPanel.classList.contains('is-map-collapsed');
+    mobileMapControls.hidden = !mobileViewport.matches;
+    if (!mobileViewport.matches) {
+      mapPanel.classList.remove('is-map-collapsed', 'is-map-expanded');
+    }
+    updateMobileMapControls();
+    requestAnimationFrame(() => {
+      map.resize();
+      if (wasCollapsed && !mobileViewport.matches) map.selectDay(activeIndex);
+    });
+  }
+
+  mapToggle.addEventListener('click', () => {
+    const collapsed = mapPanel.classList.toggle('is-map-collapsed');
+    if (collapsed) mapPanel.classList.remove('is-map-expanded');
+    updateMobileMapControls();
+    if (!collapsed) requestAnimationFrame(() => {
+      map.resize();
+      map.selectDay(activeIndex);
+    });
+  });
+  mapExpand.addEventListener('click', () => {
+    const wasCollapsed = mapPanel.classList.contains('is-map-collapsed');
+    mapPanel.classList.remove('is-map-collapsed');
+    mapPanel.classList.toggle('is-map-expanded');
+    updateMobileMapControls();
+    requestAnimationFrame(() => {
+      map.resize();
+      if (wasCollapsed) map.selectDay(activeIndex);
+    });
+  });
+  mobileViewport.addEventListener('change', syncMobileViewport);
+  syncMobileViewport();
 
   function updateRouteScrubber(index) {
     if (index !== activeIndex) {
@@ -239,9 +303,11 @@ function renderApp() {
     }
     previousDayButton.disabled = index === 0;
     nextDayButton.disabled = index === roadbookDays.length - 1;
+    mobilePreviousDay.disabled = index === 0;
+    mobileNextDay.disabled = index === roadbookDays.length - 1;
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
-    map.selectDay(index, { moveMap });
+    map.selectDay(index, { moveMap: moveMap && !(mobileViewport.matches && mapPanel.classList.contains('is-map-collapsed')) });
     updateRouteScrubber(index);
   }
 
@@ -251,6 +317,8 @@ function renderApp() {
   nextDayButton.addEventListener('click', () => {
     selectDay(activeIndex + 1, { centerScrollBehavior: 'smooth' });
   });
+  mobilePreviousDay.addEventListener('click', () => selectDay(activeIndex - 1));
+  mobileNextDay.addEventListener('click', () => selectDay(activeIndex + 1));
   dayList.addEventListener('wheel', (event) => {
     if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
       return;

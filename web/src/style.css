@@ -342,3 +342,70 @@ h1, h2, h3, p { margin-top: 0; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .live-position-halo { animation: none; }
 }
+
+@media (max-width: 768px) {
+  :root { --muted: #c4cdc5; --quiet: #b6c1b8; }
+  #top { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .site-footer { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .site-header { min-height: 92px; }
+  .brand strong { font-size: 12px; letter-spacing: .12em; }
+  .brand small { font-size: 12px; letter-spacing: .04em; }
+  .site-nav a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; font-size: 12px; }
+  .version-badge, .day-link, .day-scroll, .route-connector, .elevation-toggle, .highlight-button,
+  .gpx-downloads .button, .day-navigation .button, .elevation-missing-pois button, .lightbox-close, .version-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .version-badge { font-size: 12px; }
+  .day-scroll { flex-basis: 44px; }
+  .eyebrow, .map-live, .day-picker-label, .stats-grid dt, .route-line small,
+  .subsection-heading > span, .map-status, .day-count span, .day-link-number,
+  .day-link-title, .day-meta, .route-line strong, .stats-grid dd small,
+  .elevation-summary, .elevation-badge, .elevation-poi-card, .elevation-missing-pois,
+  .highlight-badge, .muted-copy, .photo-caption, .media-caption, .photo-credit,
+  .checklist-grid li, .checklist-note, .site-footer, .version-history-list time,
+  .lightbox-close, .button, .day-navigation .button, .day-map-pin span,
+  .route-connector-thumb > span, .media-placeholder small, .media-placeholder p { font-size: 12px; }
+  .leaflet-control-attribution { font-size: 12px !important; }
+  .leaflet-control-zoom a { width: 44px; height: 44px; line-height: 44px; }
+  .intro, .roadbook-copy, .elevation-title { font-size: 13px; }
+  .elevation-axis { font-size: 18px; }
+  .map-panel { top: 92px; max-height: min(60vh, 500px); overflow-y: auto; }
+  #map { height: 240px; min-height: 240px; }
+  .mobile-map-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .mobile-map-controls[hidden], .mobile-day-navigation[hidden] { display: none; }
+  .mobile-map-controls .button { min-width: 44px; min-height: 44px; letter-spacing: 0; }
+  .map-panel.is-map-collapsed .map-content { display: none; }
+  .map-panel.is-map-expanded {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    padding: max(15px, env(safe-area-inset-top, 0px)) 14px max(15px, env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+  }
+  .map-panel.is-map-expanded .map-content { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; }
+  .map-panel.is-map-expanded #map { flex: 1 1 auto; height: auto; min-height: 160px; }
+  .elevation-content::before { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; content: "Tippen oder ziehen"; }
+  .elevation-chart { touch-action: pan-y; }
+  .elevation-poi-pin { width: 44px; height: 44px; }
+  .mobile-day-navigation {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 600;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .mobile-day-navigation .button { min-width: 44px; min-height: 44px; flex: 1; letter-spacing: 0; }
+}
