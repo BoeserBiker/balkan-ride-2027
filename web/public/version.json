@@ -1,6 +1,11 @@
 {
-  "version": "v2.34",
+  "version": "v2.35",
   "history": [
+    {
+      "version": "v2.35",
+      "date": "2026-11-22",
+      "message": "Start-Ziel-Linie oben als interaktiver Track-Scrubber"
+    },
     {
       "version": "v2.34",
       "date": "2026-11-22",

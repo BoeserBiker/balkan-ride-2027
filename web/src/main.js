@@ -8,6 +8,7 @@ import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
 import { renderDayContent } from './roadbook.js';
 import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
+import { bindElevationProfile, buildElevationProfile, renderElevationProfile } from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
 import { escapeDisplayText } from './html.js';
 
@@ -184,6 +185,13 @@ function renderApp() {
     if (route) {
       control.dataset.bound = 'true';
       bindRouteScrubber(control, route, map.setLivePosition);
+      const profile = buildElevationProfile(route);
+      if (profile) {
+        const container = dayDetail.querySelector('[data-elevation-profile]');
+        container.innerHTML = renderElevationProfile(profile);
+        container.hidden = false;
+        bindElevationProfile(container, profile, map.setLivePosition);
+      }
     } else {
       control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
       control.title = 'Kein Straßen-Track verfügbar.';

@@ -15,8 +15,11 @@ export function buildRouteTrack(segments) {
   let totalDistanceKm = 0;
   segments.forEach((segment, segmentIndex) => {
     let previous;
-    segment.forEach(([latitude, longitude]) => {
-      const point = { latitude, longitude, distanceKm: totalDistanceKm, segmentIndex };
+    segment.forEach(([latitude, longitude, elevation]) => {
+      const point = {
+        latitude, longitude, elevationMeters: Number.isFinite(elevation) ? elevation : null,
+        distanceKm: totalDistanceKm, segmentIndex,
+      };
       if (previous) {
         totalDistanceKm += distanceBetween(previous, point);
         point.distanceKm = totalDistanceKm;
@@ -33,7 +36,10 @@ export function sampleRouteTrack(track, progress) {
   const distanceKm = fraction * track.totalDistanceKm;
   if (fraction === 0 || fraction === 1) {
     const point = track.points[fraction === 0 ? 0 : track.points.length - 1];
-    return { latitude: point.latitude, longitude: point.longitude, distanceKm, progress: fraction };
+    return {
+      latitude: point.latitude, longitude: point.longitude, elevationMeters: point.elevationMeters,
+      distanceKm, progress: fraction,
+    };
   }
   const upperIndex = track.points.findIndex((point) => point.distanceKm >= distanceKm);
   const before = track.points[upperIndex - 1];
@@ -43,6 +49,9 @@ export function sampleRouteTrack(track, progress) {
   return {
     latitude: before.latitude + (after.latitude - before.latitude) * part,
     longitude: before.longitude + (after.longitude - before.longitude) * part,
+    elevationMeters: Number.isFinite(before.elevationMeters) && Number.isFinite(after.elevationMeters)
+      ? before.elevationMeters + (after.elevationMeters - before.elevationMeters) * part
+      : null,
     distanceKm,
     progress: fraction,
   };
