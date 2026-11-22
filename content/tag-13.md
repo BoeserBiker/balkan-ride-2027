@@ -28,6 +28,20 @@ bilder:
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Bes%C3%ABlidhja,_Lezh%C3%AB_4501,_Albania_-_panoramio.jpg
     bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-13/commons-03.jpg
+    beschreibung: 2013-10-04 Lake Koman, Albania - Landing place at Koman 0933
+    urheber: 'You may re-use this image under the terms of the license using the following reference: Image: Wikipedia / Tobias Klenze / CC-BY-SA 4.0 . The license must be a link!'
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:2013-10-04_Lake_Koman,_Albania_-_Landing_place_at_Koman_0933.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-13/commons-04.jpg
+    beschreibung: Skënderbeg, Lezhë, Albania - panoramio (6)
+    urheber: Xhevahir Bushpepa
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Sk%C3%ABnderbeg,_Lezh%C3%AB,_Albania_-_panoramio_(6).jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/XrdENSEkfcw

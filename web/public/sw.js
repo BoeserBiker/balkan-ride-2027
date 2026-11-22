@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v4`;
+const CACHE_NAME = `${CACHE_PREFIX}v5`;
 const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -7,7 +7,7 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll([
       self.registration.scope,
-      new URL('manifest.json?v=3', self.registration.scope),
+      new URL('manifest.json?v=4', self.registration.scope),
       ...ICON_PATHS.map((path) => new URL(`${path}?v=3`, self.registration.scope)),
     ]);
     await self.skipWaiting();

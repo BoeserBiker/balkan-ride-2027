@@ -64,8 +64,9 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   mit `npm run build --prefix web` prüfen.
 - Medien können mit `python3 -m pip install -r scripts/requirements.txt`
   vorbereitet werden. `python3 scripts/fetch_stage_media.py --images-only`
-  lädt Commons-Fotos mit CC-Lizenz und Quellenangaben; bestehende Medien werden
-  nicht überschrieben. `--youtube-only` sucht separat nach Videos und benötigt
+  ergänzt bis auf vier Commons-JPEGs mit CC-Lizenz und Quellenangaben pro Tag;
+  bestehende Medien werden nicht überschrieben. Die Treffer sind fachlich zu
+  prüfen. `--youtube-only` sucht separat nach Videos und benötigt
   `YOUTUBE_API_KEY` aus der Umgebung oder der ignorierten `.env`. Ohne Flag
   werden beide Modi ausgeführt. Videos von YouTube benötigen eine Verbindung;
   lokale Bilder sind nach dem Laden im Service-Worker-Cache verfügbar.

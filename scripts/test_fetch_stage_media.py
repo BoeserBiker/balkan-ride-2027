@@ -43,6 +43,25 @@ class StageMediaTests(unittest.TestCase):
         self.assertEqual(images[0]["author"], "Alice")
 
     @patch.object(media, "request_json")
+    @patch.object(media.time, "sleep")
+    def test_commons_excludes_the_other_nehaj_fortress(self, _sleep, request):
+        info = {
+            "width": 2000, "height": 1000, "mime": "image/jpeg",
+            "thumburl": "https://upload.wikimedia.org/test.jpg",
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Test.jpg",
+            "extmetadata": {
+                "LicenseUrl": {"value": "https://creativecommons.org/licenses/by-sa/4.0"},
+                "LicenseShortName": {"value": "CC BY-SA 4.0"},
+                "Artist": {"value": "Alice"},
+            },
+        }
+        request.return_value = {"query": {"pages": [
+            {"title": "File:Haj-Nehaj Fortress.jpg", "imageinfo": [info]},
+            {"title": "File:Nehaj Senj.jpg", "imageinfo": [info]},
+        ]}}
+        self.assertEqual([image["title"] for image in media.commons_images("Nehaj Fortress")], ["File:Nehaj Senj.jpg"])
+
+    @patch.object(media, "request_json")
     def test_youtube_embed_uses_nocookie_and_header(self, request):
         request.return_value = {"items": [
             {"id": {"videoId": "abcdefghijk"}, "snippet": {"title": "Tour &amp; Pass"}}
@@ -66,6 +85,43 @@ class StageMediaTests(unittest.TestCase):
             self.assertEqual(media.main(), 0)
         self.assertEqual(add_images.call_count, 22)
         key.assert_not_called()
+
+    def test_two_existing_photos_are_extended_without_changing_videos(self):
+        source = (
+            '---\ntag: 3\nbilder:\n'
+            '  - datei: assets/media/tag-03/commons-01.jpg\n'
+            '    quelle: https://example.test/one\n'
+            '  - datei: assets/media/tag-03/commons-02.jpg\n'
+            '    quelle: https://example.test/two\n'
+            'videos:\n  - typ: youtube\n    quelle: https://www.youtube-nocookie.com/embed/abcdefghijk\n'
+            '    titel: Unverändert\n---\nText bleibt.\n'
+        )
+        def image(name):
+            return {
+                "source": f"https://example.test/{name}", "mime": "image/jpeg",
+                "title": f"File:{name}.jpg", "author": "Autor",
+                "license": "CC BY 4.0", "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            }
+
+        def download(_image, destination):
+            destination.write_bytes(b"image")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "tag-03.md"
+            path.write_text(source, encoding="utf-8")
+            text, stage = media.load_stage(path)
+            with patch.object(media, "ROOT", root), \
+                 patch.object(media, "commons_images", side_effect=lambda query: iter([image("three"), image("four")])), \
+                 patch.object(media, "download_image", side_effect=download), \
+                 patch.object(media.time, "sleep"):
+                media.add_images(path, text, stage)
+            result, updated = media.load_stage(path)
+            self.assertEqual(len(updated["bilder"]), 4)
+            self.assertEqual(updated["videos"], stage["videos"])
+            self.assertEqual(result.split("videos:", 1)[1], source.split("videos:", 1)[1])
+            self.assertTrue((root / "assets/media/tag-03/commons-03.jpg").exists())
+            self.assertTrue((root / "assets/media/tag-03/commons-04.jpg").exists())
 
 
 if __name__ == "__main__":

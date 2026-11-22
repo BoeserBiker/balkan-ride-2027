@@ -28,6 +28,20 @@ bilder:
     lizenz_url: https://creativecommons.org/licenses/by/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Fier_from_the_air.jpg
     bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-14/commons-03.jpg
+    beschreibung: Amfiteatr rzymski w Durrës 1
+    urheber: 'Photo: Marcin Konsek / Wikimedia Commons'
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Amfiteatr_rzymski_w_Durr%C3%ABs_1.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-14/commons-04.jpg
+    beschreibung: Centrum Fier Albania 2018 1
+    urheber: Karelj
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Centrum_Fier_Albania_2018_1.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/cueWohh0bMY

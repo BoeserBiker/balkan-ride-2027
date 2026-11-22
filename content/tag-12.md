@@ -28,6 +28,20 @@ bilder:
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:2013-10-04_Lake_Koman,_Albania_-_Landing_place_at_Koman_0933.jpg
     bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-12/commons-03.jpg
+    beschreibung: Theth, Albania - panoramio
+    urheber: Petrit Gjeçaj
+    lizenz: CC BY 3.0
+    lizenz_url: https://creativecommons.org/licenses/by/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Theth,_Albania_-_panoramio.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-12/commons-04.jpg
+    beschreibung: 2013-10-04 Lake Koman, Albania 0705
+    urheber: 'You may re-use this image under the terms of the license using the following reference: Image: Wikipedia / Tobias Klenze / CC-BY-SA 4.0 . The license must be a link!'
+    lizenz: CC BY 3.0
+    lizenz_url: https://creativecommons.org/licenses/by/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:2013-10-04_Lake_Koman,_Albania_0705.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/59-xN6i8AUI

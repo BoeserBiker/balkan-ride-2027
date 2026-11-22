@@ -28,6 +28,20 @@ bilder:
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Ioannina_Castle_(by_Pudelek).JPG
     bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-16/commons-03.jpg
+    beschreibung: Meteora's monastery 2
+    urheber: Stathis floros
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Meteora%27s_monastery_2.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-16/commons-04.jpg
+    beschreibung: Ioannina, Greece - panoramio
+    urheber: stathop
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Ioannina,_Greece_-_panoramio.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/OF4o5u-kYTw

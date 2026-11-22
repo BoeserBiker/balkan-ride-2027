@@ -50,9 +50,9 @@
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
   [`content/tag-22.md`](../content/tag-22.md) übertragen. Die V7-Kilometer,
-  Modellzeiten und GPS-Endpunkte bleiben erhalten. Jede Etappe hat zwei
-  Commons-Fotos mit Urheber- und Lizenznachweis; die Videolisten sind noch
-  leer. Routenhöhen sind ausdrücklich vorläufige Schätzungen.
+  Modellzeiten und GPS-Endpunkte bleiben erhalten. Jede Etappe hat vier
+  Commons-Fotos mit Urheber- und Lizenznachweis sowie ein vorhandenes
+  YouTube-Video. Routenhöhen sind ausdrücklich vorläufige Schätzungen.
 - Der V7-Wegpunktplan und CSV-Kartenimport liegen unter
   [`assets/gpx/`](../assets/gpx/). Die Leaflet-Karte zeigt Haupt-, Alternativ-
   und Options-Wegpunkte sowie die `FAEHRE`-Gruppe; D19 erhält keine Linie über
@@ -74,7 +74,7 @@
   Anweisung. Dort ist `TRACKPUNKTE_MAX` als Agentenvorgabe einstellbar; der
   Agent muss den Wert als `--max-track-points` übergeben. Ein manueller
   Skriptaufruf liest die Agentendatei nicht automatisch.
-- Reale Fahrspur-GPX-Tracks und Videos fehlen weiterhin. Die V7-Buchungen und
+- Geprüfte Fahrspur-GPX-Tracks fehlen weiterhin. Die V7-Buchungen und
   Klosterzeiten sind offen; die Prüfpunkte stehen in
   [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md).
   Live-Tests auf iOS und Android sind noch ausständig.
@@ -104,6 +104,26 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Vier Fotos und mobile Medienansicht
+
+- [`fetch_stage_media.py`](../scripts/fetch_stage_media.py) ergänzt vorhandene
+  Bilder auf vier lizenzierte Commons-JPEGs pro Tag; 44 Fotos wurden neu
+  geladen. Quellen, Urheber, Lizenz und Bearbeitung stehen im Frontmatter.
+  Die bisher vorhandenen Bilder und alle Video-Blöcke blieben unverändert.
+  Eine irrtümlich gleichnamige Festung wurde bei der Sichtung ersetzt.
+- Die Bildersuche nutzt die
+  [Wikimedia-Commons-API](https://commons.wikimedia.org/w/api.php), abgerufen
+  am 2026-11-22. Die automatische Bildauswahl und ihre Ortszuordnung bleiben
+  fachlich zu prüfen. Es wurden keine YouTube-API-Aufrufe durchgeführt.
+- Manifest-Orientierung `any`, dynamische Lightbox-Größen, YouTube-Parameter
+  und ein direkter YouTube-Link wurden ergänzt; der Service-Worker-Cache nutzt
+  Version 5. Bilder sind nach dem ersten Laden offline verfügbar, Videos nicht.
+- Geprüft: 22 YAML-Etappen, 88 JPEGs im Querformat mit 1200–1400 Pixeln
+  Breite und Lizenzangaben, unveränderte Video-Blöcke, sechs Python- und zwei
+  Frontend-Tests sowie Produktionsbuild. Ein Browser-Test mit wechselnder
+  Viewport-Größe prüfte die Lightbox. Echte Tests auf iOS und Android,
+  insbesondere Wiedergabe und Drehung in der installierten PWA, stehen aus.
 
 ### 2026-11-22 – Etappenbilder und GPX-Downloads
 
@@ -589,9 +609,8 @@
    [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md)
    klären.
 7. **GPX und Medien prüfen:** Nach Buchung echte Routen-/GPX-Tracks erstellen
-   und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl prüfen,
-   Videos nach eigenem YouTube-Lauf sichten und die offene iOS-/Android-PWA-
-   Prüfung durchführen.
+   und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl und
+   vorhandene Videos sichten sowie die iOS-/Android-PWA-Prüfung durchführen.
 
 ## Relevante Quellen
 

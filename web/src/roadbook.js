@@ -61,9 +61,9 @@ function renderPhoto(photo, urls) {
   `;
 }
 
-function youtubeEmbed(source) {
+function youtubeVideoId(source) {
   if (/^[\w-]{11}$/.test(source)) {
-    return `https://www.youtube-nocookie.com/embed/${source}`;
+    return source;
   }
 
   let url;
@@ -82,17 +82,15 @@ function youtubeEmbed(source) {
     videoId = url.pathname.slice(1);
   }
 
-  return /^[\w-]{11}$/.test(videoId)
-    ? `https://www.youtube-nocookie.com/embed/${videoId}`
-    : null;
+  return /^[\w-]{11}$/.test(videoId) ? videoId : null;
 }
 
 function renderVideo(video, urls) {
   const title = escapeHtml(video.titel || 'Etappenvideo');
   if (video.typ === 'youtube') {
-    const embedUrl = youtubeEmbed(video.quelle);
-    return embedUrl
-      ? `<div class="video-frame"><iframe src="${embedUrl}" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+    const videoId = youtubeVideoId(video.quelle);
+    return videoId
+      ? `<div class="video-item"><div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><a class="video-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen</a></div>`
       : `<div class="media-placeholder"><small>VIDEO-QUELLE UNGÜLTIG</small><p>${title}</p></div>`;
   }
 

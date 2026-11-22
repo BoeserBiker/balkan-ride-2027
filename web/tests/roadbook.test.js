@@ -37,5 +37,8 @@ test('gallery renders attribution links and nocookie video', () => {
   assert.match(html, /A &amp; B/);
   assert.match(html, /https:\/\/commons\.wikimedia\.org\/wiki\/File:Test/);
   assert.match(html, /https:\/\/creativecommons\.org\/licenses\/by\/4\.0\//);
-  assert.match(html, /https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk/);
+  assert.match(html, /https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?rel=0&amp;playsinline=1/);
+  assert.match(html, /referrerpolicy="strict-origin-when-cross-origin"/);
+  assert.match(html, /allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen/);
+  assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=abcdefghijk" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen/);
 });

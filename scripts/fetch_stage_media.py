@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3/search"
 USER_AGENT = "BalkanRide2027/1.0 (Wikimedia Commons stage media research)"
+IMAGE_COUNT = 4
 IMAGE_QUERIES = {
     1: ["Velburg Bavaria", "Recklinghausen city"],
     2: ["Villach Austria", "Velburg Bavaria"],
@@ -49,7 +50,8 @@ IMAGE_QUERIES = {
 EXCLUDED = re.compile(
     r"\b(map|karte|plan|logo|flag|coat of arms|wappen|diagram|poster|"
     r"illustration|drawing|sign|schild|cyclist|cycling|bicycle|bike race|"
-    r"municipality location|outhouse|toilet|wc|scopolia)\b",
+    r"municipality location|outhouse|toilet|wc|scopolia|haj[- ]nehaj|"
+    r"freezing rain)\b",
     re.IGNORECASE,
 )
 LICENSES = re.compile(
@@ -194,7 +196,7 @@ def add_images(path, text, stage):
     existing = stage.get("bilder")
     if not isinstance(existing, list):
         raise ValueError(f"{path}: bilder ist keine Liste")
-    if len(existing) >= 2:
+    if len(existing) >= IMAGE_COUNT:
         print(f"{path.name}: {len(existing)} Bilder vorhanden; unverändert.")
         return
     number = stage["tag"]
@@ -202,12 +204,11 @@ def add_images(path, text, stage):
     seen = {image.get("quelle") for image in entries if isinstance(image, dict)}
     pending = []
     with tempfile.TemporaryDirectory(prefix="balkan-media-") as temp_dir:
-        for query in IMAGE_QUERIES[number] * 2:
+        for query in IMAGE_QUERIES[number] * IMAGE_COUNT:
             for image in commons_images(query):
-                if image["source"] in seen:
+                if image["source"] in seen or image["mime"] != "image/jpeg":
                     continue
-                suffix = ".jpg" if image["mime"] == "image/jpeg" else ".png"
-                relative = Path("assets/media") / f"tag-{number:02}" / f"commons-{len(entries) + 1:02}{suffix}"
+                relative = Path("assets/media") / f"tag-{number:02}" / f"commons-{len(entries) + 1:02}.jpg"
                 if (ROOT / relative).exists():
                     raise FileExistsError(f"Datei bereits vorhanden: {relative}")
                 temporary = Path(temp_dir) / relative.name
@@ -227,14 +228,14 @@ def add_images(path, text, stage):
                 seen.add(image["source"])
                 print(f"{path.name}: {caption} ({image['license']})", flush=True)
                 break
-            if len(entries) >= 2:
+            if len(entries) >= IMAGE_COUNT:
                 for temporary, destination in pending:
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     temporary.replace(destination)
                 write_field(path, text, "bilder", entries)
                 return
             time.sleep(0.1)
-    raise RuntimeError(f"{path.name}: nur {len(entries)} von mindestens 2 Bildern gefunden")
+    raise RuntimeError(f"{path.name}: nur {len(entries)} von {IMAGE_COUNT} Bildern gefunden")
 
 
 def youtube_key():

@@ -28,6 +28,20 @@ bilder:
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Recklinghausen,_Stadtmauer_--_2013_--_4903.jpg
     bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-01/commons-03.jpg
+    beschreibung: St Johann Baptist - Velburg NM 020
+    urheber: DALIBRI
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:St_Johann_Baptist_-_Velburg_NM_020.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-01/commons-04.jpg
+    beschreibung: Recklinghausen, Alte Apotheke -- 2013 -- 4864
+    urheber: Dietmar Rabich
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Recklinghausen,_Alte_Apotheke_--_2013_--_4864.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/HRNLNaiRNBI
