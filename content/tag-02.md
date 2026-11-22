@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-02.gpx"
 highlights:
   - "Basis-Hotel in Villach"
   - "BMW für die Motorradschleife abladen"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-02/commons-01.jpg
+    beschreibung: Villach Wernberg II Sankt Ulrich Filialkirche hl. Ulrich 30012011 222
+    urheber: Johann Jaritz
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Villach_Wernberg_II_Sankt_Ulrich_Filialkirche_hl._Ulrich_30012011_222.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-02/commons-02.jpg
+    beschreibung: St Johann Baptist - Velburg NM 006
+    urheber: DALIBRI
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:St_Johann_Baptist_-_Velburg_NM_006.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/6eKM26m19TU
+    titel: Villach on my BMW 1250 GS | Travelling from Germany to Austria  -  Epic Ride - Croatia - EP 4
 ---
 
 ## Das Basislager für die Schleife

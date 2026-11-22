@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-07.gpx"
 highlights:
   - "Makarska-Riviera"
   - "Kravica-Wasserfälle und Alte Brücke"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-07/commons-01.jpg
+    beschreibung: Waterfalls Kravica 1, Bosnia and Herzegovina
+    urheber: Matěj Baťha
+    lizenz: CC BY-SA 2.5
+    lizenz_url: https://creativecommons.org/licenses/by-sa/2.5
+    quelle: https://commons.wikimedia.org/wiki/File:Waterfalls_Kravica_1,_Bosnia_and_Herzegovina.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-07/commons-02.jpg
+    beschreibung: Mostar, Stari Most at night
+    urheber: BáthoryPéter ( talk )
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Mostar,_Stari_Most_at_night.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/jRTckeGPIYA
+    titel: Bałkany Motocyklem - Mostar i Wodospady Kravica w Bośni i Hercegowinie. Przejazd nad Adriatykiem.
 ---
 
 ## Von der Riviera nach Mostar

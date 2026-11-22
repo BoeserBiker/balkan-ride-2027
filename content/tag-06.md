@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-06.gpx"
 highlights:
   - "Šibenik, Primošten und Trogir"
   - "Omiš an der Cetina-Mündung"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-06/commons-01.jpg
+    beschreibung: Primosten peninsula
+    urheber: Roman Klementschitz , Wien
+    lizenz: CC BY-SA 3.0
+    lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
+    quelle: https://commons.wikimedia.org/wiki/File:Primosten_peninsula.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-06/commons-02.jpg
+    beschreibung: Omis, an der Cetina-Mündung, rechtes Ufer IMG 8230
+    urheber: Hedwig Storch
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Omis,_an_der_Cetina-M%C3%BCndung,_rechtes_Ufer_IMG_8230.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/UA7uI4ilAG8
+    titel: Mototrip Primosten and Krka ,  Moto trip CROATIA 2021, Part 3 , BMW K1600GTL,  drone video
 ---
 
 ## Immer weiter an der Küste entlang

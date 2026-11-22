@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-10.gpx"
 highlights:
   - "Šavnik und Nikšić"
   - "Risan, Perast und die Bucht von Kotor"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-10/commons-01.jpg
+    beschreibung: Perast Kotor Bay 2006
+    urheber: Mazbln
+    lizenz: CC BY-SA 3.0
+    lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
+    quelle: https://commons.wikimedia.org/wiki/File:Perast_Kotor_Bay_2006.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-10/commons-02.jpg
+    beschreibung: Kotor and Boka kotorska - view from city wall
+    urheber: Pudelek (Marcin Szala)
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Kotor_and_Boka_kotorska_-_view_from_city_wall.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/rH9iRIPQ0BA
+    titel: Motorcycle to Croatia Ep 5. A day run to Montenegro & Kotor Bay
 ---
 
 ## Von Durmitor an die Bucht

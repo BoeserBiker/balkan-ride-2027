@@ -39,6 +39,11 @@ function renderShell() {
           </div>
           <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
           <p id="map-status" class="map-status" aria-live="polite"></p>
+          <div class="gpx-downloads">
+            <a id="gpx-download" class="button button-primary" hidden>GPX herunterladen (zūmo 660)</a>
+            <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP (zūmo 660)</a>
+          </div>
+          <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
         </section>
 
         <section class="journey-panel" aria-label="Etappen und Roadbook">
@@ -96,7 +101,9 @@ function renderApp() {
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
   const lightboxCaption = lightbox.querySelector('.lightbox-caption');
-  const map = createRoadbookMap(L, roadbookDays, document.querySelector('#map-status'));
+  const map = createRoadbookMap(
+    L, roadbookDays, document.querySelector('#map-status'), document.querySelector('#gpx-download'),
+  );
   let activeIndex = 0;
 
   document.querySelector('#day-count').textContent = String(roadbookDays.length).padStart(2, '0');

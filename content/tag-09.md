@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-09.gpx"
 highlights:
   - "Piva-Canyon und Mratinje-Staumauer"
   - "Sedlo-Pass, Durmitor und Tara-Schlucht"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-09/commons-01.jpg
+    beschreibung: Piva Canyon
+    urheber: Julian Nyča
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Piva_Canyon.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-09/commons-02.jpg
+    beschreibung: Durmitor mountains, Montenegro
+    urheber: Pudelek
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Durmitor_mountains,_Montenegro.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/Ku94YYnNN_I
+    titel: Piva Canyon Montenegro (Pure Sound) 4k | BMW R 1250 GSA | ADV Bumblebee
 ---
 
 ## Königsetappe durch Montenegro

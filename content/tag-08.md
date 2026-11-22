@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-08.gpx"
 highlights:
   - "Karsthochflächen über Nevesinje und Gacko"
   - "Drina-Tal"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-08/commons-01.jpg
+    beschreibung: Kruševljani Nevesinje - panoramio
+    urheber: cosic4
+    lizenz: CC BY 3.0
+    lizenz_url: https://creativecommons.org/licenses/by/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Kru%C5%A1evljani_Nevesinje_-_panoramio.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-08/commons-02.jpg
+    beschreibung: Foča – Panorama
+    urheber: Julian Nyča
+    lizenz: CC BY-SA 3.0
+    lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
+    quelle: https://commons.wikimedia.org/wiki/File:Fo%C4%8Da_%E2%80%93_Panorama.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/waAFjju_wTs
+    titel: ENDURO TRAVELING Βοσνια Ζελενγκορα ( ZELENGORA Bosnia and Herzegovina ) . MEGATESTONOFF2021 THESTORY
 ---
 
 ## Über die Hochflächen ins Drina-Tal

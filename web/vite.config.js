@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import { zipSync } from 'fflate';
 import matter from 'gray-matter';
 
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -11,6 +12,16 @@ const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
 const virtualModuleId = 'virtual:roadbook-content';
 const resolvedVirtualModuleId = `\0${virtualModuleId}`;
 const base = '/balkan-ride-2027/';
+const zipName = 'balkan-ride-2027-alle-etappen.zip';
+
+async function loadGpxFiles() {
+  const files = Array.from({ length: 22 }, (_, index) => `tag-${String(index + 1).padStart(2, '0')}.gpx`);
+  return Promise.all(files.map(async (name) => [name, await readFile(path.join(gpxDirectory, name))]));
+}
+
+function createGpxZip(files) {
+  return zipSync(Object.fromEntries(files), { level: 6, mtime: new Date('2027-01-01T00:00:00Z') });
+}
 
 function validateDay(data, fileName) {
   const tagFromName = Number(fileName.match(/^tag-(\d{2})\.md$/)?.[1]);
@@ -95,6 +106,16 @@ function roadbookContentPlugin() {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url, 'http://localhost').pathname;
+        if (pathname === `${base}assets/gpx/${zipName}`) {
+          try {
+            const archive = createGpxZip(await loadGpxFiles());
+            response.setHeader('Content-Type', 'application/zip');
+            response.end(archive);
+          } catch (error) {
+            next(error);
+          }
+          return;
+        }
         const gpxFile = pathname.startsWith(`${base}assets/gpx/`)
           ? path.basename(pathname)
           : '';
@@ -112,14 +133,19 @@ function roadbookContentPlugin() {
       });
     },
     async generateBundle() {
-      const gpxFiles = (await readdir(gpxDirectory)).filter((name) => /^tag-\d{2}\.gpx$/.test(name));
-      for (const fileName of gpxFiles) {
+      const gpxFiles = await loadGpxFiles();
+      for (const [fileName, source] of gpxFiles) {
         this.emitFile({
           type: 'asset',
           fileName: `assets/gpx/${fileName}`,
-          source: await readFile(path.join(gpxDirectory, fileName)),
+          source,
         });
       }
+      this.emitFile({
+        type: 'asset',
+        fileName: `assets/gpx/${zipName}`,
+        source: createGpxZip(gpxFiles),
+      });
     },
   };
 }

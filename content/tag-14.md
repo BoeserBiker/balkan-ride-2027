@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-14.gpx"
 highlights:
   - "Haupt- und Schnellstraßen über den Raum Durrës"
   - "Vorbereitung auf den Llogara-Pass"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-14/commons-01.jpg
+    beschreibung: Albania Durres Panorama 004
+    urheber: Dirk.heldmaier
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Albania_Durres_Panorama_004.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-14/commons-02.jpg
+    beschreibung: Fier from the air
+    urheber: albinfo
+    lizenz: CC BY 3.0
+    lizenz_url: https://creativecommons.org/licenses/by/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Fier_from_the_air.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/cueWohh0bMY
+    titel: Durrës Albania 2026 | Dyrrakium Resort Hotel & Apartments Construction Update
 ---
 
 ## Luft holen vor der Riviera

@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-04.gpx"
 highlights:
   - "Postojna und Ilirska Bistrica"
   - "Jadranska Magistrale und Festung Nehaj"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-04/commons-01.jpg
+    beschreibung: Nehaj Senj Croatia South 090727b
+    urheber: Joadl
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Nehaj_Senj_Croatia_South_090727b.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-04/commons-02.jpg
+    beschreibung: Postojna, Slovenia (7400588834)
+    urheber: Arun Katiyar from Bangalore, India
+    lizenz: CC BY-SA 2.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/2.0
+    quelle: https://commons.wikimedia.org/wiki/File:Postojna,_Slovenia_(7400588834).jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/M243dExGCmk
+    titel: 'Video Short from “Central Croatia is Sensational for Riding” S3E13 | #shorts #croatia #viajarmoto'
 ---
 
 ## Vom Karst an die Adria

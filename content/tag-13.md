@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-13.gpx"
 highlights:
   - "Koman-Fähre als Fußpassagiere"
   - "Weiterfahrt nach Lezha"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-13/commons-01.jpg
+    beschreibung: 2013-10-04 Lake Koman, Albania - Landing place at Koman 0928
+    urheber: 'You may re-use this image under the terms of the license using the following reference: Image: Wikipedia / Tobias Klenze / CC-BY-SA 4.0 . The license must be a link!'
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:2013-10-04_Lake_Koman,_Albania_-_Landing_place_at_Koman_0928.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-13/commons-02.jpg
+    beschreibung: Besëlidhja, Lezhë 4501, Albania - panoramio
+    urheber: Xhevahir Bushpepa
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Bes%C3%ABlidhja,_Lezh%C3%AB_4501,_Albania_-_panoramio.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/XrdENSEkfcw
+    titel: Time-lapse of Lake Koman ferry
 ---
 
 ## Fähre ohne BMW – danach weiter nach Lezha

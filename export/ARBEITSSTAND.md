@@ -50,8 +50,9 @@
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
   [`content/tag-22.md`](../content/tag-22.md) übertragen. Die V7-Kilometer,
-  Modellzeiten und GPS-Endpunkte bleiben erhalten; alle Medienlisten sind
-  derzeit leer. Routenhöhen sind ausdrücklich vorläufige Schätzungen.
+  Modellzeiten und GPS-Endpunkte bleiben erhalten. Jede Etappe hat zwei
+  Commons-Fotos mit Urheber- und Lizenznachweis; die Videolisten sind noch
+  leer. Routenhöhen sind ausdrücklich vorläufige Schätzungen.
 - Der V7-Wegpunktplan und CSV-Kartenimport liegen unter
   [`assets/gpx/`](../assets/gpx/). Die Leaflet-Karte zeigt Haupt-, Alternativ-
   und Options-Wegpunkte sowie die `FAEHRE`-Gruppe; D19 erhält keine Linie über
@@ -73,7 +74,7 @@
   Anweisung. Dort ist `TRACKPUNKTE_MAX` als Agentenvorgabe einstellbar; der
   Agent muss den Wert als `--max-track-points` übergeben. Ein manueller
   Skriptaufruf liest die Agentendatei nicht automatisch.
-- Reale Fahrspur-GPX-Tracks und Medien fehlen weiterhin. Die V7-Buchungen und
+- Reale Fahrspur-GPX-Tracks und Videos fehlen weiterhin. Die V7-Buchungen und
   Klosterzeiten sind offen; die Prüfpunkte stehen in
   [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md).
   Live-Tests auf iOS und Android sind noch ausständig.
@@ -103,6 +104,30 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Etappenbilder und GPX-Downloads
+
+- [`fetch_stage_media.py`](../scripts/fetch_stage_media.py) ergänzt getrennt
+  Commons-Bilder oder YouTube-Videos. Der ausschließlich ausgeführte
+  `--images-only`-Modus hat 44 Fotos mit Quellen-, Urheber-, Lizenz- und
+  Bearbeitungshinweisen ergänzt: zwei pro Tag, JPG/PNG im Querformat, maximal
+  1400 Pixel breit. Die automatische Bildauswahl sollte fachlich durchgesehen
+  werden. Commons gab zeitweise HTTP 429 zurück; die fehlenden Tage wurden
+  anschließend mit alternativen Treffern ergänzt.
+- YouTube wurde nicht abgefragt. Für den eigenen Lauf ist
+  `python3 scripts/fetch_stage_media.py --youtube-only` vorgesehen; der
+  Schlüssel wird aus der ignorierten `.env` oder der Umgebung gelesen und
+  bei diesem Lauf an die YouTube-API gesendet. Einbettbare Suchtreffer sind
+  noch inhaltlich zu prüfen.
+- Die Tageskarte bietet einen Download für geladene Straßen-Tracks; D19 ohne
+  Track wird ausgeblendet. Der Build erzeugt ein ZIP mit allen 22 GPX-Dateien,
+  einschließlich der leeren Seetag-Datei. Die Routen bleiben ungeprüfte
+  OSRM-PKW-Vorab-Tracks.
+- Cache-Version 4 speichert lokale Bilder nach dem ersten Laden; externe
+  YouTube-Videos sind nicht offline verfügbar. YAML und Bildgrößen aller
+  22 Tage, 300-Punkte-Grenze, bytegleicher ZIP-Inhalt, 14 Python-Tests,
+  zwei Frontend-Tests, Offline-Cache-Simulation und Produktionsbuild wurden
+  geprüft. Ein Gerätetest und die YouTube-Livesuche stehen aus.
 
 ### 2026-11-22 – Reiseenduro auf Blau-Weiß umgestellt
 
@@ -563,9 +588,10 @@
    Igoumenitsa, Koman-Fährbestätigung und Meteora-Ruhetage gemäß
    [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md)
    klären.
-7. **GPX und Medien ergänzen:** Nach Buchung echte Routen-/GPX-Tracks
-   erstellen, die Höhenmeter daraus erneut berechnen und Fotos/Videos
-   einpflegen. Anschließend die offene iOS-/Android-PWA-Prüfung durchführen.
+7. **GPX und Medien prüfen:** Nach Buchung echte Routen-/GPX-Tracks erstellen
+   und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl prüfen,
+   Videos nach eigenem YouTube-Lauf sichten und die offene iOS-/Android-PWA-
+   Prüfung durchführen.
 
 ## Relevante Quellen
 

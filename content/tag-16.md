@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-16.gpx"
 highlights:
   - "Grenze bei Qafë Botë"
   - "Ioannina und Meteora-Felsen"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-16/commons-01.jpg
+    beschreibung: Meteora Sunset
+    urheber: Dimitris9444
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Meteora_Sunset.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-16/commons-02.jpg
+    beschreibung: Ioannina Castle (by Pudelek)
+    urheber: Pudelek
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Ioannina_Castle_(by_Pudelek).JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/OF4o5u-kYTw
+    titel: 'Meteora, Greece: Complete Travel Guide | One of the BEST Things to Do in Greece'
 ---
 
 ## Der lange Ritt zu den schwebenden Klöstern

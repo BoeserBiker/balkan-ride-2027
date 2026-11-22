@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-18.gpx"
 highlights:
   - "Einschiffung zur geplanten Adriafähre"
   - "Fährplan und Check-in vorab bestätigen"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-18/commons-01.jpg
+    beschreibung: A2 Motorway, Greece - Section Paramythia-Igoumenitsa - 16
+    urheber: Christaras A
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:A2_Motorway,_Greece_-_Section_Paramythia-Igoumenitsa_-_16.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-18/commons-02.jpg
+    beschreibung: Igoumenitsa city
+    urheber: Evmeos
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Igoumenitsa_city.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/IHbgaYTq2fA
+    titel: Igoumenitsa Hafen - Mit dem Motorrad 🏍️ auf die Fähre
 ---
 
 ## Einschiffen – nur mit bestätigter Verbindung

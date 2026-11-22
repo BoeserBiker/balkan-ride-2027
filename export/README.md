@@ -62,6 +62,16 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   Skriptaufruf den Wert selbst mit `--max-track-points` übergeben; ohne Option
   gilt der Skriptstandard. Danach GPX-Dateien validieren und den Frontend-Build
   mit `npm run build --prefix web` prüfen.
+- Medien können mit `python3 -m pip install -r scripts/requirements.txt`
+  vorbereitet werden. `python3 scripts/fetch_stage_media.py --images-only`
+  lädt Commons-Fotos mit CC-Lizenz und Quellenangaben; bestehende Medien werden
+  nicht überschrieben. `--youtube-only` sucht separat nach Videos und benötigt
+  `YOUTUBE_API_KEY` aus der Umgebung oder der ignorierten `.env`. Ohne Flag
+  werden beide Modi ausgeführt. Videos von YouTube benötigen eine Verbindung;
+  lokale Bilder sind nach dem Laden im Service-Worker-Cache verfügbar.
+- Der Web-Build erzeugt das GPX-ZIP aus den 22 Tagesdateien. D19 ist darin
+  als Seetag ohne Straßen-Track enthalten; die Straßen-Tracks sind vorläufige
+  OSRM-PKW-Routen und müssen vor der Tour geprüft werden.
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – fachliche und
   technische Projektvorgaben.
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md) – Agenten-

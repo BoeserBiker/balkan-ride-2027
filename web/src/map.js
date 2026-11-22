@@ -1,4 +1,5 @@
 import { escapeHtml } from './html.js';
+import { gpxDownload } from './gpx-download.js';
 
 function parseGpx(gpxText) {
   const xml = new DOMParser().parseFromString(gpxText, 'application/xml');
@@ -63,7 +64,7 @@ function dayIcon(L, day, active) {
   });
 }
 
-export function createRoadbookMap(L, days, statusElement) {
+export function createRoadbookMap(L, days, statusElement, downloadElement) {
   const map = L.map('map', {
     zoomControl: false,
     scrollWheelZoom: false,
@@ -178,6 +179,12 @@ export function createRoadbookMap(L, days, statusElement) {
     });
 
     const gpx = dayGpx[index];
+    const download = gpxDownload(day, gpx, import.meta.env.BASE_URL);
+    downloadElement.hidden = !download;
+    if (download) {
+      downloadElement.href = download.href;
+      downloadElement.download = download.filename;
+    }
     const dayWaypoints = gpx.points;
     const routeGroups = [...new Set(dayWaypoints.map((waypoint) => waypoint.routeGroup))];
     const dayLabel = `Tag ${String(day.frontmatter.tag).padStart(2, '0')}`;

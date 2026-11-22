@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-15.gpx"
 highlights:
   - "SH8 und Llogara-Pass"
   - "Himarë und Sonnenuntergang an der Küste"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-15/commons-01.jpg
+    beschreibung: Llogara pass
+    urheber: godo godaj
+    lizenz: CC BY 2.0
+    lizenz_url: https://creativecommons.org/licenses/by/2.0
+    quelle: https://commons.wikimedia.org/wiki/File:Llogara_pass.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-15/commons-02.jpg
+    beschreibung: Badhër, Himarë, Albania 2019 01 – Hill
+    urheber: Pasztilla aka Attila Terbócs
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Badh%C3%ABr,_Himar%C3%AB,_Albania_2019_01_%E2%80%93_Hill.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/lAlA7GaSeME
+    titel: 'LLOGARA PASS and SH8 - ALBANIA Motorcycle travel by solo rider Yamaha fz6 s2 #6'
 ---
 
 ## Über den Llogara an die Riviera

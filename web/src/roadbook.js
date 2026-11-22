@@ -19,6 +19,18 @@ function mediaPathMap(assets) {
   );
 }
 
+function externalLink(url, label) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'https:') {
+      return `<a href="${escapeHtml(parsed.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+    }
+  } catch {
+    return escapeHtml(label);
+  }
+  return escapeHtml(label);
+}
+
 function renderPhoto(photo, urls) {
   const url = urls[photo.datei];
   if (!url) {
@@ -32,14 +44,20 @@ function renderPhoto(photo, urls) {
   }
 
   const caption = photo.beschreibung || 'Etappenfoto';
+  const credit = photo.urheber && photo.lizenz
+    ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
+    : '';
   return `
-    <button class="photo-button" type="button"
-      data-lightbox-src="${escapeHtml(url)}"
-      data-lightbox-alt="${escapeHtml(caption)}"
-      data-lightbox-caption="${escapeHtml(caption)}">
-      <img src="${escapeHtml(url)}" alt="${escapeHtml(caption)}" loading="lazy">
-      <span class="photo-caption">${escapeHtml(caption)}</span>
-    </button>
+    <figure class="photo-card">
+      <button class="photo-button" type="button"
+        data-lightbox-src="${escapeHtml(url)}"
+        data-lightbox-alt="${escapeHtml(caption)}"
+        data-lightbox-caption="${escapeHtml([caption, credit].filter(Boolean).join(' · '))}">
+        <img src="${escapeHtml(url)}" alt="${escapeHtml(caption)}" loading="lazy">
+        <span class="photo-caption">${escapeHtml(caption)}</span>
+      </button>
+      ${credit ? `<figcaption class="photo-credit">${externalLink(photo.quelle, photo.urheber)} · ${externalLink(photo.lizenz_url, photo.lizenz)}${photo.bearbeitung ? ` · ${escapeHtml(photo.bearbeitung)}` : ''}</figcaption>` : ''}
+    </figure>
   `;
 }
 

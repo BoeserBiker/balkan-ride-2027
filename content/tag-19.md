@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-19.gpx"
 highlights:
   - "Überfahrt ohne Straßenprogramm"
   - "Frühe Ankunft kann die Rückführung ermöglichen"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-19/commons-01.jpg
+    beschreibung: Adriatic Sea from ferry
+    urheber: Firilacroco
+    lizenz: CC BY 3.0
+    lizenz_url: https://creativecommons.org/licenses/by/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Adriatic_Sea_from_ferry.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-19/commons-02.jpg
+    beschreibung: Adriatic Sea with Coast of Albania
+    urheber: Kroll Markus
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Adriatic_Sea_with_Coast_of_Albania.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/BVI7ElZYerM
+    titel: 'Your Tour: Greece, September - October 2018 (Guide Primož)'
 ---
 
 ## Ein Tag auf See

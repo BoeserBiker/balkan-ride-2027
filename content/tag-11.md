@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-11.gpx"
 highlights:
   - "SH20-Abstecher bis Tamarë"
   - "Aufstieg über die SH21 nach Theth"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-11/commons-01.jpg
+    beschreibung: Theth Radohima MajaArapit
+    urheber: Albinfo
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Theth_Radohima_MajaArapit.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-11/commons-02.jpg
+    beschreibung: Tamarë
+    urheber: Shkodraunit
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Tamar%C3%AB.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/59-xN6i8AUI
+    titel: 'Theth Albania #motorcycle #theth #albania #motoguzziv9'
 ---
 
 ## Der lange Tag über SH20 und SH21

@@ -9,3 +9,8 @@ VS_CODE_Tools/
 node_modules/
 
 daten/chat_verlauf/
+
+.env
+
+__pycache__/
+*.py[cod]

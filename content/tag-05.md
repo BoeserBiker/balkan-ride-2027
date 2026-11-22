@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-05.gpx"
 highlights:
   - "Küstenstraße D8"
   - "Karlobag, Maslenica und Zadar"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-05/commons-01.jpg
+    beschreibung: Old Maslenica Bridge 1
+    urheber: Ex13
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Old_Maslenica_Bridge_1.JPG
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-05/commons-02.jpg
+    beschreibung: Church of St. Donat - Zadar - Croatia
+    urheber: Adam Jones Adam63
+    lizenz: CC BY-SA 3.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
+    quelle: https://commons.wikimedia.org/wiki/File:Church_of_St._Donat_-_Zadar_-_Croatia.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/JwdNcWUMd_A
+    titel: bikers dreams, jadranska magistrala, dc8, drone footage
 ---
 
 ## Küstenkurven bis Biograd

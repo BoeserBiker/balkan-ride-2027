@@ -13,8 +13,25 @@ gpx_datei: "assets/gpx/tag-20.gpx"
 highlights:
   - "Rückführung über Tarvisio"
   - "Motorrad am Basis-Hotel verladen"
-bilder: []
-videos: []
+bilder:
+  - datei: assets/media/tag-20/commons-01.jpg
+    beschreibung: Tarvisio Cinque Punte Blick von Rosstratte 13022015 9789
+    urheber: Johann Jaritz
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Tarvisio_Cinque_Punte_Blick_von_Rosstratte_13022015_9789.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+  - datei: assets/media/tag-20/commons-02.jpg
+    beschreibung: Villach Wernberg II Sankt Ulrich Filialkirche hl. Ulrich 30012011 222
+    urheber: Johann Jaritz
+    lizenz: CC BY-SA 4.0
+    lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
+    quelle: https://commons.wikimedia.org/wiki/File:Villach_Wernberg_II_Sankt_Ulrich_Filialkirche_hl._Ulrich_30012011_222.jpg
+    bearbeitung: Auf maximal 1400 px Breite skaliert
+videos:
+  - typ: youtube
+    quelle: https://www.youtube-nocookie.com/embed/5FRGpetZbbo
+    titel: TARVISIO In Autumn 2018 - 4K - Mavic 2 Pro
 ---
 
 ## Den Kreis in Villach schließen
