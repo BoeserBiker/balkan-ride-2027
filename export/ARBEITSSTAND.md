@@ -105,12 +105,13 @@
 
 ## Chronologie
 
-### 2026-11-22 – Veröffentlichung der Etappen-Navigation freigegeben
+### 2026-11-22 – Etappen-Navigation veröffentlicht
 
 - Die Zusammenführung von `feature/fahrzeit-etappen-navigation` nach `main`
-  wurde vom Nutzer angefordert. Die Veröffentlichung erfolgt gemäß
-  Projektvorgabe über einen Pull Request; den anschließenden GitHub-Pages-Lauf
-  und die Darstellung am iMac prüfen.
+  wurde vom Nutzer angefordert und über [PR #3](https://github.com/BoeserBiker/balkan-ride-2027/pull/3)
+  durchgeführt. Der [GitHub-Pages-Lauf](https://github.com/BoeserBiker/balkan-ride-2027/actions/runs/45029980523)
+  war erfolgreich; das veröffentlichte Bundle und Service-Worker-Version 6
+  wurden abgerufen. Die Darstellung am iMac bleibt zu prüfen.
 
 ### 2026-11-22 – Fahrzeit und Etappen-Navigation
 
