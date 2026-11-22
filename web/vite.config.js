@@ -1,0 +1,126 @@
+import { readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+import matter from 'gray-matter';
+
+const webDirectory = path.dirname(fileURLToPath(import.meta.url));
+const contentDirectory = path.resolve(webDirectory, '../content');
+const iconDirectory = path.resolve(webDirectory, '../assets/icons');
+const virtualModuleId = 'virtual:roadbook-content';
+const resolvedVirtualModuleId = `\0${virtualModuleId}`;
+const base = '/balkan-ride-2027/';
+
+function validateDay(data, fileName) {
+  const tagFromName = Number(fileName.match(/^tag-(\d{2})\.md$/)?.[1]);
+  const required = [
+    'tag', 'datum', 'titel', 'start', 'ziel', 'koordinaten_start',
+    'koordinaten_ziel', 'kilometer', 'fahrzeit', 'hoehenmeter',
+    'gpx_datei', 'highlights', 'bilder', 'videos',
+  ];
+  const missing = required.filter((key) => !(key in data));
+  if (missing.length) {
+    throw new Error(`${fileName}: fehlende Frontmatter-Felder: ${missing.join(', ')}`);
+  }
+  if (data.tag !== tagFromName) {
+    throw new Error(`${fileName}: tag muss zum Dateinamen passen (erwartet ${tagFromName}).`);
+  }
+  for (const field of ['datum', 'titel', 'start', 'ziel', 'fahrzeit', 'gpx_datei']) {
+    if (typeof data[field] !== 'string' || !data[field].trim()) {
+      throw new Error(`${fileName}: Frontmatter-Feld "${field}" muss ein nichtleerer Text sein.`);
+    }
+  }
+  for (const field of ['kilometer', 'hoehenmeter']) {
+    if (!Number.isFinite(data[field]) || data[field] < 0) {
+      throw new Error(`${fileName}: Frontmatter-Feld "${field}" muss eine nichtnegative Zahl sein.`);
+    }
+  }
+  for (const field of ['koordinaten_start', 'koordinaten_ziel']) {
+    const coordinates = data[field];
+    if (!Array.isArray(coordinates) || coordinates.length !== 2 || !coordinates.every(Number.isFinite)
+      || coordinates[0] < -90 || coordinates[0] > 90 || coordinates[1] < -180 || coordinates[1] > 180) {
+      throw new Error(`${fileName}: Frontmatter-Feld "${field}" muss [Breitengrad, Längengrad] enthalten.`);
+    }
+  }
+  if (!Array.isArray(data.highlights) || !Array.isArray(data.bilder) || !Array.isArray(data.videos)) {
+    throw new Error(`${fileName}: highlights, bilder und videos müssen Listen sein.`);
+  }
+  if (data.bilder.some((image) => !image || typeof image.datei !== 'string' || typeof image.beschreibung !== 'string')) {
+    throw new Error(`${fileName}: jeder Eintrag in bilder benötigt datei und beschreibung.`);
+  }
+  if (data.videos.some((video) => !video || typeof video.typ !== 'string' || typeof video.quelle !== 'string')) {
+    throw new Error(`${fileName}: jeder Eintrag in videos benötigt typ und quelle.`);
+  }
+}
+
+function roadbookContentPlugin() {
+  return {
+    name: 'roadbook-content',
+    resolveId(id) {
+      return id === virtualModuleId ? resolvedVirtualModuleId : null;
+    },
+    async load(id) {
+      if (id !== resolvedVirtualModuleId) {
+        return null;
+      }
+
+      const files = (await readdir(contentDirectory))
+        .filter((name) => /^tag-\d{2}\.md$/.test(name))
+        .sort();
+      const days = await Promise.all(files.map(async (fileName) => {
+        const source = await readFile(path.join(contentDirectory, fileName), 'utf8');
+        const parsed = matter(source);
+        validateDay(parsed.data, fileName);
+        return {
+          sourcePath: `content/${fileName}`,
+          frontmatter: parsed.data,
+          body: parsed.content.trim(),
+        };
+      }));
+
+      return `export default ${JSON.stringify(days)};`;
+    },
+    handleHotUpdate({ file, server }) {
+      if (path.dirname(file) !== contentDirectory || !/^tag-\d{2}\.md$/.test(path.basename(file))) {
+        return;
+      }
+      const module = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
+      if (module) {
+        server.moduleGraph.invalidateModule(module);
+        server.ws.send({ type: 'full-reload' });
+        return [module];
+      }
+    },
+    configureServer(server) {
+      server.middlewares.use(async (request, response, next) => {
+        const pathname = new URL(request.url, 'http://localhost').pathname;
+        const fileName = pathname.startsWith(`${base}assets/icons/`)
+          ? path.basename(pathname)
+          : '';
+        if (!/^balkan-ride(?:-\d+|-apple-touch)?\.(?:svg|png)$/.test(fileName)) {
+          next();
+          return;
+        }
+        response.setHeader('Content-Type', fileName.endsWith('.svg') ? 'image/svg+xml' : 'image/png');
+        response.end(await readFile(path.join(iconDirectory, fileName)));
+      });
+    },
+    async generateBundle() {
+      const iconFiles = (await readdir(iconDirectory))
+        .filter((name) => /^balkan-ride(?:-\d+|-apple-touch)?\.(?:svg|png)$/.test(name));
+      for (const fileName of iconFiles) {
+        this.emitFile({
+          type: 'asset',
+          fileName: `assets/icons/${fileName}`,
+          source: await readFile(path.join(iconDirectory, fileName)),
+        });
+      }
+    },
+  };
+}
+
+export default defineConfig({
+  base,
+  plugins: [tailwindcss(), roadbookContentPlugin()],
+});

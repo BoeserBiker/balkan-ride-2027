@@ -11,10 +11,10 @@
 * [x] **Git & GitHub Repository anlegen**◊◊
   * [x] Privaten GitHub-Account einrichten (2FA aktivieren) und das neue Repository **`balkan-ride-2027`** erstellen.
   * [x] Lokalen Workspace-Ordner `Balkan-Ride-2027` im Terminal öffnen und mit Git verknüpfen (`git init`, `git branch -M main`, `git remote add origin ...`).
-* [ ] **Sicherheit & Branch-Protection konfigurieren**
+* [x] **Sicherheit & Branch-Protection konfigurieren**
   * [x] Anthropic API-Key erstellen und in GitHub unter `Settings` → `Secrets and variables` → `Actions` als Secret `ANTHROPIC_API_KEY` hinterlegen.
   * [x] Repository-Variablen `ROADBOOK_AGENT_USER` und `ANTHROPIC_MODEL` setzen.
-  * [ ] Branch-Schutz für `main` mit PR-Pflicht aktivieren. GitHub meldet für das private Repository, dass diese Funktion ein Upgrade oder ein öffentliches Repository voraussetzt.
+  * [x] Branch-Schutz für `main` mit PR-Pflicht im öffentlichen Repository aktivieren und testen.
 * [x] **Workspace-Dokumente & Ordnerstruktur anlegen**
   * [x] Alle 4 Planungs- und Vorgabedateien in `docs/` ablegen (`Balkan_Tour_Pflichtenheft_V4.md`, `master_ablauf_prompt_plan_v4.md`, `todo_plan_v4.md`, `motorrad_checkliste_logistik.md`) und `.github/copilot-instructions.md` prüfen.
   * [x] Projektordner anlegen: `.github/workflows/`, `.github/scripts/`, `config/commands/`, `config/skills/plan-item/`, `config/skills/implement-item/`, `content/`, `assets/icons/`, `assets/gpx/`, `assets/media/`.
@@ -46,13 +46,16 @@
   * [ ] Unterordner `assets/media/tag-01/` bis `tag-20/` anlegen und erste Fotos auf max. `1600 px` Breite (WebP/JPEG, `200–400 KB`) optimieren; GPX-Tracks in `assets/gpx/` ablegen.
 * [ ] **Die 20 Markdown-Dateien anlegen (`content/tag-01.md` bis `tag-20.md`)**
   * [ ] Über den VS-Code Copilot Agenten aus den Excel-Rohdaten im erweiterten YAML-V4-Schema (inkl. `koordinaten_start`, `koordinaten_ziel`, `bilder`, `videos`) und authentischem Biker-Slang generieren lassen.
-* [ ] **Polarsteps-Style Web-Roadbook bauen (`index.html`)**
-  * [ ] Responsive Web-App im Dark-Adventure-Look mit Tailwind CSS und Leaflet.js erstellen.
-  * [ ] Geografische Gesamtrouten-Ansicht, nummerierte Tages-Pins, Step-Navigation (`Tag 01` bis `Tag 20`), bidirektionale Karten-Synchronisation (`flyTo`), Desktop-Split-Screen und Mobile-Bottom-Sheet umsetzen.
-  * [ ] Multimediale Step-Karten mit Foto-/Video-Galerie, Lightbox-Vollbildansicht und Lazy Loading integrieren.
-* [ ] **PWA-Funktionen integrieren (Pflichtszenario)**
-  * [ ] `manifest.json` (App-Name `Balkan-Ride 2027`, Kurzname `BalkanRide`, Vollbildmodus `standalone`) und App-Icons (`192x192`, `512x512`, Apple-Touch-Icon) in `assets/icons/` anlegen.
-  * [ ] Service Worker (`sw.js`) für kontrolliertes Caching und schnelle Updates nach PR-Merges einrichten und in `index.html` verknüpfen.
+* [x] **Polarsteps-Style Web-Roadbook bauen (`web/`)**
+  * [x] Responsive Vanilla-JavaScript-Web-App im Dark-Adventure-Look mit Vite, Tailwind CSS und Leaflet.js erstellen.
+  * [x] Markdown-/YAML-Inhalte beim Build einlesen; Etappen-Pins, Step-Navigation, `flyTo`, Desktop-Split-Layout und mobiles Karten-/Sheet-Layout umsetzen.
+  * [x] Foto-/Video-Galerie mit Lightbox, Lazy Loading und verständlichen Leerzuständen für noch fehlende Dateien integrieren.
+* [x] **PWA-Funktionen integrieren (Pflichtszenario)**
+  * [x] `web/public/manifest.json` und App-Icons (`192x192`, `512x512`, Apple-Touch-Icon) in `assets/icons/` anlegen.
+  * [x] `web/public/sw.js` für kontrolliertes Caching und Aktualisierungen einrichten und in `web/index.html` verknüpfen.
+* [x] **GitHub-Pages-Deployment automatisieren**
+  * [x] `.github/workflows/deploy-pages.yml` baut und veröffentlicht `web/dist/` bei Pushes auf `main`.
+  * [ ] GitHub Pages in den Repository-Einstellungen einmalig auf die Quelle „GitHub Actions“ stellen und den ersten Live-Deploy prüfen.
 
 ---
 
@@ -73,7 +76,7 @@
 *Ziel: Sicherstellen, dass PWA, Polarsteps-Karten, Medien-Galerien, GPX-Downloads und Sicherheitsregeln fehlerfrei laufen.*
 
 * [ ] **Funktions-, Medien- & Offline-Test (PWA)**
-  * [ ] GitHub Pages unter `Settings` → `Pages` aktivieren.
+  * [ ] GitHub Pages unter `Settings` → `Pages` auf die Quelle „GitHub Actions“ setzen.
   * [ ] Live-URL (`https://...`) auf iOS und Android im mobilen Browser öffnen und über *„Zum Home-Bildschirm hinzufügen“* als App installieren.
   * [ ] Prüfen, ob Karten-`flyTo`, Lightbox-Bilder/Videos, Aktualisierungen nach einem PR-Merge sowie GPX-Downloads einwandfrei funktionieren.
 * [ ] **Sicherheits- & Agenten-Stresstest**

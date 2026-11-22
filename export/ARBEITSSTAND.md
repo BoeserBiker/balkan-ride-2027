@@ -12,7 +12,7 @@
 - [x] **Phase 2 abgeschlossen:** Beide Agentenstufen liefen live; der Agent
   erstellte PR #2, der gemergt wurde. Alle Phase-2-Arbeitspunkte sind im
   [To-do-Plan](../docs/todo_plan_v4.md) abgehakt.
-- Das private GitHub-Repository
+- Das öffentliche GitHub-Repository
   `https://github.com/BoeserBiker/balkan-ride-2027` ist mit lokalem `main`
   verbunden; der erste Commit `Setup V4 Grundgerüst` wurde gepusht.
 - GitHub Actions ist aktiviert. Das Secret `ANTHROPIC_API_KEY` sowie die
@@ -22,20 +22,28 @@
   `b9cd272` liefen Planungs- und Implementierungsstufe am 2026-11-22
   erfolgreich; [PR #2](https://github.com/BoeserBiker/balkan-ride-2027/pull/2)
   wurde durch den Agenten erstellt und gemergt.
-- Die GitHub-API meldete, dass klassische Branch Protection für dieses private
-  Repository ein Upgrade oder ein öffentliches Repository voraussetzt. Beim
-  direkten Push auf `main` meldete GitHub außerdem, dass eine PR-Regel
-  umgangen wurde; daher weiterhin Änderungen bevorzugt über PRs einbringen.
+- Die klassische Branch Protection war zunächst für das private Repository
+  nicht verfügbar. Nach der Umstellung auf ein öffentliches Repository ist
+  die PR-Pflicht für `main` laut Nutzer aktiv und getestet. Änderungen
+  weiterhin bevorzugt über Pull Requests einbringen.
 - Die Befehlsdateien wurden mit den Vorlagen des Master-Plans verglichen; das
   YAML der Referenzetappe wurde gegen Abschnitt 3A geprüft. Der Agent-Workflow
   wurde mit Issue #1 live durchlaufen; PR #2 wurde am 2026-11-22 gemergt.
-- `index.html`, PWA-Dateien, die übrigen 19 Etappen, GPX-Dateien und echte
-  Mediendateien sind noch nicht Bestandteil des Grundgerüsts.
+- Die Phase-3-Web-App ist unter `web/` als Vanilla-JavaScript-Anwendung mit
+  Vite, Tailwind CSS und Leaflet umgesetzt. Der Build liest alle
+  `content/tag-*.md`-Dateien samt YAML-Frontmatter ein. Die Kartenansicht
+  stellt vorhandene Start-/Zielpunkte und GPX-Tracks dar; fehlende GPX- und
+  Mediendateien werden als solche kenntlich gemacht.
+- PWA-Manifest, Service Worker und Icons in den Größen 192, 512 und Apple
+  Touch sind vorhanden. `.github/workflows/deploy-pages.yml` baut und
+  veröffentlicht `web/dist/` bei Pushes auf `main`.
+- Offen sind weiterhin die Excel-Rohdaten, die übrigen 19 Etappen, GPX-Tracks,
+  echte Medien, die Pages-Quelle „GitHub Actions“ in den Repository-
+  Einstellungen und der erste Live-Deploy.
 - Der Agent-Workflow verwendet die GitHub-Repository-Variable
   `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY` und die optionale
   Modellvariable `ANTHROPIC_MODEL`. Der zweistufige Ablauf bis zum gemergten
-  PR ist live verifiziert. Branch Protection bleibt ein separater offener
-  Punkt.
+  PR und die PR-Pflicht auf `main` sind live verifiziert.
 - Codebase-Memory wurde zuletzt am 2026-11-20 im Vollmodus ausgeführt:
   273 Nodes, 459 Edges; Indexstatus `ready`. Es gab keine Parserfehler,
   Teilparses oder übersprungenen Dateien. Sieben Dateien unter
@@ -58,6 +66,37 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Phase 3 Web-App und Pages-Build gestartet
+
+- Die Web-App wurde wie im Nutzerprompt unter `web/` eingerichtet. Bei der
+  Framework-Wahl wurde das Pflichtenheft V4 als maßgeblich behandelt: Vanilla
+  JavaScript statt React; Vite dient als Build-Werkzeug, Tailwind CSS und
+  Leaflet werden verwendet.
+- Der Build importiert und validiert die YAML-Frontmatter aus allen
+  `content/tag-*.md`-Dateien sowie die Logistik-Checkliste. Die UI bietet
+  Etappenauswahl, synchronisierte Karte, Foto-/Video-Leerzustände, Lightbox
+  für vorhandene Bilder und lokal gespeicherte Logistik-Häkchen.
+- PWA-Manifest, Service Worker, SVG-/PNG-App-Icons und ein GitHub-Pages-
+  Workflow für Pushes auf `main` wurden ergänzt. GitHub Pages muss noch auf
+  „GitHub Actions“ umgestellt werden; ein Live-Deploy wurde nicht ausgeführt.
+- Verifiziert: `npm run build --prefix web` erfolgreich. Die gebaute Seite
+  wurde lokal im Browser geprüft; Tag 01, Kartenstatus und Logistikdaten
+  werden angezeigt. Der Service Worker wurde registriert; im 390-px-Viewport
+  entstand kein horizontaler Überlauf und ein Logistik-Häkchen blieb nach
+  einem Neuladen erhalten. Der fehlende GPX-Track und fehlende Medien sind im
+  Workspace weiterhin nicht vorhanden.
+- Die Branch-Protection-Markierung in `docs/todo_plan_v4.md` bleibt erledigt:
+  der Nutzer hat bestätigt, dass die PR-Pflicht nach der Umstellung auf ein
+  öffentliches Repository aktiv und getestet ist.
+
+### 2026-11-22 – Branch-Schutz für `main` bestätigt
+
+- Der Nutzer bestätigte, dass das Repository inzwischen öffentlich ist und
+  die PR-Pflicht für `main` darüber aktiviert und getestet wurde.
+- Der To-do-Status für Sicherheit und Branch-Protection bleibt daher
+  abgeschlossen; der frühere GitHub-Hinweis bezog sich auf den vorherigen
+  privaten Repository-Status.
 
 ### 2026-11-22 – Issue-Kommentar-Trigger korrigiert
 

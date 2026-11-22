@@ -19,13 +19,15 @@ Entwicklung einer hochprofessionellen, mobilen und leicht bedienbaren Web-Präse
 #### 2. Technische Architektur & Tech-Stack
 * **Frontend & UI-Layout (Polarsteps-Style):**
   * **Technologies:** HTML5, Tailwind CSS (Dark Adventure Design), Vanilla JavaScript (ES6+), Leaflet.js (interaktive OpenStreetMap-/Topografie-Karten).
+  * **Build:** Der App-Quellcode liegt unter `web/` und wird mit Vite ohne Laufzeit-Framework gebaut. Beim Build werden alle `content/tag-*.md`-Dateien samt YAML-Frontmatter eingelesen; das Ergebnis liegt unter `web/dist/` und verwendet den GitHub-Pages-Unterpfad `/balkan-ride-2027/`.
   * **Responsives Split-/Sheet-Layout:** Desktop als Split-Screen (interaktive Karte links, scrollbare Step-Chronik rechts); Mobile/PWA mit fixierter oberer Kartenansicht und interaktivem Bottom-Sheet bzw. Step-Switcher für Einhandbedienung.
-* **PWA-Erweiterung (Pflicht):** Web App Manifest (`manifest.json`), Service Worker (`sw.js`) sowie App-Icons und Einbindung in der `index.html` zur Homescreen-Installation und kontrollierten Zwischenspeicherung.
+* **PWA-Erweiterung (Pflicht):** Web App Manifest (`web/public/manifest.json`), Service Worker (`web/public/sw.js`) sowie App-Icons aus `assets/icons/` und Einbindung in `web/index.html` zur Homescreen-Installation und kontrollierten Zwischenspeicherung.
 * **Datenhaltung (Micro-Files & Medien):**
   * Aufteilung der 20 Reisetage in einzelne Markdown-Dateien (`content/tag-01.md` bis `content/tag-20.md`) mit erweitertem YAML-Frontmatter für Geokoordinaten, Etappendaten sowie strukturierte Medienlisten (`bilder`, `videos`).
   * Ablage von komprimierten Tourfotos, Vorschaubildern (Thumbnails) und GPX-Tracks in organisierten Unterordnern unter `assets/`.
 * **Einheitliche Befehlsdateien & Skills (Single Source of Truth):** Auslagerung der KI-Arbeitsanweisungen in strukturierte Markdown-Dateien (`config/commands/` und `config/skills/`), sodass sowohl der Cloud-Agent als auch lokale Werkzeuge (z. B. in VS Code) nach identischen Regeln arbeiten.
 * **Automatisierung / CI/CD & Branch-Schutz:** GitHub Actions triggert auf neue Issues sowie auf Freigabe-Kommentare. Direkte Schreibvorgänge auf den `main`-Branch sind für den Agenten untersagt; alle Änderungen laufen über Feature-Branches und Pull Requests.
+* **GitHub-Pages-Deployment:** `.github/workflows/deploy-pages.yml` baut und veröffentlicht `web/dist/` bei Pushes auf `main`; in den Repository-Einstellungen muss GitHub Pages als Quelle „GitHub Actions“ verwenden.
 * **KI-Agent:** Python-Skript (`.github/scripts/agent_runner.py`) unter Nutzung der Anthropic API (Claude 3.5 Sonnet) zur zweistufigen Bearbeitung einzelner Markdown-Dateien.
 
 ---
@@ -67,7 +69,8 @@ Hier folgt der atmosphärische Roadbook-Text im authentischen Biker-Slang...
 balkan-tour-2027/
 ├── .github/
 │   ├── workflows/
-│   │   └── ai-agent-workflow.yml
+│   │   ├── ai-agent-workflow.yml
+│   │   └── deploy-pages.yml
 │   └── scripts/
 │       └── agent_runner.py
 ├── config/
@@ -87,9 +90,15 @@ balkan-tour-2027/
 │   └── media/
 │       ├── tag-01/     (Komprimierte Fotos & Videos für Step 1)
 │       └── ... (bis tag-20/)
-├── manifest.json
-├── sw.js
-├── index.html
+├── web/
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   ├── src/            (Vanilla-JS-App, Leaflet-Karte und Styles)
+│   └── public/
+│       ├── manifest.json
+│       └── sw.js
 ├── app_spezifikation_polarsteps.md
 ├── Balkan_Tour_Pflichtenheft_V4.md
 └── todo_plan.md

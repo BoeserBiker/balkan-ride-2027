@@ -25,7 +25,9 @@
 Balkan-Ride-2027/
 ├── .github/
 │   ├── copilot-instructions.md
-│   ├── workflows/ai-agent-workflow.yml
+│   ├── workflows/
+│   │   ├── ai-agent-workflow.yml
+│   │   └── deploy-pages.yml
 │   └── scripts/agent_runner.py
 ├── config/
 │   ├── commands/
@@ -48,9 +50,15 @@ Balkan-Ride-2027/
 │   ├── master_ablauf_prompt_plan_v4.md
 │   ├── todo_plan_v4.md
 │   └── motorrad_checkliste_logistik.md
-├── manifest.json
-├── sw.js
-└── index.html
+├── web/
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   ├── src/
+│   └── public/
+│       ├── manifest.json
+│       └── sw.js
 ```
 
 ### Schritt 2.1: Einheitliche Befehlsdateien (`config/commands/`)
@@ -270,12 +278,12 @@ if __name__ == "__main__":
   > *"Lies `docs/Balkan_Tour_Pflichtenheft_V4.md` und `docs/motorrad_checkliste_logistik.md`. Hier sind die Rohdaten meiner Excel-Tabelle für unsere 20-tägige Motorradtour: [EXCEL-DATEN]. Erstelle im Ordner `content/` für jeden Tag eine eigene Markdown-Datei (`tag-01.md` bis `tag-20.md`) exakt nach dem erweiterten YAML-Schema aus Abschnitt 3A des Pflichtenhefts V4 (`tag`, `datum`, `titel`, `start`, `ziel`, `koordinaten_start`, `koordinaten_ziel`, `kilometer`, `fahrzeit`, `hoehenmeter`, `gpx_datei`, `highlights`, `bilder`, `videos`) und schreibe packende Roadbook-Texte im authentischen Biker-Slang."*
 
 * **Prompt 2 (Polarsteps-Style Web-Roadbook & PWA):**
-  > *"Lies `docs/Balkan_Tour_Pflichtenheft_V4.md` (Abschnitt 1, 2 und 4B/C). Erstelle die mobile Web-App im Dark-Adventure-Design mit Tailwind CSS und Leaflet.js (`index.html`), die alle Dateien aus `content/` dynamisch lädt. Implementiere das Polarsteps-Prinzip: geografische Gesamtrouten-Ansicht mit nummerierten Pins, tageweise Step-Navigation (Vorheriger/Nächster Step + Pin-Klick), geschmeidige Karten-Synchronisation (`flyTo`), Split-Screen am Desktop, Bottom-Sheet auf Mobilgeräten sowie eine integrierte Foto-/Video-Galerie mit Lightbox und Lazy Loading. Ergänze `manifest.json` (Name: `Balkan-Ride 2027`, Kurzname: `BalkanRide`) und `sw.js` für die Homescreen-Installation als PWA."*
+  > *"Lies `docs/Balkan_Tour_Pflichtenheft_V4.md` (Abschnitt 1, 2 und 4B/C). Erstelle die mobile Web-App als Vanilla-JavaScript-Anwendung unter `web/` mit Vite, Tailwind CSS und Leaflet.js. Lies beim Build alle Markdown-Dateien aus `content/` samt YAML-Frontmatter ein. Implementiere das Polarsteps-Prinzip: geografische Gesamtrouten-Ansicht mit nummerierten Pins, tageweise Step-Navigation (Vorheriger/Nächster Step + Pin-Klick), geschmeidige Karten-Synchronisation (`flyTo`), Split-Screen am Desktop, Bottom-Sheet auf Mobilgeräten sowie eine integrierte Foto-/Video-Galerie mit Lightbox und Lazy Loading. Zeige fehlende GPX- und Mediendateien transparent an. Ergänze `web/public/manifest.json`, `web/public/sw.js` und den GitHub-Actions-Workflow für GitHub Pages auf Push zu `main`."*
 
 ---
 
 ## Phase 4: Der mobile 2-Stufen-Härtetest & Live-Gang
-1. **GitHub Pages aktivieren:** Unter `Settings` → `Pages` den `main`-Branch live schalten.
+1. **GitHub Pages aktivieren:** Unter `Settings` → `Pages` als Quelle **GitHub Actions** wählen; `.github/workflows/deploy-pages.yml` veröffentlicht `web/dist/` bei Pushes auf `main`.
 2. **Stufe 1 testen:** In der GitHub-App ein Issue per Sprachdiktat anlegen und den `## Umsetzungsplan` des Agenten prüfen.
 3. **Stufe 2 testen:** Mit `/implement-item` kommentieren, den erzeugten Pull Request in der App prüfen und per **Merge pull request** live schalten.
 4. **PWA & Medien prüfen:** Live-Link auf dem Smartphone als PWA auf dem Homescreen installieren und Karten-`flyTo`, Lightbox-Galerie sowie GPX-Downloads testen.
