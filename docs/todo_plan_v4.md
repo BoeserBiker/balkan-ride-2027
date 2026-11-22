@@ -55,7 +55,7 @@
   * [x] `web/public/sw.js` für kontrolliertes Caching und Aktualisierungen einrichten und in `web/index.html` verknüpfen.
 * [x] **GitHub-Pages-Deployment automatisieren**
   * [x] `.github/workflows/deploy-pages.yml` baut und veröffentlicht `web/dist/` bei Pushes auf `main`.
-  * [ ] GitHub Pages in den Repository-Einstellungen einmalig auf die Quelle „GitHub Actions“ stellen und den ersten Live-Deploy prüfen.
+  * [x] GitHub Pages in den Repository-Einstellungen auf die Quelle „GitHub Actions“ stellen und den ersten Live-Deploy prüfen.
 
 ---
 
@@ -76,7 +76,7 @@
 *Ziel: Sicherstellen, dass PWA, Polarsteps-Karten, Medien-Galerien, GPX-Downloads und Sicherheitsregeln fehlerfrei laufen.*
 
 * [ ] **Funktions-, Medien- & Offline-Test (PWA)**
-  * [ ] GitHub Pages unter `Settings` → `Pages` auf die Quelle „GitHub Actions“ setzen.
+  * [x] GitHub Pages unter `Settings` → `Pages` auf die Quelle „GitHub Actions“ setzen.
   * [ ] Live-URL (`https://...`) auf iOS und Android im mobilen Browser öffnen und über *„Zum Home-Bildschirm hinzufügen“* als App installieren.
   * [ ] Prüfen, ob Karten-`flyTo`, Lightbox-Bilder/Videos, Aktualisierungen nach einem PR-Merge sowie GPX-Downloads einwandfrei funktionieren.
 * [ ] **Sicherheits- & Agenten-Stresstest**

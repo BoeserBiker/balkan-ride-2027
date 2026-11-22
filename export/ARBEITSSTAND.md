@@ -24,8 +24,10 @@
   wurde durch den Agenten erstellt und gemergt.
 - Die klassische Branch Protection war zunächst für das private Repository
   nicht verfügbar. Nach der Umstellung auf ein öffentliches Repository ist
-  die PR-Pflicht für `main` laut Nutzer aktiv und getestet. Änderungen
-  weiterhin bevorzugt über Pull Requests einbringen.
+  die PR-Pflicht für `main` laut Nutzer aktiv und getestet. Beim aktuellen
+  Push meldete GitHub jedoch, dass die PR-Regel umgangen wurde; daher
+  weiterhin bevorzugt Pull Requests verwenden und die Bypass-Konfiguration
+  prüfen.
 - Die Befehlsdateien wurden mit den Vorlagen des Master-Plans verglichen; das
   YAML der Referenzetappe wurde gegen Abschnitt 3A geprüft. Der Agent-Workflow
   wurde mit Issue #1 live durchlaufen; PR #2 wurde am 2026-11-22 gemergt.
@@ -38,8 +40,7 @@
   Touch sind vorhanden. `.github/workflows/deploy-pages.yml` baut und
   veröffentlicht `web/dist/` bei Pushes auf `main`.
 - Offen sind weiterhin die Excel-Rohdaten, die übrigen 19 Etappen, GPX-Tracks,
-  echte Medien, die Pages-Quelle „GitHub Actions“ in den Repository-
-  Einstellungen und der erste Live-Deploy.
+  echte Medien sowie Live-Tests auf iOS und Android.
 - Der Agent-Workflow verwendet die GitHub-Repository-Variable
   `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY` und die optionale
   Modellvariable `ANTHROPIC_MODEL`. Der zweistufige Ablauf bis zum gemergten
@@ -78,8 +79,8 @@
   Etappenauswahl, synchronisierte Karte, Foto-/Video-Leerzustände, Lightbox
   für vorhandene Bilder und lokal gespeicherte Logistik-Häkchen.
 - PWA-Manifest, Service Worker, SVG-/PNG-App-Icons und ein GitHub-Pages-
-  Workflow für Pushes auf `main` wurden ergänzt. GitHub Pages muss noch auf
-  „GitHub Actions“ umgestellt werden; ein Live-Deploy wurde nicht ausgeführt.
+  Workflow für Pushes auf `main` wurden ergänzt. Das Pages-Deployment wurde
+  später nach Aktivierung der Quelle „GitHub Actions“ erfolgreich ausgeführt.
 - Verifiziert: `npm run build --prefix web` erfolgreich. Die gebaute Seite
   wurde lokal im Browser geprüft; Tag 01, Kartenstatus und Logistikdaten
   werden angezeigt. Der Service Worker wurde registriert; im 390-px-Viewport
@@ -89,6 +90,19 @@
 - Die Branch-Protection-Markierung in `docs/todo_plan_v4.md` bleibt erledigt:
   der Nutzer hat bestätigt, dass die PR-Pflicht nach der Umstellung auf ein
   öffentliches Repository aktiv und getestet ist.
+
+### 2026-11-22 – GitHub Pages aktiviert und veröffentlicht
+
+- Commit `74e0b3109a9cf1828333721832cdfcd28b4de729` wurde auf `main` gepusht.
+  GitHub meldete beim Push, dass die PR-Pflicht umgangen wurde.
+- Der erste Actions-Lauf scheiterte beim Deploy, weil GitHub Pages noch nicht
+  aktiviert war. Die Pages-Quelle wurde auf „GitHub Actions“ gestellt und der
+  Deploy-Schritt wiederholt.
+- Der Build und Deploy waren danach erfolgreich:
+  [Actions-Lauf 44978547310](https://github.com/BoeserBiker/balkan-ride-2027/actions/runs/44978547310).
+  Die öffentliche Seite ist unter
+  [https://boeserbiker.github.io/balkan-ride-2027/](https://boeserbiker.github.io/balkan-ride-2027/)
+  erreichbar; `curl --head` lieferte HTTP 200.
 
 ### 2026-11-22 – Branch-Schutz für `main` bestätigt
 

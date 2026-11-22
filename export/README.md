@@ -38,8 +38,10 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   Punkte und Umzugs-Checkliste.
 - Die Web-App liegt unter `../web/`; `.github/workflows/deploy-pages.yml`
   baut `web/dist/` und veröffentlicht es bei Pushes auf `main` über GitHub
-  Pages. Für den ersten Live-Deploy muss in den Repository-Einstellungen die
-  Pages-Quelle „GitHub Actions“ aktiviert sein.
+  Pages. Die Pages-Quelle „GitHub Actions“ ist konfiguriert; die veröffentlichte
+  App ist unter
+  [boeserbiker.github.io/balkan-ride-2027](https://boeserbiker.github.io/balkan-ride-2027/)
+  erreichbar.
 - [Chatverlauf-Inventar](../daten/chat_verlauf/README.md) – lokale
   Gesprächssicherungen und deren Einschränkungen.
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – fachliche und
