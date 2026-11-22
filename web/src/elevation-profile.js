@@ -9,6 +9,32 @@ const BOTTOM = 132;
 const integer = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const elevation = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 20 });
+const STORAGE_KEY = 'balkan_elevation_collapsed';
+let collapsed;
+
+function readCollapsedState() {
+  if (collapsed !== undefined) return collapsed;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved !== null && saved !== 'true' && saved !== 'false') {
+      console.error('Gespeicherter Höhenprofil-Zustand ist ungültig.');
+    }
+    collapsed = saved === 'true';
+  } catch (error) {
+    console.error('Höhenprofil-Zustand konnte nicht gelesen werden.', error);
+    collapsed = false;
+  }
+  return collapsed;
+}
+
+function saveCollapsedState(value) {
+  collapsed = value;
+  try {
+    localStorage.setItem(STORAGE_KEY, String(value));
+  } catch (error) {
+    console.error('Höhenprofil-Zustand konnte nicht gespeichert werden.', error);
+  }
+}
 
 export function buildElevationProfile(track, waypoints = []) {
   const known = track.points.filter((point) => Number.isFinite(point.elevationMeters));
@@ -67,8 +93,16 @@ export function renderElevationProfile(profile) {
   if (section.length) sections.push(section);
   const lines = sections.map((points) => points.map(({ x, y }, index) => `${index ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' '));
   const areas = sections.map((points, index) => `${lines[index]} L${points[points.length - 1].x.toFixed(2)},${BOTTOM} L${points[0].x.toFixed(2)},${BOTTOM} Z`);
+  const isCollapsed = readCollapsedState();
   return `
-    <div class="elevation-heading"><h3>Höhenprofil</h3><span>↗ ${integer.format(profile.ascent)} hm${profile.incomplete ? ' (unvollständig)' : ''}</span></div>
+    <h3 class="elevation-heading">
+      <button type="button" class="elevation-toggle" data-elevation-toggle aria-expanded="${!isCollapsed}" aria-controls="elevation-content">
+        <span class="elevation-title">Höhenprofil</span>
+        <span class="elevation-summary">↗ ${integer.format(profile.ascent)} hm${profile.incomplete ? ' (unvollständig)' : ''} · max. ${integer.format(profile.maximum)} m</span>
+        <span class="elevation-chevron" aria-hidden="true">▸</span>
+      </button>
+    </h3>
+    <div id="elevation-content" class="elevation-content" data-elevation-content${isCollapsed ? ' hidden' : ''}>
     <div class="elevation-chart" data-elevation-chart>
       <svg viewBox="0 0 ${WIDTH} 160" role="slider" tabindex="0" data-elevation-slider
         aria-label="Streckenfortschritt im Höhenprofil" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -102,10 +136,13 @@ export function renderElevationProfile(profile) {
       <span data-poi-description></span>
       <span data-poi-position></span>
     </div>
+    </div>
   `;
 }
 
 export function bindElevationProfile(container, profile, setLivePosition, setHighlightedWaypoint) {
+  const toggle = container.querySelector('[data-elevation-toggle]');
+  const content = container.querySelector('[data-elevation-content]');
   const chart = container.querySelector('[data-elevation-chart]');
   const svg = chart.querySelector('svg');
   const slider = chart.querySelector('[data-elevation-slider]');
@@ -166,6 +203,14 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     setLivePosition(null);
     showPoi(null);
   }
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    content.hidden = expanded;
+    saveCollapsedState(expanded);
+    if (expanded) reset();
+  });
 
   chart.addEventListener('pointermove', (event) => updateFromX(event.clientX, event.target));
   chart.addEventListener('pointerdown', (event) => {

@@ -1,6 +1,11 @@
 {
-  "version": "v2.38",
+  "version": "v2.39",
   "history": [
+    {
+      "version": "v2.39",
+      "date": "2026-11-22",
+      "message": "Versionsanzeige unter Auswahlmenue Etappen/Logistik verschoben"
+    },
     {
       "version": "v2.38",
       "date": "2026-11-22",

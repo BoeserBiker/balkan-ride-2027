@@ -196,9 +196,14 @@ h1, h2, h3, p { margin-top: 0; }
 .stats-grid dd small { color: var(--muted); font-size: 10px; font-weight: 400; }
 .elevation-section { margin: 22px 0; }
 .elevation-section[hidden] { display: none; }
-.elevation-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.elevation-heading h3 { margin: 0; font-size: 13px; }
-.elevation-heading span { color: var(--accent); font-size: 11px; }
+.elevation-heading { margin: 0; font-size: 13px; }
+.elevation-toggle { display: flex; width: 100%; align-items: center; gap: 12px; padding: 6px 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.elevation-toggle:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+.elevation-title { flex: 1 1 auto; }
+.elevation-summary { color: var(--accent); font-size: 11px; font-weight: 400; text-align: right; }
+.elevation-chevron { flex: none; color: var(--accent); font-size: 20px; line-height: 1; transition: transform .2s ease; }
+.elevation-toggle[aria-expanded="true"] .elevation-chevron { transform: rotate(90deg); }
+.elevation-content[hidden] { display: none; }
 .elevation-chart { position: relative; margin-top: 12px; cursor: crosshair; touch-action: none; user-select: none; }
 .elevation-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .elevation-grid { stroke: var(--line); stroke-dasharray: 3 4; }
