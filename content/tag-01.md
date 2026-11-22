@@ -27,6 +27,8 @@ videos:
 
 Villach, erster Kaffee, kalte Finger am Zündschlüssel. Wir machen die Hobel voll und rollen los Richtung Wurzenpass. Bis zu 18 Prozent Steigung – da ist ein sauber gewählter Gang mehr wert als ein dickes Handgelenk. Jeder fährt seinen eigenen Strich. Gesammelt wird dort, wo alle sicher rausziehen können.
 
+Vor der Grenze nach Slowenien denken wir an die digitale E-Vignette fürs Motorrad – am besten schon vorab online kaufen, damit wir an der Grenze nicht lange suchen müssen.
+
 Am Vršič warten 50 Kehren und die Felswände der Julischen Alpen. Auf nassem Pflaster heißt’s: Blick zum Kurvenausgang, sanft ans Gas und Abstand halten. Oben anhalten, Helm runter und einmal ins Trenta-Tal schauen. Den Passstatus checken wir vor dem Start, den Track laden wir vorab aufs Navi.
 
 Unten leuchtet die Soča zwischen den Bäumen durch. Jetzt wird aus der Kehrenarbeit eine entspannte Fahrt am Fluss bis Bovec. Auf dem Zettel stehen **145 km, 3 Stunden 15 Minuten reine Fahrzeit und 1.850 Höhenmeter**. Pausen kommen obendrauf. Und wenn die Restreichweite auf 150 km fällt, nehmen wir die nächste Tankmöglichkeit mit. In Bovec kommt der Seitenständer raus – Feierabend für die Kurvenräuber.
