@@ -105,6 +105,13 @@
 
 ## Chronologie
 
+### 2026-11-22 – Veröffentlichung der Etappen-Navigation freigegeben
+
+- Die Zusammenführung von `feature/fahrzeit-etappen-navigation` nach `main`
+  wurde vom Nutzer angefordert. Die Veröffentlichung erfolgt gemäß
+  Projektvorgabe über einen Pull Request; den anschließenden GitHub-Pages-Lauf
+  und die Darstellung am iMac prüfen.
+
 ### 2026-11-22 – Fahrzeit und Etappen-Navigation
 
 - Das Web-Frontend zeigt dezimale `Modell-h`-Werte im Fahrzeitfeld gerundet
