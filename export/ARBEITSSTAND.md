@@ -7,6 +7,17 @@
 
 ## Aktueller Stand
 
+- Workspace-Check am 2026-11-22: 19 Python- und vier Frontend-Tests sowie
+  der Produktionsbuild erfolgreich. Alle 22 Etappen besitzen jeweils vier
+  lokal lesbare Querformatbilder und einen strukturell gültigen
+  YouTube-Nocookie-Eintrag; 21 GPX-Segmente haben 161–300 Punkte, D19 keinen
+  Track. Bildinhalt, Videoverfügbarkeit und Videolaufzeit wurden dabei nicht
+  online geprüft.
+- `main` entsprach beim Check dem Remote-Stand `9d35be8`; der zugehörige
+  GitHub-Pages-Lauf war erfolgreich. Zwei zunächst beanstandete ungültige
+  Git-Referenznamen waren bei der Wiederholungsprüfung nicht mehr vorhanden;
+  `git fsck` verlief anschließend ohne Befund. Ursache und Dauerhaftigkeit
+  der Änderung sind unbekannt.
 - Das Grundgerüst der Phasen 1 und 2 ist angelegt: GitHub-Workflow, Runner,
   Befehlsdateien, Skill-Hüllen und Referenzetappe `content/tag-01.md`.
 - [x] **Phase 2 abgeschlossen:** Beide Agentenstufen liefen live; der Agent
@@ -104,6 +115,35 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Workspace-Check
+
+- Nachprüfung um 15:16 CET: Git-Integrität erneut ohne Befund; die
+  veröffentlichte GitHub-Pages-Adresse antwortete mit HTTP 200. Die im
+  Browser geöffnete lokale Adresse auf Port 5173 war nicht erreichbar;
+  ein Server wurde nicht gestartet. Eine Funktionsprüfung im Browser
+  erfolgte dabei nicht.
+- Git-Status und Remote-Stand geprüft; vor der Prüfungsdokumentation war der
+  Arbeitsbaum sauber. Der erfolgreiche Pages-Lauf für `9d35be8` ist
+  [hier](https://github.com/BoeserBiker/balkan-ride-2027/actions/runs/45031370393)
+  dokumentiert.
+- Beim ersten `git fsck` wurden `refs/heads/main 2` und
+  `refs/remotes/origin/main 2` als ungültige Referenznamen beanstandet.
+  Beim erneuten Prüfen waren die Dateien nicht mehr vorhanden und `git fsck`
+  meldete keinen Fehler. Die Referenzen wurden bei diesem Check nicht
+  verändert; die Ursache ist nicht geklärt.
+- 19 Python-Tests und vier Frontend-Tests bestanden; `npm run build --prefix
+  web` validierte das Frontmatter und baute erfolgreich. Es wurde kein
+  Dev-Server gestartet und keine YouTube-API abgefragt.
+- Offline geprüft: 22 Etappendateien, 88 lesbare Bilder mit Lizenzangaben
+  und höchstens 1400 Pixel Breite, 22 Nocookie-Video-URLs und 22 parsebare
+  Tages-GPX-Dateien. Die 21 Fahrsegmente enthalten 161–300 Punkte; D19
+  enthält weder Tracksegment noch Wegpunkte. Die GPX-Dateien sind 293–16163
+  Byte groß. Die inhaltliche Eignung und Online-Verfügbarkeit der Medien
+  sowie die tatsächliche Befahrbarkeit der vorläufigen Tracks bleiben offen.
+- Widerspruch in den offenen Punkten erkannt: Die Aussage zum privaten
+  Repository ist historisch und widerspricht dem oben dokumentierten
+  öffentlichen Stand. Die gemeldete Umgehung der PR-Pflicht bleibt zu prüfen.
 
 ### 2026-11-22 – Highlight-Fotos und Kurzvideo-Filter
 
@@ -621,9 +661,9 @@
 
 ## Offene Punkte und nächste Schritte
 
-1. **Branch-Schutz klären:** Für das private Repository ist die PR-Pflicht
-   laut GitHub-Plan nicht verfügbar. Sichtbarkeit nicht ohne Entscheidung
-   ändern; alternativ GitHub-Plan upgraden.
+1. **Branch-Schutz klären:** Der frühere Hinweis auf ein privates Repository
+   ist überholt; zum dokumentierten öffentlichen Stand siehe oben. Die beim
+   Push gemeldete Umgehung der PR-Pflicht und die Bypass-Konfiguration prüfen.
 2. **Workspace-Umzug abschließen:** Workspace einschließlich versteckter
    Projektdateien prüfen. Die Chat-Exportdateien wurden gelöscht; Geheimnisse
    weiterhin nicht in Dateien oder Git sichern.
