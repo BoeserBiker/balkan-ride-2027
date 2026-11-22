@@ -23,7 +23,7 @@ function parseGpx(gpxText) {
     .filter((point) => Number.isFinite(point.latitude)
       && Number.isFinite(point.longitude)
       && /^D\d{2}/.test(point.routeGroup));
-  const segments = [...xml.getElementsByTagNameNS('*', 'trkseg')]
+  const profileSegments = [...xml.getElementsByTagNameNS('*', 'trkseg')]
     .map((segment) => [...segment.getElementsByTagNameNS('*', 'trkpt')].map((point) => {
       const lat = point.getAttribute('lat');
       const lon = point.getAttribute('lon');
@@ -31,10 +31,13 @@ function parseGpx(gpxText) {
         || Math.abs(Number(lat)) > 90 || Math.abs(Number(lon)) > 180) {
         throw new Error('Ungültiger Trackpunkt in der Tages-GPX-Datei.');
       }
-      return [Number(lat), Number(lon)];
+      const elevationText = point.getElementsByTagNameNS('*', 'ele')[0]?.textContent?.trim();
+      const elevation = elevationText ? Number(elevationText) : null;
+      return [Number(lat), Number(lon), Number.isFinite(elevation) ? elevation : null];
     }))
     .filter((segment) => segment.length > 1);
-  return { points, segments };
+  const segments = profileSegments.map((segment) => segment.map(([latitude, longitude]) => [latitude, longitude]));
+  return { points, segments, profileSegments };
 }
 
 function waypointStyle(waypoint, active) {
@@ -70,13 +73,68 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     scrollWheelZoom: false,
     attributionControl: true,
   });
+  map.createPane('live-position-pane');
+  map.getPane('live-position-pane').style.zIndex = '650';
   const markerLayer = L.layerGroup().addTo(map);
+  const livePositionLayer = L.layerGroup().addTo(map);
   const dayMarkers = [];
   const dayBounds = [];
   const waypointLayers = [];
   const trackLayers = [];
   const dayGpx = [];
   let activeIndex = 0;
+  let trackLoadHandler;
+  let livePositionMarkers = null;
+
+  function setLivePosition(point) {
+    if (!point) {
+      livePositionLayer.clearLayers();
+      livePositionMarkers = null;
+      return;
+    }
+
+    const position = [point.latitude, point.longitude];
+    if (livePositionMarkers) {
+      livePositionMarkers.forEach((marker) => marker.setLatLng(position));
+      return;
+    }
+
+    livePositionMarkers = [
+      L.circleMarker(position, {
+        pane: 'live-position-pane',
+        radius: 15,
+        color: '#f0a94c',
+        weight: 3,
+        fillColor: '#f0a94c',
+        fillOpacity: 0.16,
+        className: 'live-position-halo',
+        interactive: false,
+      }),
+      L.circleMarker(position, {
+        pane: 'live-position-pane',
+        radius: 6,
+        color: '#fff3d6',
+        weight: 2,
+        fillColor: '#f0a94c',
+        fillOpacity: 1,
+        className: 'live-position-marker',
+        interactive: false,
+      }),
+    ];
+    livePositionMarkers.forEach((marker) => marker.addTo(livePositionLayer));
+  }
+
+  function getTrackData(index) {
+    const gpx = dayGpx[index];
+    if (gpx.state !== 'loaded') {
+      return { state: gpx.state };
+    }
+    return {
+      state: gpx.state,
+      profileSegments: gpx.profileSegments,
+      estimatedAscentMeters: days[index].frontmatter.hoehenmeter,
+    };
+  }
 
   L.control.zoom({ position: 'topright' }).addTo(map);
   L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
@@ -90,7 +148,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     const start = frontmatter.koordinaten_start;
     const finish = frontmatter.koordinaten_ziel;
     const bounds = L.latLngBounds([start, finish]);
-    dayGpx.push({ state: 'loading', points: [], segments: [] });
+    dayGpx.push({ state: 'loading', points: [], segments: [], profileSegments: [] });
     trackLayers.push([]);
     dayBounds.push(bounds);
 
@@ -121,8 +179,9 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       }
       return response.text();
     }).then((text) => {
-      const { points, segments } = parseGpx(text);
-      dayGpx[index] = { state: 'loaded', points, segments };
+      const { points, segments, profileSegments } = parseGpx(text);
+      dayGpx[index] = { state: 'loaded', points, segments, profileSegments };
+      trackLoadHandler?.(index);
       segments.forEach((segment) => {
         const layer = L.polyline(segment).addTo(map);
         trackLayers[index].push(layer);
@@ -140,6 +199,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     }).catch((error) => {
       console.error(`GPX-Datei für Tag ${frontmatter.tag} konnte nicht geladen werden.`, error);
       dayGpx[index].state = 'error';
+      trackLoadHandler?.(index);
       selectDay(activeIndex, { moveMap: false });
     });
   });
@@ -159,6 +219,9 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   }
 
   function selectDay(index, { moveMap = true } = {}) {
+    if (activeIndex !== index) {
+      setLivePosition(null);
+    }
     activeIndex = index;
     const day = days[index];
     const bounds = L.latLngBounds(dayBounds[index].getSouthWest(), dayBounds[index].getNorthEast());
@@ -206,6 +269,16 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
 
   return {
     selectDay,
+    getTrackData,
+    setTrackLoadHandler(handler) {
+      trackLoadHandler = handler;
+      dayGpx.forEach((gpx, index) => {
+        if (gpx.state !== 'loading') {
+          trackLoadHandler(index);
+        }
+      });
+    },
+    setLivePosition,
     resize() {
       map.invalidateSize();
     },

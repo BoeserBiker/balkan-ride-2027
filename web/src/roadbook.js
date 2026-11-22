@@ -184,6 +184,12 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
       <div><dt>HÖHENMETER*</dt><dd>${escapeHtml(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
     </dl>
     <p class="muted-copy">* Vorläufig aus einer rekonstruierten Route geschätzt; eine GPX-Prüfung steht aus.</p>
+    <section class="elevation-section" aria-label="Interaktives Höhenprofil">
+      <div class="subsection-heading"><h3>Streckenprofil</h3><span>KM · HÖHENMETER</span></div>
+      <div class="elevation-profile" data-elevation-profile>
+        <p class="muted-copy">GPX-Track wird geladen.</p>
+      </div>
+    </section>
     <section class="day-section">
       <h3>Highlights</h3>
       ${highlights}

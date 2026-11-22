@@ -7,6 +7,11 @@ import roadbookDays from 'virtual:roadbook-content';
 import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
 import { renderDayContent } from './roadbook.js';
+import {
+  bindElevationScrubber,
+  buildElevationProfile,
+  renderElevationProfile,
+} from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
 import { escapeHtml } from './html.js';
 
@@ -113,6 +118,31 @@ function renderApp() {
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
 
+  function updateElevationProfile(index) {
+    if (index !== activeIndex) {
+      return;
+    }
+    const container = dayDetail.querySelector('[data-elevation-profile]');
+    if (!container) {
+      return;
+    }
+    const track = map.getTrackData(index);
+    if (track.state === 'loading') {
+      return;
+    }
+    if (track.state === 'error') {
+      container.innerHTML = '<p class="muted-copy">Die Tages-GPX konnte nicht geladen werden.</p>';
+      return;
+    }
+
+    const profile = buildElevationProfile(track.profileSegments, track.estimatedAscentMeters);
+    container.innerHTML = renderElevationProfile(profile);
+    const scrubber = container.querySelector('[data-elevation-scrubber]');
+    if (profile && scrubber) {
+      bindElevationScrubber(scrubber, profile, map.setLivePosition);
+    }
+  }
+
   document.querySelector('#day-count').textContent = String(roadbookDays.length).padStart(2, '0');
   dayList.innerHTML = roadbookDays.map(({ frontmatter }, index) => `
     <li>
@@ -132,6 +162,7 @@ function renderApp() {
       return;
     }
 
+    map.setLivePosition(null);
     activeIndex = index;
     const day = roadbookDays[index];
     dayDetail.innerHTML = renderDayContent(day, {
@@ -153,6 +184,7 @@ function renderApp() {
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
     map.selectDay(index, { moveMap });
+    updateElevationProfile(index);
   }
 
   previousDayButton.addEventListener('click', () => {
@@ -218,6 +250,7 @@ function renderApp() {
     DOMPurify,
   });
   map.setSelectHandler(selectDay);
+  map.setTrackLoadHandler(updateElevationProfile);
   selectDay(0, { moveMap: false, centerDay: false });
   requestAnimationFrame(() => map.resize());
 }

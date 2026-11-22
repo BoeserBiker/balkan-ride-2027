@@ -121,6 +121,12 @@ a { color: inherit; }
   font-weight: 800;
 }
 .day-map-pin.is-active span { background: var(--accent); }
+.live-position-halo { animation: live-position-pulse 1.25s ease-in-out infinite; }
+.live-position-marker { filter: drop-shadow(0 0 5px rgba(240,169,76,.9)); }
+@keyframes live-position-pulse {
+  0%, 100% { stroke-opacity: .85; stroke-width: 2; }
+  50% { stroke-opacity: .25; stroke-width: 8; }
+}
 
 .journey-panel { min-width: 0; padding: 36px clamp(20px, 4vw, 64px) 64px clamp(20px, 3vw, 48px); }
 .journey-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
@@ -176,6 +182,21 @@ h1, h2, h3, p { margin-top: 0; }
 .stats-grid dt { margin-bottom: 7px; font-size: 8px; }
 .stats-grid dd { overflow: hidden; margin: 0; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .stats-grid dd small { color: var(--muted); font-size: 10px; font-weight: 400; }
+.elevation-section { margin-top: 21px; padding-bottom: 5px; }
+.elevation-section .subsection-heading { margin-bottom: 8px; }
+.elevation-section .subsection-heading h3 { margin: 0; font-size: 12px; font-weight: 650; }
+.elevation-scrubber { scroll-margin-block-end: 4px; touch-action: none; user-select: none; cursor: crosshair; }
+.elevation-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.elevation-gridline { stroke: #303832; stroke-width: 1; stroke-dasharray: 3 5; }
+.elevation-line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.elevation-axis-label { fill: var(--quiet); font-size: 10px; font-family: inherit; }
+.elevation-cursor { stroke: #f7d8a7; stroke-width: 1.5; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.elevation-cursor-point { fill: #fff3d6; stroke: var(--accent); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.elevation-tooltip rect { fill: #1d231f; stroke: var(--accent); stroke-width: 1; }
+.elevation-tooltip text { fill: #ecece7; font-size: 11px; font-family: inherit; }
+.elevation-tooltip text + text { fill: #f0a94c; }
+.elevation-distance-labels { display: flex; justify-content: space-between; margin: -4px 2px 0 10%; color: var(--quiet); font-size: 9px; }
+.elevation-note { margin: 7px 0 0; color: var(--quiet); font-size: 9px; line-height: 1.5; }
 .day-section, .story-section { margin-top: 25px; }
 .day-section h3, .story-section h3 { margin-bottom: 13px; font-size: 13px; font-weight: 650; letter-spacing: .01em; }
 .highlight-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
@@ -246,9 +267,9 @@ h1, h2, h3, p { margin-top: 0; }
 
 @media (max-width: 900px) {
   .roadbook-layout { display: flex; flex-direction: column; }
-  .map-panel { top: 64px; width: 100%; min-height: auto; padding: 20px 20px 8px; border-right: 0; }
-  #map { height: min(45vh, 420px); min-height: 280px; }
-  .journey-panel { position: relative; z-index: 21; width: 100%; margin-top: -18px; padding: 27px 20px 45px; border-radius: 14px 14px 0 0; background: var(--bg); }
+  .map-panel { top: 64px; z-index: 30; width: 100%; max-height: clamp(220px, 35vh, 300px); min-height: auto; overflow-y: auto; overscroll-behavior: contain; padding: 20px 20px 8px; border-right: 0; background: var(--bg); }
+  #map { height: min(28vh, 220px); min-height: 160px; }
+  .journey-panel { position: relative; z-index: 20; width: 100%; margin-top: 0; padding: 27px 20px 45px; border-radius: 14px 14px 0 0; background: var(--bg); }
 }
 
 @media (max-width: 520px) {
@@ -261,7 +282,7 @@ h1, h2, h3, p { margin-top: 0; }
   .map-panel { padding: 15px 14px 5px; }
   .map-topline { margin-bottom: 10px; }
   .eyebrow, .map-live { font-size: 8px; }
-  #map { height: 37vh; min-height: 240px; border-radius: 5px; }
+  #map { height: min(28vh, 220px); min-height: 160px; border-radius: 5px; }
   .map-status { font-size: 10px; }
   .journey-panel { padding: 25px 16px 38px; }
   .journey-heading h1 { font-size: 34px; }
@@ -282,4 +303,5 @@ h1, h2, h3, p { margin-top: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  .live-position-halo { animation: none; }
 }
