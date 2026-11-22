@@ -40,8 +40,8 @@ function renderShell() {
           <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
           <p id="map-status" class="map-status" aria-live="polite"></p>
           <div class="gpx-downloads">
-            <a id="gpx-download" class="button button-primary" hidden>GPX herunterladen (zūmo 660)</a>
-            <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP (zūmo 660)</a>
+            <a id="gpx-download" class="button button-primary" hidden>GPX Datei</a>
+            <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP</a>
           </div>
           <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
         </section>
