@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/jRTckeGPIYA
-    titel: Bałkany Motocyklem - Mostar i Wodospady Kravica w Bośni i Hercegowinie. Przejazd nad Adriatykiem.
+    quelle: https://www.youtube-nocookie.com/embed/zX3ZDawiSwQ
+    titel: Kravice Waterfalls - Bosnia & Herzegovina
 ---
 
 ## Von der Riviera nach Mostar

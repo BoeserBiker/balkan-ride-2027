@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/ox3dtptXXX4
-    titel: Meteora - from a biker's perspective
+    quelle: https://www.youtube-nocookie.com/embed/8b7R5J2Fjdk
+    titel: Meteora from Above - A Breathtaking Aerial Tour Over Kalambaka, Greece in 4K
 ---
 
 ## Klöster am Morgen, Meer am Abend

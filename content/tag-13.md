@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/XrdENSEkfcw
-    titel: Time-lapse of Lake Koman ferry
+    quelle: https://www.youtube-nocookie.com/embed/CTEPwSA1HTk
+    titel: Motorradreise Albanien (Komani Lake Tunnel) 🇦🇱
 ---
 
 ## Fähre ohne BMW – danach weiter nach Lezha

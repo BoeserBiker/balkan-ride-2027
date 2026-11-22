@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/5FRGpetZbbo
-    titel: TARVISIO In Autumn 2018 - 4K - Mavic 2 Pro
+    quelle: https://www.youtube-nocookie.com/embed/xwJ3KFl2ipY
+    titel: Sappada e neve
 ---
 
 ## Den Kreis in Villach schließen

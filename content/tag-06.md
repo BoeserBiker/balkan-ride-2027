@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/UA7uI4ilAG8
-    titel: Mototrip Primosten and Krka ,  Moto trip CROATIA 2021, Part 3 , BMW K1600GTL,  drone video
+    quelle: https://www.youtube-nocookie.com/embed/o3cOs7qokGU
+    titel: Road To Primosten 2019
 ---
 
 ## Immer weiter an der Küste entlang

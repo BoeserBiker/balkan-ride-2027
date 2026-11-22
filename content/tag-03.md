@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/mxCQWM7AyM4
-    titel: 'VRSIC PASS, SLOVENIA 🇸🇮 #roadtrip #roads #travel #roadtripping #cars #alps #slovenia'
+    quelle: https://www.youtube-nocookie.com/embed/Ybnmd8mglMY
+    titel: VrSic pass- discesa in moto verso Kranjska Gora
 ---
 
 ## Von den Kehren ins Soča-Tal

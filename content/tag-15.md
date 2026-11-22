@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/lAlA7GaSeME
-    titel: 'LLOGARA PASS and SH8 - ALBANIA Motorcycle travel by solo rider Yamaha fz6 s2 #6'
+    quelle: https://www.youtube-nocookie.com/embed/0kPNA7FyAls
+    titel: Albania Przełęcz Llogara
 ---
 
 ## Über den Llogara an die Riviera

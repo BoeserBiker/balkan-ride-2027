@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/OF4o5u-kYTw
-    titel: 'Meteora, Greece: Complete Travel Guide | One of the BEST Things to Do in Greece'
+    quelle: https://www.youtube-nocookie.com/embed/8b7R5J2Fjdk
+    titel: Meteora from Above - A Breathtaking Aerial Tour Over Kalambaka, Greece in 4K
 ---
 
 ## Der lange Ritt zu den schwebenden Klöstern

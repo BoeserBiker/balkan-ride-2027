@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/rH9iRIPQ0BA
-    titel: Motorcycle to Croatia Ep 5. A day run to Montenegro & Kotor Bay
+    quelle: https://www.youtube-nocookie.com/embed/P2BV9uiEwNk
+    titel: Exploring the beauty of Kotor Bay, Montwnegro
 ---
 
 ## Von Durmitor an die Bucht

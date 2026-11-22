@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/JwdNcWUMd_A
-    titel: bikers dreams, jadranska magistrala, dc8, drone footage
+    quelle: https://www.youtube-nocookie.com/embed/bni9vfVR8Yk
+    titel: Karlobag
 ---
 
 ## Küstenkurven bis Biograd

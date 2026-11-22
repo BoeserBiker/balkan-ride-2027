@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/Ku94YYnNN_I
-    titel: Piva Canyon Montenegro (Pure Sound) 4k | BMW R 1250 GSA | ADV Bumblebee
+    quelle: https://www.youtube-nocookie.com/embed/B5Ttq36CTqw
+    titel: PIVA LAKE - Montenegro's Hidden Gem  | 4K Cinematic Drone Film
 ---
 
 ## Königsetappe durch Montenegro

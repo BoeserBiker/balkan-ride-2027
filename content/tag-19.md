@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/BVI7ElZYerM
-    titel: 'Your Tour: Greece, September - October 2018 (Guide Primož)'
+    quelle: https://www.youtube-nocookie.com/embed/nEseNqhK-As
+    titel: Magistrala adriatycka - Senj - Zadar
 ---
 
 ## Ein Tag auf See

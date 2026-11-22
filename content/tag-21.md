@@ -44,8 +44,8 @@ bilder:
     bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
-    quelle: https://www.youtube-nocookie.com/embed/6eKM26m19TU
-    titel: Villach on my BMW 1250 GS | Travelling from Germany to Austria  -  Epic Ride - Croatia - EP 4
+    quelle: https://www.youtube-nocookie.com/embed/o4WEHYOPulM
+    titel: Villacher Alpenstraße
 ---
 
 ## Rückfahrt im Gespann – Teil eins
