@@ -1,6 +1,11 @@
 {
-  "version": "v2.35",
+  "version": "v2.36",
   "history": [
+    {
+      "version": "v2.36",
+      "date": "2026-11-22",
+      "message": "Echtes 25m-Hoehenprofil fuer alle 22 Etappen und Auto-Versionierung v2.35"
+    },
     {
       "version": "v2.35",
       "date": "2026-11-22",

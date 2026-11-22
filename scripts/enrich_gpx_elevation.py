@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import glob, json, os, shutil, ssl, time, urllib.request
+import glob, json, ssl, time, urllib.request
 import xml.etree.ElementTree as ET
 
 CTX = ssl._create_unverified_context()
@@ -19,15 +19,12 @@ def fetch_elevations(coords):
         time.sleep(1.2)
     return elevations
 
-for path in sorted(glob.glob("assets/gpx/*.gpx")):
+for n in range(1, 11):
+    path = f"assets/gpx/tag-{n:02d}.gpx"
     tree = ET.parse(path)
     root = tree.getroot()
     pts = [el for el in root.iter() if el.tag.endswith(("trkpt", "rtept"))]
     if not pts:
-        continue
-    done = len([c for p in pts for c in p if c.tag.endswith("ele") and float(c.text or 0) > 0])
-    if done > 50:
-        print(f"Bereits erledigt ({done} Pkt): {path}")
         continue
     coords = [(float(p.attrib["lat"]), float(p.attrib["lon"])) for p in pts]
     eles = fetch_elevations(coords)
@@ -37,7 +34,4 @@ for path in sorted(glob.glob("assets/gpx/*.gpx")):
             ele_el = ET.SubElement(p, "ele")
         ele_el.text = f"{ele:.1f}"
     tree.write(path, encoding="utf-8", xml_declaration=True)
-    pub_copy = os.path.join("web/public/gpx", os.path.basename(path))
-    if os.path.exists(os.path.dirname(pub_copy)):
-        shutil.copy2(path, pub_copy)
-    print(f"OK: {path} ({len(pts)} Punkte, min {min(eles):.0f}m / max {max(eles):.0f}m)")
+    print(f"OK (EU-DEM 25m): {path} ({len(pts)} Punkte, min {min(eles):.0f}m / max {max(eles):.0f}m)")
