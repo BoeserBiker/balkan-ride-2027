@@ -1,9 +1,9 @@
-import { escapeHtml } from './html.js';
+import { escapeHtml, escapeDisplayText, formatDuration } from './html.js';
 
 function formatDate(value) {
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) {
-    return escapeHtml(value);
+    return escapeDisplayText(value);
   }
   return new Intl.DateTimeFormat('de-DE', {
     day: '2-digit',
@@ -11,16 +11,6 @@ function formatDate(value) {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(date);
-}
-
-function formatDuration(value) {
-  return value.replace(/(\d+(?:[,.]\d+)?)\s*Modell-h/g, (_match, amount) => {
-    const minutes = Math.round(Number(amount.replace(',', '.')) * 60);
-    if (minutes === 0) {
-      return '0 Std.';
-    }
-    return `ca. ${Math.floor(minutes / 60)} Std. ${String(minutes % 60).padStart(2, '0')} Min.`;
-  });
 }
 
 function mediaPathMap(assets) {
@@ -33,12 +23,12 @@ function externalLink(url, label) {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === 'https:') {
-      return `<a href="${escapeHtml(parsed.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+      return `<a href="${escapeHtml(parsed.href)}" target="_blank" rel="noopener noreferrer">${escapeDisplayText(label)}</a>`;
     }
   } catch {
-    return escapeHtml(label);
+    return escapeDisplayText(label);
   }
-  return escapeHtml(label);
+  return escapeDisplayText(label);
 }
 
 function lightboxAttributes(photo, url) {
@@ -46,7 +36,7 @@ function lightboxAttributes(photo, url) {
   const credit = photo.urheber && photo.lizenz
     ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
     : '';
-  return `data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeHtml(caption)}" data-lightbox-caption="${escapeHtml([caption, credit].filter(Boolean).join(' · '))}"`;
+  return `data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText([caption, credit].filter(Boolean).join(' · '))}"`;
 }
 
 function keywords(text) {
@@ -77,7 +67,7 @@ function renderPhoto(photo, urls) {
       <div class="media-placeholder" role="img" aria-label="Bild noch nicht verfügbar">
         <span aria-hidden="true">＋</span>
         <small>BILD NOCH NICHT IM WORKSPACE</small>
-        <p>${escapeHtml(photo.beschreibung)}</p>
+        <p>${escapeDisplayText(photo.beschreibung)}</p>
       </div>
     `;
   }
@@ -89,10 +79,10 @@ function renderPhoto(photo, urls) {
   return `
     <figure class="photo-card">
       <button class="photo-button" type="button" ${lightboxAttributes(photo, url)}>
-        <img src="${escapeHtml(url)}" alt="${escapeHtml(caption)}" loading="lazy">
-        <span class="photo-caption">${escapeHtml(caption)}</span>
+        <img src="${escapeHtml(url)}" alt="${escapeDisplayText(caption)}" loading="lazy">
+        <span class="photo-caption">${escapeDisplayText(caption)}</span>
       </button>
-      ${credit ? `<figcaption class="photo-credit">${externalLink(photo.quelle, photo.urheber)} · ${externalLink(photo.lizenz_url, photo.lizenz)}${photo.bearbeitung ? ` · ${escapeHtml(photo.bearbeitung)}` : ''}</figcaption>` : ''}
+      ${credit ? `<figcaption class="photo-credit">${externalLink(photo.quelle, photo.urheber)} · ${externalLink(photo.lizenz_url, photo.lizenz)}${photo.bearbeitung ? ` · ${escapeDisplayText(photo.bearbeitung)}` : ''}</figcaption>` : ''}
     </figure>
   `;
 }
@@ -122,7 +112,7 @@ function youtubeVideoId(source) {
 }
 
 function renderVideo(video, urls) {
-  const title = escapeHtml(video.titel || 'Etappenvideo');
+  const title = escapeDisplayText(video.titel || 'Etappenvideo');
   if (video.typ === 'youtube') {
     const videoId = youtubeVideoId(video.quelle);
     return videoId
@@ -151,10 +141,10 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
   const highlights = frontmatter.highlights.length
     ? `<ul class="highlight-list">${frontmatter.highlights.map((highlight, index) => {
       if (!availablePhotos.length) {
-        return `<li><span class="highlight-badge">${escapeHtml(highlight)}</span></li>`;
+        return `<li><span class="highlight-badge">${escapeDisplayText(highlight)}</span></li>`;
       }
       const photo = highlightPhoto(highlight, index, availablePhotos);
-      return `<li><button class="highlight-badge highlight-button" type="button" aria-label="Foto zum Highlight ${escapeHtml(highlight)} öffnen" ${lightboxAttributes(photo, urls[photo.datei])}><span aria-hidden="true">📷</span> ${escapeHtml(highlight)}</button></li>`;
+      return `<li><button class="highlight-badge highlight-button" type="button" aria-label="Foto zum Highlight ${escapeDisplayText(highlight)} öffnen" ${lightboxAttributes(photo, urls[photo.datei])}><span aria-hidden="true">📷</span> ${escapeDisplayText(highlight)}</button></li>`;
     }).join('')}</ul>`
     : '<p class="muted-copy">Für diese Etappe sind noch keine Highlights hinterlegt.</p>';
   const photos = frontmatter.bilder.length
@@ -170,24 +160,20 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
       <span class="eyebrow">ETAPPE ${String(frontmatter.tag).padStart(2, '0')}</span>
       <span>${formatDate(frontmatter.datum)}</span>
     </div>
-    <h2 class="day-title">${escapeHtml(frontmatter.titel)}</h2>
+    <h2 class="day-title">${escapeDisplayText(frontmatter.titel)}</h2>
     <div class="route-line">
-      <div><span class="route-point start-point"></span><small>START</small><strong>${escapeHtml(frontmatter.start)}</strong></div>
-      <span class="route-connector" aria-hidden="true"></span>
-      <div><span class="route-point finish-point"></span><small>ZIEL</small><strong>${escapeHtml(frontmatter.ziel)}</strong></div>
+      <div><span class="route-point start-point"></span><small>START</small><strong>${escapeDisplayText(frontmatter.start)}</strong></div>
+      <button class="route-connector" data-route-scrubber type="button" role="slider" aria-label="Streckenfortschritt: GPX wird geladen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" disabled>
+        <span class="route-connector-line" aria-hidden="true"><span class="route-connector-fill"></span><span class="route-connector-thumb"><span data-route-distance></span></span></span>
+      </button>
+      <div><span class="route-point finish-point"></span><small>ZIEL</small><strong>${escapeDisplayText(frontmatter.ziel)}</strong></div>
     </div>
     <dl class="stats-grid">
-      <div><dt>STRECKE</dt><dd>${escapeHtml(frontmatter.kilometer)} <small>km</small></dd></div>
-      <div><dt>FAHRZEIT</dt><dd>${escapeHtml(formatDuration(frontmatter.fahrzeit))}</dd></div>
-      <div><dt>HÖHENMETER*</dt><dd>${escapeHtml(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
+      <div><dt>STRECKE</dt><dd>${escapeDisplayText(frontmatter.kilometer)} <small>km</small></dd></div>
+      <div><dt>FAHRZEIT</dt><dd>${escapeDisplayText(frontmatter.fahrzeit)}</dd></div>
+      <div><dt>HÖHENMETER*</dt><dd>${escapeDisplayText(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
     </dl>
     <p class="muted-copy">* Vorläufig aus einer rekonstruierten Route geschätzt; eine GPX-Prüfung steht aus.</p>
-    <section class="elevation-section" aria-label="Interaktives Höhenprofil">
-      <div class="subsection-heading"><h3>Streckenprofil</h3><span>KM · HÖHENMETER</span></div>
-      <div class="elevation-profile" data-elevation-profile>
-        <p class="muted-copy">GPX-Track wird geladen.</p>
-      </div>
-    </section>
     <section class="day-section">
       <h3>Highlights</h3>
       ${highlights}

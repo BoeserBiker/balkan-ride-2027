@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v10`;
+const CACHE_NAME = `${CACHE_PREFIX}v12`;
 const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -7,6 +7,7 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll([
       self.registration.scope,
+      new URL('version.json', self.registration.scope),
       new URL('manifest.json?v=4', self.registration.scope),
       ...ICON_PATHS.map((path) => new URL(`${path}?v=3`, self.registration.scope)),
     ]);
@@ -32,17 +33,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.mode === 'navigate') {
+  if (request.mode === 'navigate' || requestUrl.pathname === new URL('version.json', scopeUrl).pathname) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       try {
         const response = await fetch(request);
         if (response.ok) {
-          await cache.put(self.registration.scope, response.clone());
+          await cache.put(request.mode === 'navigate' ? self.registration.scope : request, response.clone());
         }
         return response;
       } catch (error) {
-        const cached = await cache.match(self.registration.scope);
+        const cached = await cache.match(request.mode === 'navigate' ? self.registration.scope : request);
         if (cached) {
           return cached;
         }

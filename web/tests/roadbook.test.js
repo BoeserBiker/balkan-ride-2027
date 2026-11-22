@@ -55,11 +55,11 @@ test('model hours are displayed as rounded hours and minutes without changing th
     marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text }, assetUrls: {},
   };
   for (const [input, expected] of [
-    ['2,88 Modell-h', 'ca. 2:53 h'],
-    ['5,09 Modell-h', 'ca. 5:05 h'],
+    ['2,88 Modell-h', 'ca. 2 Std. 53 Min.'],
+    ['5,09 Modell-h', 'ca. 5 Std. 05 Min.'],
     ['0,00 Modell-h', '0 Std.'],
-    ['0,06 Modell-h', 'ca. 0:04 h'],
-    ['1.999 Modell-h', 'ca. 2:00 h'],
+    ['0,06 Modell-h', 'ca. 0 Std. 04 Min.'],
+    ['1.999 Modell-h', 'ca. 2 Std. 00 Min.'],
     ['1 h & Pause', '1 h &amp; Pause'],
   ]) {
     day.frontmatter.fahrzeit = input;
@@ -67,6 +67,30 @@ test('model hours are displayed as rounded hours and minutes without changing th
     assert.ok(html.includes(`<dt>FAHRZEIT</dt><dd>${expected}</dd>`), input);
     assert.equal(day.frontmatter.fahrzeit, input);
   }
+});
+
+test('formats model hours in roadbook text, highlights and media without changing source', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Runde 1,08 Modell-h',
+      start: 'Start', ziel: 'Ziel', kilometer: 10, fahrzeit: '2 Modell-h', hoehenmeter: 10,
+      highlights: ['Option 0,00 Modell-h', 'Abstecher 1.5 Modell-h'],
+      bilder: [{ datei: 'photo.jpg', beschreibung: 'Blick 1,08 Modell-h' }],
+      videos: [],
+    },
+    body: '45,6 km / 1,08 Modell-h; Option 0,00 Modell-h.',
+  };
+  const html = renderDayContent(day, {
+    marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text },
+    assetUrls: { '../../photo.jpg': '/photo.jpg' },
+  });
+  assert.match(html, /Runde ca\. 1 Std\. 05 Min\./);
+  assert.match(html, /45,6 km \/ ca\. 1 Std\. 05 Min\.; Option 0 Std\./);
+  assert.match(html, /Abstecher ca\. 1 Std\. 30 Min\./);
+  assert.match(html, /Blick ca\. 1 Std\. 05 Min\./);
+  assert.doesNotMatch(html, /Modell-h/);
+  assert.equal(day.frontmatter.titel, 'Runde 1,08 Modell-h');
+  assert.equal(day.body, '45,6 km / 1,08 Modell-h; Option 0,00 Modell-h.');
 });
 
 test('highlights select matching available photos or fall back by index', () => {

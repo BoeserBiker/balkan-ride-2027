@@ -7,13 +7,9 @@ import roadbookDays from 'virtual:roadbook-content';
 import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
 import { renderDayContent } from './roadbook.js';
-import {
-  bindElevationScrubber,
-  buildElevationProfile,
-  renderElevationProfile,
-} from './elevation-profile.js';
+import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
 import { renderLogisticsChecklist } from './logistics.js';
-import { escapeHtml } from './html.js';
+import { escapeDisplayText } from './html.js';
 
 const app = document.querySelector('#app');
 const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg,png,webp,mp4,webm}', {
@@ -25,10 +21,13 @@ const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg
 function renderShell() {
   app.innerHTML = `
     <header class="site-header flex items-center justify-between">
-      <a class="brand" href="#top" aria-label="Balkan-Ride 2027 Startseite">
-        <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
-        <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
-      </a>
+      <div class="brand-group">
+        <a class="brand" href="#top" aria-label="Balkan-Ride 2027 Startseite">
+          <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
+          <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
+        </a>
+        <button id="version-badge" class="version-badge" type="button" aria-haspopup="dialog" aria-controls="version-history" disabled>Version lädt</button>
+      </div>
       <nav class="site-nav" aria-label="Hauptnavigation">
         <a href="#roadbook">Etappen</a>
         <a href="#logistics">Logistik</a>
@@ -95,7 +94,51 @@ function renderShell() {
       <img alt="">
       <p class="lightbox-caption"></p>
     </dialog>
+    <dialog id="version-history" class="version-dialog" aria-labelledby="version-history-title">
+      <button class="version-close" type="button" aria-label="Versionsverlauf schließen">×</button>
+      <h2 id="version-history-title">Versionsverlauf</h2>
+      <ol class="version-history-list"></ol>
+    </dialog>
   `;
+}
+
+async function loadVersionHistory() {
+  const badge = document.querySelector('#version-badge');
+  const dialog = document.querySelector('#version-history');
+  const list = dialog.querySelector('.version-history-list');
+
+  dialog.querySelector('.version-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (event) => {
+    const bounds = dialog.getBoundingClientRect();
+    if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right
+      || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
+      dialog.close();
+    }
+  });
+  badge.addEventListener('click', () => dialog.showModal());
+
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}version.json`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    if (typeof data.version !== 'string' || !Array.isArray(data.history)
+      || !data.history.every((entry) => entry && typeof entry.version === 'string'
+        && typeof entry.date === 'string' && typeof entry.message === 'string')) {
+      throw new Error('Ungültiges Format der Versionsdatei.');
+    }
+    badge.textContent = `· ${data.version}`;
+    badge.setAttribute('aria-label', `Versionsverlauf öffnen, aktuelle Version ${data.version}`);
+    list.innerHTML = data.history.map((entry) => `
+      <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>
+        <p>${escapeDisplayText(entry.message)}</p></li>
+    `).join('');
+    badge.disabled = false;
+  } catch (error) {
+    console.error('Der Versionsverlauf konnte nicht geladen werden.', error);
+    badge.textContent = 'Version nicht verfügbar';
+  }
 }
 
 function renderApp() {
@@ -104,6 +147,7 @@ function renderApp() {
   }
 
   renderShell();
+  loadVersionHistory();
 
   const dayList = document.querySelector('#day-list');
   const dayDetail = document.querySelector('#day-detail');
@@ -118,12 +162,12 @@ function renderApp() {
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
 
-  function updateElevationProfile(index) {
+  function updateRouteScrubber(index) {
     if (index !== activeIndex) {
       return;
     }
-    const container = dayDetail.querySelector('[data-elevation-profile]');
-    if (!container) {
+    const control = dayDetail.querySelector('[data-route-scrubber]');
+    if (!control || control.dataset.bound) {
       return;
     }
     const track = map.getTrackData(index);
@@ -131,15 +175,18 @@ function renderApp() {
       return;
     }
     if (track.state === 'error') {
-      container.innerHTML = '<p class="muted-copy">Die Tages-GPX konnte nicht geladen werden.</p>';
+      control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: GPX konnte nicht geladen werden');
+      control.title = 'GPX konnte nicht geladen werden.';
       return;
     }
 
-    const profile = buildElevationProfile(track.profileSegments, track.estimatedAscentMeters);
-    container.innerHTML = renderElevationProfile(profile);
-    const scrubber = container.querySelector('[data-elevation-scrubber]');
-    if (profile && scrubber) {
-      bindElevationScrubber(scrubber, profile, map.setLivePosition);
+    const route = buildRouteTrack(track.profileSegments);
+    if (route) {
+      control.dataset.bound = 'true';
+      bindRouteScrubber(control, route, map.setLivePosition);
+    } else {
+      control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
+      control.title = 'Kein Straßen-Track verfügbar.';
     }
   }
 
@@ -148,7 +195,7 @@ function renderApp() {
     <li>
       <button class="day-link" type="button" data-day-index="${index}" aria-current="${index === 0 ? 'step' : 'false'}">
         <span class="day-link-number">${String(frontmatter.tag).padStart(2, '0')}</span>
-        <span class="day-link-title">${escapeHtml(frontmatter.titel)}</span>
+        <span class="day-link-title">${escapeDisplayText(frontmatter.titel)}</span>
       </button>
     </li>
   `).join('');
@@ -184,7 +231,7 @@ function renderApp() {
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
     map.selectDay(index, { moveMap });
-    updateElevationProfile(index);
+    updateRouteScrubber(index);
   }
 
   previousDayButton.addEventListener('click', () => {
@@ -250,7 +297,7 @@ function renderApp() {
     DOMPurify,
   });
   map.setSelectHandler(selectDay);
-  map.setTrackLoadHandler(updateElevationProfile);
+  map.setTrackLoadHandler(updateRouteScrubber);
   selectDay(0, { moveMap: false, centerDay: false });
   requestAnimationFrame(() => map.resize());
 }
