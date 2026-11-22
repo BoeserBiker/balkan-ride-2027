@@ -120,8 +120,9 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
     <dl class="stats-grid">
       <div><dt>STRECKE</dt><dd>${escapeHtml(frontmatter.kilometer)} <small>km</small></dd></div>
       <div><dt>FAHRZEIT</dt><dd>${escapeHtml(frontmatter.fahrzeit)}</dd></div>
-      <div><dt>HÖHENMETER</dt><dd>${escapeHtml(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
+      <div><dt>HÖHENMETER*</dt><dd>${escapeHtml(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
     </dl>
+    <p class="muted-copy">* Vorläufig aus einer rekonstruierten Route geschätzt; eine GPX-Prüfung steht aus.</p>
     <section class="day-section">
       <h3>Highlights</h3>
       ${highlights}

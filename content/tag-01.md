@@ -1,34 +1,28 @@
 ---
 tag: 1
-datum: "2027-06-05"
-titel: "Anreise & Einstieg in die Julischen Alpen"
-start: "Villach"
-ziel: "Bovec (Soca-Tal)"
-koordinaten_start: [46.6111, 13.8558]
-koordinaten_ziel: [46.3381, 13.5524]
-kilometer: 145
-fahrzeit: "3h 15m"
-hoehenmeter: 1850
+datum: "2027-09-08"
+titel: "Auftakt mit Gespann nach Velburg"
+start: "Recklinghausen"
+ziel: "Velburg"
+koordinaten_start: [51.614382, 7.197855]
+koordinaten_ziel: [49.233024, 11.671602]
+kilometer: 519.0
+fahrzeit: "5,09 Modell-h"
+hoehenmeter: 2550
 gpx_datei: "assets/gpx/tag-01.gpx"
 highlights:
-  - "Wurzenpass (18 % Steigung)"
-  - "Vrsic-Pass (50 Kehren)"
-bilder:
-  - datei: "assets/media/tag-01/vrsic-kehren.jpg"
-    beschreibung: "Blick vom Vrsic-Pass Richtung Trenta-Tal"
-videos:
-  - typ: "mp4" # alternativ "youtube"
-    quelle: "assets/media/tag-01/soca-fahrt.mp4"
-    poster: "assets/media/tag-01/soca-poster.jpg"
-    titel: "Kurventanz entlang der smaragdgrünen Soca"
+  - "Anreise mit PKW und Anhänger"
+  - "Verzurrung und Reifen unterwegs kontrollieren"
+bilder: []
+videos: []
 ---
 
-## Vom ersten Kaffee bis zur Soča
+## Erst ankommen, dann auf Tour
 
-Villach, erster Kaffee, kalte Finger am Zündschlüssel. Wir machen die Hobel voll und rollen los Richtung Wurzenpass. Bis zu 18 Prozent Steigung – da ist ein sauber gewählter Gang mehr wert als ein dickes Handgelenk. Jeder fährt seinen eigenen Strich. Gesammelt wird dort, wo alle sicher rausziehen können.
+Zu zweit geht es mit PKW und Anhänger von Recklinghausen in Richtung Oberpfalz; die BMW 800 GS reist verzurrt auf dem Hänger mit. Vor der Abfahrt und unterwegs Verzurrung sowie Reifen prüfen, Pausen einlegen und ohne Kilometerjagd ankommen. Abends bleibt der Hobel auf dem Hänger, während ihr in Ruhe im Gasthof im Raum Velburg eincheckt.
 
-Vor der Grenze nach Slowenien denken wir an die digitale E-Vignette fürs Motorrad – am besten schon vorab online kaufen, damit wir an der Grenze nicht lange suchen müssen.
+- **Transport:** PKW + Anhänger.
+- **Übernachtung:** Hotel oder Gasthof im Raum Velburg; Anhängerstellplatz vorher bestätigen.
+- **Alternative:** Bei Sperrung der aktuellen Verkehrsführung folgen und eine gespanntaugliche Ersatzroute neu prüfen; für sie ist keine feste Ausweichdistanz angegeben.
 
-Am Vršič warten 50 Kehren und die Felswände der Julischen Alpen. Auf nassem Pflaster heißt’s: Blick zum Kurvenausgang, sanft ans Gas und Abstand halten. Oben anhalten, Helm runter und einmal ins Trenta-Tal schauen. Den Passstatus checken wir vor dem Start, den Track laden wir vorab aufs Navi.
-
-Unten leuchtet die Soča zwischen den Bäumen durch. Jetzt wird aus der Kehrenarbeit eine entspannte Fahrt am Fluss bis Bovec. Auf dem Zettel stehen **145 km, 3 Stunden 15 Minuten reine Fahrzeit und 1.850 Höhenmeter**. Pausen kommen obendrauf. Und wenn die Restreichweite auf 150 km fällt, nehmen wir die nächste Tankmöglichkeit mit. In Bovec kommt der Seitenständer raus – Feierabend für die Kurvenräuber.
+Für die spätere Motorradetappe D03 durch Slowenien die digitale E-Vignette fürs Motorrad vorab besorgen, damit ihr an der Grenze nicht erst danach suchen müsst.

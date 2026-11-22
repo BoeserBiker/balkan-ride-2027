@@ -50,6 +50,21 @@ self.addEventListener('fetch', (event) => {
   if (requestUrl.pathname.includes('/assets/')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
+      if (requestUrl.pathname.includes('/assets/gpx/')) {
+        try {
+          const response = await fetch(request);
+          if (response.ok) {
+            await cache.put(request, response.clone());
+          }
+          return response;
+        } catch (error) {
+          const cached = await cache.match(request);
+          if (cached) {
+            return cached;
+          }
+          throw error;
+        }
+      }
       const cached = await cache.match(request);
       if (cached) {
         return cached;

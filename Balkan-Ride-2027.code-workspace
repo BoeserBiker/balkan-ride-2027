@@ -7,6 +7,10 @@
 		{
 			"name": "VS_CODE_Tools",
 			"path": "../VS_CODE_Tools"
+		},
+		{
+			"name": "Tourplaung",
+			"path": "../Balkan 27/Tourplaung"
 		}
 	],
 	"settings": {

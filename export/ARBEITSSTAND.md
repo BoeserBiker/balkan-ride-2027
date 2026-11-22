@@ -34,13 +34,42 @@
 - Die Phase-3-Web-App ist unter `web/` als Vanilla-JavaScript-Anwendung mit
   Vite, Tailwind CSS und Leaflet umgesetzt. Der Build liest alle
   `content/tag-*.md`-Dateien samt YAML-Frontmatter ein. Die Kartenansicht
-  stellt vorhandene Start-/Zielpunkte und GPX-Tracks dar; fehlende GPX- und
-  Mediendateien werden als solche kenntlich gemacht.
+  stellt vorhandene Start-/Zielpunkte und GPX-Wegpunkte dar; fehlende
+  Fahrspur-Tracks und Mediendateien werden als solche kenntlich gemacht.
 - PWA-Manifest, Service Worker und Icons in den Größen 192, 512 und Apple
   Touch sind vorhanden. `.github/workflows/deploy-pages.yml` baut und
   veröffentlicht `web/dist/` bei Pushes auf `main`.
-- Offen sind weiterhin die Excel-Rohdaten, die übrigen 19 Etappen, GPX-Tracks,
-  echte Medien sowie Live-Tests auf iOS und Android.
+- Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
+  22 Kalendertage (08.–29.09.2027) in
+  [`content/tag-01.md`](../content/tag-01.md) bis
+  [`content/tag-22.md`](../content/tag-22.md) übertragen. Die V7-Kilometer,
+  Modellzeiten und GPS-Endpunkte bleiben erhalten; alle Medienlisten sind
+  derzeit leer. Routenhöhen sind ausdrücklich vorläufige Schätzungen.
+- Der V7-Wegpunktplan und CSV-Kartenimport liegen unter
+  [`assets/gpx/`](../assets/gpx/). Die Leaflet-Karte zeigt Haupt-, Alternativ-
+  und Options-Wegpunkte sowie die `FAEHRE`-Gruppe; D19 erhält keine Linie über
+  See. Der Plan enthält keine geprüften Fahrspur-Tracks.
+- Alle 22 Tages-GPX-Dateien wurden am 2026-11-22 aus den V7-Hauptrouten
+  erzeugt. Douglas-Peucker reduziert jedes Fahrsegment mit einer Toleranz von
+  0,0002 Grad und höchstens 300 Trackpunkten; exportiert werden nur
+  PKW-/MOTORRAD-Orientierungspunkte. Die Straßen-Tracks enthalten 161 bis 300
+  Punkte; D19 hat keinen Track. Die Dateien sind 293 bis 16.163 Byte groß,
+  gültiges XML und enthalten keine Alternativ-, Options- oder Fährwegpunkte.
+  Zehn Generator-Tests und der Frontend-Build waren erfolgreich.
+- Die Anzahl der Trackpunkte pro Segment ist über
+  `--max-track-points` bis maximal 300 einstellbar (Standard 300). Nach jedem
+  Import oder einer Änderung an den Eingabedateien kann der Generator direkt
+  erneut gestartet werden; die Vorgaben halten fest, GPX, CSV und V7-Plan
+  abzugleichen.
+- Die allgemeinen Copilot-Vorgaben verweisen auf die
+  [Riderrix-Agentendatei](../.github/agents/riderrix.agent.md) als zentrale
+  Anweisung. Dort ist `TRACKPUNKTE_MAX` als Agentenvorgabe einstellbar; der
+  Agent muss den Wert als `--max-track-points` übergeben. Ein manueller
+  Skriptaufruf liest die Agentendatei nicht automatisch.
+- Reale Fahrspur-GPX-Tracks und Medien fehlen weiterhin. Die V7-Buchungen und
+  Klosterzeiten sind offen; die Prüfpunkte stehen in
+  [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md).
+  Live-Tests auf iOS und Android sind noch ausständig.
 - Der Agent-Workflow verwendet die GitHub-Repository-Variable
   `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY` und die optionale
   Modellvariable `ANTHROPIC_MODEL`. Der zweistufige Ablauf bis zum gemergten
@@ -67,6 +96,137 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Änderungen für lokalen Commit gebündelt
+
+- Die anstehenden Roadbook-, Web-, GPX-, Generator- und Vorgabenänderungen
+  werden auf dem Feature-Branch `feature/track-gpx-vorgaben` zum lokalen Commit
+  zusammengefasst. Python-Caches und ignorierte Chat-Sicherungen bleiben
+  ausgeschlossen; Push und Pull Request sind noch offen.
+
+### 2026-11-22 – Copilot-Vorgaben und Trackpunkt-Einstellung gebündelt
+
+- Die allgemeine `copilot-instructions.md` wurde auf wesentliche Vorgaben und
+  den ausdrücklichen Leseverweis auf `agents/riderrix.agent.md` reduziert.
+  Die ausführlichen Projektregeln werden in der Agentendatei gepflegt.
+- In der Agentendatei steht `TRACKPUNKTE_MAX = 300` als Einstellung für den
+  Agenten. Bei einem Track-Build muss er den eingestellten Wert ausdrücklich
+  über `--max-track-points` an den Generator übergeben. Dessen harte Grenze von
+  300 bleibt bestehen; manuelle Aufrufe lesen die Agentendatei nicht.
+- Die bestehende GPX-Generierung und die Tagesdateien wurden nicht geändert.
+
+### 2026-11-22 – Tages-GPX-Tracks auf 300 Punkte begrenzt
+
+- Der Standard und die harte Obergrenze von
+  [`build_tracks_from_waypoints.py`](../scripts/build_tracks_from_waypoints.py)
+  wurden für den Garmin zūmo 660 auf 300 `<trkpt>` je Etappe festgelegt.
+  Douglas-Peucker behält die Streckenform innerhalb der berechneten Toleranz
+  bei; kleinere Werte können weiterhin per `--max-track-points` gesetzt werden.
+- Die 22 Tages-GPX-Dateien wurden neu erzeugt. Die Straßen-Tracks haben 161
+  bis 300 Punkte, D19 hat keinen Track; Dateigrößen: 293 bis 16.163 Byte.
+  XML, Punktzahlen, Größen und Wegpunktkategorien sind geprüft. Zehn
+  Generator-Tests und `npm run build --prefix web` waren erfolgreich.
+
+### 2026-11-22 – Track-Neuberechnung nach Import konfigurierbar gemacht
+
+- Die Copilot- und Riderrix-Vorgaben verlangen nun nach jedem Tourdatenimport
+  bzw. jeder Änderung an einer Eingabedatei den Abgleich von
+  `Balkan_Tour_2027.gpx`, `Balkan_Tour_Plan_2027_V7.md` und `Maps_Import.csv`
+  sowie den erneuten Tages-Track-Build. Der Generator liest die GPX-Hauptroute;
+  CSV und Markdown-Plan sind Konsistenzquellen.
+- [`build_tracks_from_waypoints.py`](../scripts/build_tracks_from_waypoints.py)
+  akzeptierte zu diesem damaligen Stand `--max-track-points N` (Standard 1.000);
+  die Obergrenze wurde später auf 300 gesetzt.
+- Verifikation: CLI-Standard und benutzerdefinierte Punktgrenze werden durch
+  Generator-Tests geprüft. Die Neuberechnung bleibt ein expliziter lokaler
+  Kommandoaufruf nach dem Import; ein Datei-Watcher wurde nicht eingerichtet.
+
+### 2026-11-22 – Tages-GPX-Tracks vereinfacht und Navi-Wegpunkte bereinigt
+
+- Auf Wunsch wurden alle 22 Dateien `assets/gpx/tag-01.gpx` bis
+  `assets/gpx/tag-22.gpx` mit
+  [`build_tracks_from_waypoints.py`](../scripts/build_tracks_from_waypoints.py)
+  neu erzeugt. Die 21 Straßenrouten wurden über den OSRM-Route-Service
+  (`https://router.project-osrm.org/route/v1/driving/`) aus dem lokalen
+  [`Balkan_Tour_2027.gpx`](../assets/gpx/Balkan_Tour_2027.gpx) berechnet;
+  D19 bleibt ein Seetag ohne Track.
+- Eine reine Python-Implementierung von Douglas-Peucker vereinfacht mit
+  0,0002 Grad Toleranz. Falls damit mehr als 1.000 Punkte verbleiben, wird die
+  Toleranz zur Einhaltung der Navi-Obergrenze angepasst. Die Endpunkte bleiben
+  erhalten. Als `<wpt>` werden nur PKW-/MOTORRAD-Punkte der Hauptrouten
+  übernommen; ALT-, OPTION- und FAEHRE-Punkte bleiben draußen.
+- Alle Dateien ließen sich mit `xml.etree.ElementTree` parsen; jedes
+  Tracksegment hat höchstens 1.000 Punkte. Die Dateigrößen reichen von 293 B
+  (D19) bis 49.196 B (D11), damit bleiben alle unter 80 KiB. Der vorhandene
+  XML-Escaping-Roundtrip-Test deckt weiterhin Sonderzeichen wie `&` ab.
+- Verifikation: sieben Tests in
+  [`test_build_tracks_from_waypoints.py`](../scripts/test_build_tracks_from_waypoints.py)
+  erfolgreich; `npm run build --prefix web` erfolgreich. Die OSRM-Linien sind
+  berechnete Vorab-Tracks und keine vor Ort abgefahrenen oder freigegebenen
+  Motorrad-Tracks.
+
+### 2026-11-22 – Tages-GPX auf XML-Escaping geprüft
+
+- Anlass war die XML-Fehlermeldung zu Tag 10. Bereits bei der ersten Prüfung
+  waren alle 22 Tages-GPX-Dateien einschließlich `tag-10.gpx` wohlgeformt;
+  eine fehlerhafte Datei für eine Neuerzeugung wurde nicht gefunden. Die
+  vorhandenen Tracks wurden daher nicht überschrieben und keine neuen
+  OSRM-Anfragen gestellt.
+- [`build_tracks_from_waypoints.py`](../scripts/build_tracks_from_waypoints.py)
+  verwendet bereits die XML-Serialisierung von ElementTree, die Text beim
+  Schreiben escaped. Ein zusätzliches `escape()` vor der Serialisierung würde
+  Sonderzeichen doppelt maskieren. Ein Regressionstest vergleicht die Ausgabe
+  mit `xml.sax.saxutils.escape()` und prüft den unveränderten Text nach dem
+  erneuten Einlesen.
+- Prüfung: 22/22 Tagesdateien mit Python `xml.etree.ElementTree` lesbar,
+  vier Generator-Tests erfolgreich, `npm run build --prefix web` erfolgreich.
+  Ein Browser- oder PWA-Test wurde nicht durchgeführt; die Fahrbarkeit der
+  vorläufigen OSRM-Tracks bleibt ungeprüft.
+
+### 2026-11-22 – V7-Geodaten in Leaflet eingebunden
+
+- Die V7-Dateien `Balkan_Tour_2027.gpx` und `Maps_Import.csv` wurden aus dem
+  Geschwister-Workspace nach `assets/gpx/` übernommen. Der GPX enthält 30
+  benannte Routen und 134 Wegpunkte; die CSV führt dieselben 134 Punkte
+  gruppiert auf. Darunter sind Alternativen, Optionen und drei Wegpunkte der
+  Gruppe `FAEHRE`. Der Seetag D19 besitzt keine Straßenroute.
+- Die Tagesdateien verweisen nun auf die gemeinsame V7-GPX-Datei. Leaflet
+  zeigt Wegpunkte je Etappe einschließlich Alternativen, Option und Fähre;
+  die UI weist darauf hin, dass die Wegpunkte keine geprüften Fahrspur-Tracks
+  sind und für D19 keine Linie über See vorliegt.
+- Die Motorrad-Logistik-Checkliste enthält zusätzlich die noch zu prüfende
+  Slowenien-Vignette und Karawankentunnel-Maut für D03alt. Die echte
+  Fahrspur-GPX-Prüfung, Medien und noch offene V7-Buchungen bleiben ausstehend.
+
+### 2026-11-22 – Final-Plan V7 ins Roadbook übertragen
+
+- Kapitel 2 des geprüften
+  Final-Plans V7 aus dem Geschwister-Workspace wurde nach dem
+  unveränderten V4-Frontmatter-Schema in 22 Tagesdateien übertragen. Tag 01
+  wurde auf Recklinghausen–Velburg aktualisiert; der Hinweis zur digitalen
+  slowenischen E-Vignette blieb für die spätere Motorradetappe erhalten.
+- Transportarten, Übernachtungen, Wetter-/Alternativrouten, Entscheidungspunkte
+  D03alt, D07alt, D09alt, D10option, D11direkt, D11alt, D15alt und D16alt
+  sowie die V7-Kilometer, Modellzeiten und Start-/Zielkoordinaten stehen in
+  den Etappendateien. Für alle 22 Etappen sind die Medienlisten leer.
+- Die nicht gelieferten Routenhöhen wurden als Schätzwerte berechnet:
+  V7-Wegpunkte mit Nominatim geokodiert, Straßenlinien über OSRM rekonstruiert
+  und SRTM30m-Höhen über Open Topo Data alle 500 m abgetastet. Ein gleitendes
+  Fenster von fünf Samples, ein Mindestanstieg von mehr als 5 m und Rundung
+  auf 50 m dämpfen Rasterrauschen. Es sind keine GPX-basierten Messwerte.
+  Die rekonstruierten OSRM-Distanzen für D03 (176,2 statt 152,2 km) und D04
+  (210,4 statt 171,9 km) weichen vom V7-Plan ab; diese Höhenwerte sind
+  besonders vorläufig. Details und Quellen stehen in der
+  [Motorrad-Logistik-Checkliste](../docs/motorrad_checkliste_logistik.md).
+- Die D19-Hafenkoordinaten wurden aus den V7-Endpunkten D18 und D20 übernommen;
+  eine GPS-Linie über See wird nicht behauptet. Die Anfrage „D29“ wurde als
+  D19 interpretiert, da der Plan D01–D22 enthält und nur D19 keine GPS-Punkte
+  angibt.
+- Verifiziert: alle 22 YAML-Dateien enthalten exakt die 14 V4-Felder,
+  gültige Koordinaten und leere Medien-Arrays; der Produktionsbuild
+  `npm run build --prefix web` war erfolgreich. Im Browser wurden 22 Etappen,
+  D19 (Seetag) und D22 (Heimkehr) angezeigt. Externe OpenStreetMap-Kacheln
+  konnten im Browser wegen fehlender Netzwerkverbindung nicht geladen werden.
 
 ### 2026-11-22 – Phase 3 Web-App und Pages-Build gestartet
 
@@ -369,9 +529,14 @@
 5. **Dokumentation bereinigen:** Root-README auf Balkan-Ride 2027 ausrichten
    und die veralteten Claude-3.5-Beispiele im Master-Ablaufplan aktualisieren
    oder eindeutig als historische Vorlage kennzeichnen.
-6. **Projektphase 3 beginnen:** Tour-Rohdaten verifizieren, weitere
-   Etappendateien und Medien/GPX erstellen; `index.html` und PWA erst gemäß
-   freigegebenem Projektplan ergänzen.
+6. **V7-Buchungen bestätigen:** Fähre Igoumenitsa–Fusina, Basis-Hotel
+   Villach, Unterkunft Koman mit sicherem Motorradstellplatz, Meerblickzimmer
+   Igoumenitsa, Koman-Fährbestätigung und Meteora-Ruhetage gemäß
+   [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md)
+   klären.
+7. **GPX und Medien ergänzen:** Nach Buchung echte Routen-/GPX-Tracks
+   erstellen, die Höhenmeter daraus erneut berechnen und Fotos/Videos
+   einpflegen. Anschließend die offene iOS-/Android-PWA-Prüfung durchführen.
 
 ## Relevante Quellen
 

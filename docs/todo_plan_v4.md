@@ -38,14 +38,16 @@
 
 ---
 
-## Phase 3: Daten-Import aus Excel, Polarsteps-UI & PWA (Tag 3–5)
-*Ziel: Die 20 Tourtage im V4-YAML-Format migrieren, das Polarsteps-Roadbook bauen und als PWA konfigurieren.*
+## Phase 3: V7-Daten, Polarsteps-UI & PWA (Tag 3–5)
+*Ziel: Die 22 Kalendertage des geprüften Final-Plans V7 im V4-YAML-Format abbilden, das Polarsteps-Roadbook bauen und als PWA konfigurieren.*
 
-* [ ] **Excel-Daten & Medienstruktur vorbereiten**
-  * [ ] Spalten aus der bestehenden Excel-Tabelle strukturieren (Tag, Datum, Titel, Start, Ziel, Koordinaten Start/Ziel, Kilometer, Fahrzeit, Höhenmeter, Highlights).
-  * [ ] Unterordner `assets/media/tag-01/` bis `tag-20/` anlegen und erste Fotos auf max. `1600 px` Breite (WebP/JPEG, `200–400 KB`) optimieren; GPX-Tracks in `assets/gpx/` ablegen.
-* [ ] **Die 20 Markdown-Dateien anlegen (`content/tag-01.md` bis `tag-20.md`)**
-  * [ ] Über den VS-Code Copilot Agenten aus den Excel-Rohdaten im erweiterten YAML-V4-Schema (inkl. `koordinaten_start`, `koordinaten_ziel`, `bilder`, `videos`) und authentischem Biker-Slang generieren lassen.
+* [x] **V7-Tagesdaten einlesen und strukturieren**
+  * [x] Kapitel 2 aus dem lokalen Final-Plan `../../Balkan 27/Tourplaung/Balkan_Tour_Plan_2027_V7.md` mit Tagesdaten, Alternativen, Koordinaten und Übernachtungen übertragen; geschätzte Routenhöhen als vorläufig gekennzeichnet.
+  * [ ] **Medienstruktur und echte Fahrspur-GPX-Dateien vorbereiten**
+  * [x] Den V7-Wegpunktplan und den CSV-Kartenimport aus der Tourplanung nach `assets/gpx/` übernehmen und auf Etappen, Alternativen, Optionen sowie die Wegpunkt-Gruppe `FAEHRE` prüfen. Der V7-GPX enthält Orientierungspunkte, keine geprüften Fahrspur-Tracks.
+  * [ ] Unterordner `assets/media/tag-01/` bis `tag-22/` anlegen und erste Fotos auf max. `1600 px` Breite (WebP/JPEG, `200–400 KB`) optimieren; geprüfte tägliche Fahrspur-GPX-Tracks in `assets/gpx/` ergänzen.
+* [x] **Die 22 Markdown-Dateien anlegen (`content/tag-01.md` bis `tag-22.md`)**
+  * [x] Die V7-Daten im erweiterten YAML-V4-Schema (inkl. `koordinaten_start`, `koordinaten_ziel`, `bilder`, `videos`) und mit authentischem Biker-Slang in Einzeletappen übertragen.
 * [x] **Polarsteps-Style Web-Roadbook bauen (`web/`)**
   * [x] Responsive Vanilla-JavaScript-Web-App im Dark-Adventure-Look mit Vite, Tailwind CSS und Leaflet.js erstellen.
   * [x] Markdown-/YAML-Inhalte beim Build einlesen; Etappen-Pins, Step-Navigation, `flyTo`, Desktop-Split-Layout und mobiles Karten-/Sheet-Layout umsetzen.

@@ -44,6 +44,20 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   erreichbar.
 - [Chatverlauf-Inventar](../daten/chat_verlauf/README.md) – lokale
   Gesprächssicherungen und deren Einschränkungen.
+- Der lokale Final-Plan V7 liegt im Geschwister-Workspace unter
+  `../../Balkan 27/Tourplaung/Balkan_Tour_Plan_2027_V7.md`; der V7-Wegpunktplan
+  und der CSV-Kartenimport sind im Repository unter `../assets/gpx/` abgelegt.
+  Die GPX-Wegpunkte sind keine geprüften Fahrspur-Tracks.
+- Nach jedem Import oder jeder Änderung an einer Eingabe die Dateien
+  `Balkan_Tour_2027.gpx`, `Balkan_Tour_Plan_2027_V7.md` und `Maps_Import.csv`
+  abgleichen. Nur `../assets/gpx/Balkan_Tour_2027.gpx` speist den täglichen
+  OSRM-Trackgenerator direkt; Änderungen an CSV oder Plan müssen vor der
+  Neuberechnung in die GPX-Hauptroute übernommen werden. Die
+  [Riderrix-Agentendatei](../.github/agents/riderrix.agent.md) enthält den
+  gewünschten Trackpunkt-Parameter und den Agenten-Aufruf. Bei manuellem
+  Skriptaufruf den Wert selbst mit `--max-track-points` übergeben; ohne Option
+  gilt der Skriptstandard. Danach GPX-Dateien validieren und den Frontend-Build
+  mit `npm run build --prefix web` prüfen.
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – fachliche und
   technische Projektvorgaben.
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md) – Agenten-

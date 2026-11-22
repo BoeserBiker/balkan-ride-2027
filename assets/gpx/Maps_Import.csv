@@ -1,0 +1,135 @@
+Tag,Typ,Ort,Info
+1,Start,51.614382 7.197855,V7 / D01 / PKW / D01 - 01 - Recklinghausen
+1,Ziel,49.233024 11.671602,V7 / D01 / PKW / D01 - 02 - Velburg
+2,Start,49.233024 11.671602,V7 / D02 / PKW / D02 - 01 - Velburg
+2,Ziel,46.616728 13.850027,V7 / D02 / PKW / D02 - 02 - Villach
+3,Start,46.616728 13.850027,V7 / D03 / MOTORRAD / D03 - 01 - Villach
+3,Highlight,46.523325 13.751561,V7 / D03 / MOTORRAD / D03 - 02 - Wurzenpass
+3,Highlight,46.485132 13.784396,V7 / D03 / MOTORRAD / D03 - 03 - Kranjska Gora
+3,Highlight,46.434779 13.743712,V7 / D03 / MOTORRAD / D03 - 04 - Vršič-Pass
+3,Highlight,46.338585 13.552419,V7 / D03 / MOTORRAD / D03 - 05 - Bovec
+3,Highlight,46.182921 13.733338,V7 / D03 / MOTORRAD / D03 - 06 - Tolmin
+3,Ziel,46.002398 14.027301,V7 / D03 / MOTORRAD / D03 - 07 - Idrija
+4,Start,46.002398 14.027301,V7 / D04 / MOTORRAD / D04 - 01 - Idrija
+4,Highlight,45.775285 14.213994,V7 / D04 / MOTORRAD / D04 - 02 - Postojna
+4,Highlight,45.563662 14.245332,V7 / D04 / MOTORRAD / D04 - 03 - Ilirska Bistrica
+4,Highlight,45.326798 14.442208,V7 / D04 / MOTORRAD / D04 - 04 - Rijeka
+4,Ziel,44.990153 14.902116,V7 / D04 / MOTORRAD / D04 - 05 - Senj
+5,Start,44.990153 14.902116,V7 / D05 / MOTORRAD / D05 - 01 - Senj
+5,Highlight,44.527923 15.072495,V7 / D05 / MOTORRAD / D05 - 02 - Karlobag
+5,Highlight,44.295054 15.439842,V7 / D05 / MOTORRAD / D05 - 03 - Starigrad
+5,Highlight,44.221440 15.545136,V7 / D05 / MOTORRAD / D05 - 04 - Maslenica
+5,Highlight,44.211173 15.477695,V7 / D05 / MOTORRAD / D05 - 05 - Posedarje
+5,Highlight,44.116859 15.235326,V7 / D05 / MOTORRAD / D05 - 06 - Zadar
+5,Ziel,43.937715 15.447764,V7 / D05 / MOTORRAD / D05 - 07 - Biograd na Moru
+6,Start,43.937715 15.447764,V7 / D06 / MOTORRAD / D06 - 01 - Biograd na Moru
+6,Highlight,43.758806 15.776918,V7 / D06 / MOTORRAD / D06 - 02 - Vodice
+6,Highlight,43.734065 15.894477,V7 / D06 / MOTORRAD / D06 - 03 - Šibenik
+6,Highlight,43.586326 15.922777,V7 / D06 / MOTORRAD / D06 - 04 - Primošten
+6,Highlight,43.513855 16.108833,V7 / D06 / MOTORRAD / D06 - 05 - Marina
+6,Highlight,43.516414 16.249716,V7 / D06 / MOTORRAD / D06 - 06 - Trogir
+6,Highlight,43.511638 16.439966,V7 / D06 / MOTORRAD / D06 - 07 - Split
+6,Ziel,43.443497 16.692277,V7 / D06 / MOTORRAD / D06 - 08 - Omiš
+7,Start,43.443497 16.692277,V7 / D07 / MOTORRAD / D07 - 01 - Omiš
+7,Highlight,43.293976 17.020242,V7 / D07 / MOTORRAD / D07 - 02 - Makarska
+7,Highlight,43.106453 17.341693,V7 / D07 / MOTORRAD / D07 - 03 - Gradac
+7,Highlight,43.052429 17.436068,V7 / D07 / MOTORRAD / D07 - 04 - Ploče
+7,Highlight,43.053533 17.649911,V7 / D07 / MOTORRAD / D07 - 05 - Metković
+7,Highlight,43.156147 17.607887,V7 / D07 / MOTORRAD / D07 - 06 - Kravica-Wasserfälle
+7,Ziel,43.343586 17.807658,V7 / D07 / MOTORRAD / D07 - 07 - Mostar
+8,Start,43.343586 17.807658,V7 / D08 / MOTORRAD / D08 - 01 - Mostar
+8,Highlight,43.258198 18.106113,V7 / D08 / MOTORRAD / D08 - 02 - Nevesinje
+8,Highlight,43.166407 18.535798,V7 / D08 / MOTORRAD / D08 - 03 - Gacko
+8,Ziel,43.505855 18.774393,V7 / D08 / MOTORRAD / D08 - 04 - Foča
+9,Start,43.505855 18.774393,V7 / D09 / MOTORRAD / D09 - 01 - Foča
+9,Highlight,43.347922 18.845504,V7 / D09 / MOTORRAD / D09 - 02 - Šćepan Polje
+9,Highlight,43.272699 18.842203,V7 / D09 / MOTORRAD / D09 - 03 - Mratinje-Staumauer
+9,Highlight,43.156228 18.845225,V7 / D09 / MOTORRAD / D09 - 04 - Plužine
+9,Highlight,43.098619 19.050673,V7 / D09 / MOTORRAD / D09 - 05 - Sedlo-Pass
+9,Highlight,43.156751 19.133861,V7 / D09 / MOTORRAD / D09 - 06 - Žabljak
+9,Highlight,43.149711 19.294470,V7 / D09 / MOTORRAD / D09 - 07 - Đurđevića-Tara-Brücke
+9,Ziel,43.156751 19.133861,V7 / D09 / MOTORRAD / D09 - 08 - Žabljak
+10,Start,43.156751 19.133861,V7 / D10 / MOTORRAD / D10 - 01 - Žabljak
+10,Highlight,42.957197 19.094604,V7 / D10 / MOTORRAD / D10 - 02 - Šavnik
+10,Highlight,42.773939 18.948810,V7 / D10 / MOTORRAD / D10 - 03 - Nikšić
+10,Highlight,42.514979 18.695565,V7 / D10 / MOTORRAD / D10 - 04 - Risan
+10,Highlight,42.486268 18.698859,V7 / D10 / MOTORRAD / D10 - 05 - Perast
+10,Ziel,42.424920 18.771333,V7 / D10 / MOTORRAD / D10 - 06 - Kotor
+11,Start,42.424920 18.771333,V7 / D11 / MOTORRAD / D11 - 01 - Kotor
+11,Highlight,42.441524 19.262108,V7 / D11 / MOTORRAD / D11 - 02 - Podgorica
+11,Highlight,42.330298 19.420618,V7 / D11 / MOTORRAD / D11 - 03 - Hani i Hotit
+11,Highlight,42.462725 19.561714,V7 / D11 / MOTORRAD / D11 - 04 - Tamarë
+11,Highlight,42.068137 19.512144,V7 / D11 / MOTORRAD / D11 - 05 - Shkodra
+11,Ziel,42.394656 19.775057,V7 / D11 / MOTORRAD / D11 - 06 - Theth
+12,Start,42.394656 19.775057,V7 / D12 / MOTORRAD / D12 - 01 - Theth
+12,Highlight,42.068137 19.512144,V7 / D12 / MOTORRAD / D12 - 02 - Shkodra
+12,Ziel,42.108561 19.826294,V7 / D12 / MOTORRAD / D12 - 03 - Koman Fähranleger
+13,Start,42.108561 19.826294,V7 / D13 / MOTORRAD / D13 - 01 - Koman Fähranleger
+13,Ziel,41.781664 19.643354,V7 / D13 / MOTORRAD / D13 - 02 - Lezha
+13,Start,42.108561 19.826294,V7 / D13ferry / FAEHRE / D13ferry - 01 - Koman Fähranleger
+13,Highlight,42.265310 20.029359,"V7 / D13ferry / FAEHRE / D13ferry - 02 - Fierzë (Fähre, Fußpassage)"
+13,Ziel,42.108561 19.826294,V7 / D13ferry / FAEHRE / D13ferry - 03 - Koman Fähranleger
+14,Start,41.781664 19.643354,V7 / D14 / MOTORRAD / D14 - 01 - Lezha
+14,Highlight,41.313255 19.446235,V7 / D14 / MOTORRAD / D14 - 02 - Durres
+14,Ziel,40.725112 19.558208,V7 / D14 / MOTORRAD / D14 - 03 - Fier
+15,Start,40.725112 19.558208,V7 / D15 / MOTORRAD / D15 - 01 - Fier
+15,Highlight,40.470760 19.491272,V7 / D15 / MOTORRAD / D15 - 02 - Vlora
+15,Highlight,40.198191 19.592413,V7 / D15 / MOTORRAD / D15 - 03 - Llogara-Pass
+15,Highlight,40.102163 19.747298,V7 / D15 / MOTORRAD / D15 - 04 - Himara
+15,Ziel,39.875220 20.006526,V7 / D15 / MOTORRAD / D15 - 05 - Saranda
+16,Start,39.875220 20.006526,V7 / D16 / MOTORRAD / D16 - 01 - Saranda
+16,Highlight,39.655606 20.156714,V7 / D16 / MOTORRAD / D16 - 02 - Qafë Botë
+16,Highlight,39.663982 20.852278,V7 / D16 / MOTORRAD / D16 - 03 - Ioannina
+16,Ziel,39.707018 21.627943,V7 / D16 / MOTORRAD / D16 - 04 - Kalambaka
+17,Start,39.707018 21.627943,V7 / D17 / MOTORRAD / D17 - 01 - Kalambaka
+17,Highlight,39.726383 21.626486,V7 / D17 / MOTORRAD / D17 - 02 - Großes Meteoron
+17,Highlight,39.725074 21.629801,V7 / D17 / MOTORRAD / D17 - 03 - Kloster Varlaam (Fr geschlossen)
+17,Highlight,39.663982 20.852278,V7 / D17 / MOTORRAD / D17 - 04 - Ioannina
+17,Ziel,39.504500 20.263917,V7 / D17 / MOTORRAD / D17 - 05 - Igoumenitsa
+18,Start,39.504500 20.263917,V7 / D18 / MOTORRAD / D18 - 01 - Igoumenitsa
+18,Ziel,39.488628 20.259580,V7 / D18 / MOTORRAD / D18 - 02 - Igoumenitsa Neuer Hafen (Ticket prüfen)
+20,Start,45.419077 12.257771,V7 / D20 / MOTORRAD / D20 - 01 - Fusina Ortsorientierung (Terminal laut Ticket)
+20,Highlight,46.505262 13.578373,V7 / D20 / MOTORRAD / D20 - 02 - Tarvisio
+20,Ziel,46.616728 13.850027,V7 / D20 / MOTORRAD / D20 - 03 - Villach
+21,Start,46.616728 13.850027,V7 / D21 / PKW / D21 - 01 - Villach
+21,Ziel,49.233024 11.671602,V7 / D21 / PKW / D21 - 02 - Velburg
+22,Start,49.233024 11.671602,V7 / D22 / PKW / D22 - 01 - Velburg
+22,Ziel,51.614382 7.197855,V7 / D22 / PKW / D22 - 02 - Recklinghausen
+3,Start,46.616728 13.850027,V7 / D03alt / ALT / D03alt - 01 - Villach
+3,Highlight,46.445915 14.066310,V7 / D03alt / ALT / D03alt - 02 - Jesenice
+3,Highlight,46.050027 14.506929,V7 / D03alt / ALT / D03alt - 03 - Ljubljana
+3,Highlight,45.943250 14.179940,V7 / D03alt / ALT / D03alt - 04 - Logatec
+3,Ziel,46.002398 14.027301,V7 / D03alt / ALT / D03alt - 05 - Idrija
+7,Start,43.443497 16.692277,V7 / D07alt / ALT / D07alt - 01 - Omiš
+7,Highlight,43.156147 17.607887,V7 / D07alt / ALT / D07alt - 02 - Kravica-Wasserfälle
+7,Ziel,43.343586 17.807658,V7 / D07alt / ALT / D07alt - 03 - Mostar
+9,Start,43.505855 18.774393,V7 / D09alt / ALT / D09alt - 01 - Foča
+9,Highlight,43.347922 18.845504,V7 / D09alt / ALT / D09alt - 02 - Šćepan Polje
+9,Highlight,43.272699 18.842203,V7 / D09alt / ALT / D09alt - 03 - Mratinje-Staumauer
+9,Highlight,43.156228 18.845225,V7 / D09alt / ALT / D09alt - 04 - Plužine
+9,Highlight,42.773939 18.948810,V7 / D09alt / ALT / D09alt - 05 - Nikšić
+9,Highlight,42.957197 19.094604,V7 / D09alt / ALT / D09alt - 06 - Šavnik
+9,Ziel,43.156751 19.133861,V7 / D09alt / ALT / D09alt - 07 - Žabljak
+11,Start,42.424920 18.771333,V7 / D11alt / ALT / D11alt - 01 - Kotor
+11,Highlight,42.441524 19.262108,V7 / D11alt / ALT / D11alt - 02 - Podgorica
+11,Highlight,42.330298 19.420618,V7 / D11alt / ALT / D11alt - 03 - Hani i Hotit
+11,Ziel,42.068137 19.512144,V7 / D11alt / ALT / D11alt - 04 - Shkodra
+11,Start,42.424920 18.771333,V7 / D11direkt / ALT / D11direkt - 01 - Kotor
+11,Highlight,42.441524 19.262108,V7 / D11direkt / ALT / D11direkt - 02 - Podgorica
+11,Highlight,42.330298 19.420618,V7 / D11direkt / ALT / D11direkt - 03 - Hani i Hotit
+11,Highlight,42.068137 19.512144,V7 / D11direkt / ALT / D11direkt - 04 - Shkodra
+11,Ziel,42.394656 19.775057,V7 / D11direkt / ALT / D11direkt - 05 - Theth
+12,Start,42.068137 19.512144,V7 / D12alt / ALT / D12alt - 01 - Shkodra
+12,Ziel,42.108561 19.826294,V7 / D12alt / ALT / D12alt - 02 - Koman Fähranleger
+15,Start,40.725112 19.558208,V7 / D15alt / ALT / D15alt - 01 - Fier
+15,Highlight,40.470760 19.491272,V7 / D15alt / ALT / D15alt - 02 - Vlora
+15,Highlight,40.181065 19.588848,V7 / D15alt / ALT / D15alt - 03 - Llogara-Tunnelzufahrt
+15,Highlight,40.102163 19.747298,V7 / D15alt / ALT / D15alt - 04 - Himara
+15,Ziel,39.875220 20.006526,V7 / D15alt / ALT / D15alt - 05 - Saranda
+16,Start,39.875220 20.006526,V7 / D16alt / ALT / D16alt - 01 - Saranda
+16,Highlight,40.077087 20.139336,V7 / D16alt / ALT / D16alt - 02 - Gjirokastër
+16,Highlight,39.663982 20.852278,V7 / D16alt / ALT / D16alt - 03 - Ioannina
+16,Ziel,39.707018 21.627943,V7 / D16alt / ALT / D16alt - 04 - Kalambaka
+10,Start,42.424920 18.771333,V7 / D10option / OPTION / D10option - 01 - Kotor
+10,Highlight,42.431297 18.824771,V7 / D10option / OPTION / D10option - 02 - Njeguši
+10,Ziel,42.424920 18.771333,V7 / D10option / OPTION / D10option - 03 - Kotor

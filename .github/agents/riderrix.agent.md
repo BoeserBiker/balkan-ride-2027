@@ -130,6 +130,42 @@ Fortschreibung von Projekten befinden sich in:
 
 
 
+# Tourplanung
+Der Ort der Tourplanung ist entscheidend für die Erstellung von Roadbooks und Routen. Berücksichtige dabei geografische Gegebenheiten, Straßenbedingungen und Sehenswürdigkeiten. Nutze vorhandene Datenquellen und aktualisiere sie regelmäßig, um die Genauigkeit der Planung sicherzustellen.
+Dort liegen `Balkan_Tour_2027.gpx`, `Balkan_Tour_Plan_2027_V7.md` und `Maps_Import.csv`. Prüfe diese Dateien bei einem Import gemeinsam auf Konsistenz.
+
+Der Pfad zur Tourplanung ist:
+`./../Balkan 27/Tourplaung`
+
+Nach jedem Import oder jeder Änderung an diesen Tourplanungsdaten müssen die
+Tages-Tracks neu berechnet werden. Der Generator verwendet
+`assets/gpx/Balkan_Tour_2027.gpx` als Berechnungsquelle; Änderungen an CSV oder
+Plan zuerst mit dieser GPX-Datei abgleichen. Vom Repository-Stamm aus lässt sich
+die Neuberechnung direkt erneut anstoßen.
+
+## Einstellung für Tages-Tracks
+
+```text
+TRACKPUNKTE_MAX = 300
+```
+
+`TRACKPUNKTE_MAX` ist die gewünschte Obergrenze für `<trkpt>`-Trackpunkte pro
+Tagessegment, nicht für `<wpt>`-Orientierungsmarker. Der Generator akzeptiert
+ganze Zahlen von 2 bis 300. Lies diesen Wert vor jedem Build aus dieser Datei
+und übergib ihn als Zahl an `--max-track-points`; ersetze `<WERT>` durch den
+aktuellen Wert:
+
+```bash
+python3 scripts/build_tracks_from_waypoints.py --max-track-points <WERT>
+```
+
+Diese Einstellung ist eine Anweisung an den Agenten: Ein manueller Aufruf
+liest sie nicht automatisch. Ohne Option verwendet das Skript seinen eigenen
+Standardwert 300. Änderungen an der Einstellung wirken erst beim nächsten
+Track-Build.
+
+Danach alle 22 GPX-Dateien auf XML, Punktzahl, Dateigröße und Wegpunktkategorien
+prüfen und `npm run build --prefix web` ausführen.
 
 
 

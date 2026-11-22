@@ -1,0 +1,1221 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="BalkanTour2027 V7 / Onkel Tom">
+  <metadata>
+    <name>Balkan Tour 2027 V7</name>
+    <desc>Stand 2026-11-19. Ortsorientierung, kein Fahrspur-Track. Adriafähre unbestätigt; Koman-Fähre nur als Wegpunkte (Fußpassage).</desc>
+    <keywords>V7,OpenStreetMap,OSRM,Nominatim</keywords>
+  </metadata>
+  <wpt lat="51.614382" lon="7.197855">
+    <name>D01 - 01 - Recklinghausen</name>
+    <desc>V7 / D01 / PKW / D01 - 01 - Recklinghausen</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="49.233024" lon="11.671602">
+    <name>D01 - 02 - Velburg</name>
+    <desc>V7 / D01 / PKW / D01 - 02 - Velburg</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="49.233024" lon="11.671602">
+    <name>D02 - 01 - Velburg</name>
+    <desc>V7 / D02 / PKW / D02 - 01 - Velburg</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="46.616728" lon="13.850027">
+    <name>D02 - 02 - Villach</name>
+    <desc>V7 / D02 / PKW / D02 - 02 - Villach</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="46.616728" lon="13.850027">
+    <name>D03 - 01 - Villach</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 01 - Villach</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.523325" lon="13.751561">
+    <name>D03 - 02 - Wurzenpass</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 02 - Wurzenpass</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.485132" lon="13.784396">
+    <name>D03 - 03 - Kranjska Gora</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 03 - Kranjska Gora</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.434779" lon="13.743712">
+    <name>D03 - 04 - Vršič-Pass</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 04 - Vršič-Pass</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.338585" lon="13.552419">
+    <name>D03 - 05 - Bovec</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 05 - Bovec</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.182921" lon="13.733338">
+    <name>D03 - 06 - Tolmin</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 06 - Tolmin</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.002398" lon="14.027301">
+    <name>D03 - 07 - Idrija</name>
+    <desc>V7 / D03 / MOTORRAD / D03 - 07 - Idrija</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.002398" lon="14.027301">
+    <name>D04 - 01 - Idrija</name>
+    <desc>V7 / D04 / MOTORRAD / D04 - 01 - Idrija</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="45.775285" lon="14.213994">
+    <name>D04 - 02 - Postojna</name>
+    <desc>V7 / D04 / MOTORRAD / D04 - 02 - Postojna</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="45.563662" lon="14.245332">
+    <name>D04 - 03 - Ilirska Bistrica</name>
+    <desc>V7 / D04 / MOTORRAD / D04 - 03 - Ilirska Bistrica</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="45.326798" lon="14.442208">
+    <name>D04 - 04 - Rijeka</name>
+    <desc>V7 / D04 / MOTORRAD / D04 - 04 - Rijeka</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.990153" lon="14.902116">
+    <name>D04 - 05 - Senj</name>
+    <desc>V7 / D04 / MOTORRAD / D04 - 05 - Senj</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.990153" lon="14.902116">
+    <name>D05 - 01 - Senj</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 01 - Senj</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.527923" lon="15.072495">
+    <name>D05 - 02 - Karlobag</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 02 - Karlobag</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.295054" lon="15.439842">
+    <name>D05 - 03 - Starigrad</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 03 - Starigrad</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.221440" lon="15.545136">
+    <name>D05 - 04 - Maslenica</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 04 - Maslenica</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.211173" lon="15.477695">
+    <name>D05 - 05 - Posedarje</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 05 - Posedarje</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="44.116859" lon="15.235326">
+    <name>D05 - 06 - Zadar</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 06 - Zadar</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.937715" lon="15.447764">
+    <name>D05 - 07 - Biograd na Moru</name>
+    <desc>V7 / D05 / MOTORRAD / D05 - 07 - Biograd na Moru</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.937715" lon="15.447764">
+    <name>D06 - 01 - Biograd na Moru</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 01 - Biograd na Moru</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.758806" lon="15.776918">
+    <name>D06 - 02 - Vodice</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 02 - Vodice</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.734065" lon="15.894477">
+    <name>D06 - 03 - Šibenik</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 03 - Šibenik</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.586326" lon="15.922777">
+    <name>D06 - 04 - Primošten</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 04 - Primošten</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.513855" lon="16.108833">
+    <name>D06 - 05 - Marina</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 05 - Marina</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.516414" lon="16.249716">
+    <name>D06 - 06 - Trogir</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 06 - Trogir</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.511638" lon="16.439966">
+    <name>D06 - 07 - Split</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 07 - Split</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.443497" lon="16.692277">
+    <name>D06 - 08 - Omiš</name>
+    <desc>V7 / D06 / MOTORRAD / D06 - 08 - Omiš</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.443497" lon="16.692277">
+    <name>D07 - 01 - Omiš</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 01 - Omiš</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.293976" lon="17.020242">
+    <name>D07 - 02 - Makarska</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 02 - Makarska</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.106453" lon="17.341693">
+    <name>D07 - 03 - Gradac</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 03 - Gradac</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.052429" lon="17.436068">
+    <name>D07 - 04 - Ploče</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 04 - Ploče</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.053533" lon="17.649911">
+    <name>D07 - 05 - Metković</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 05 - Metković</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.156147" lon="17.607887">
+    <name>D07 - 06 - Kravica-Wasserfälle</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 06 - Kravica-Wasserfälle</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.343586" lon="17.807658">
+    <name>D07 - 07 - Mostar</name>
+    <desc>V7 / D07 / MOTORRAD / D07 - 07 - Mostar</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.343586" lon="17.807658">
+    <name>D08 - 01 - Mostar</name>
+    <desc>V7 / D08 / MOTORRAD / D08 - 01 - Mostar</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.258198" lon="18.106113">
+    <name>D08 - 02 - Nevesinje</name>
+    <desc>V7 / D08 / MOTORRAD / D08 - 02 - Nevesinje</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.166407" lon="18.535798">
+    <name>D08 - 03 - Gacko</name>
+    <desc>V7 / D08 / MOTORRAD / D08 - 03 - Gacko</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.505855" lon="18.774393">
+    <name>D08 - 04 - Foča</name>
+    <desc>V7 / D08 / MOTORRAD / D08 - 04 - Foča</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.505855" lon="18.774393">
+    <name>D09 - 01 - Foča</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 01 - Foča</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.347922" lon="18.845504">
+    <name>D09 - 02 - Šćepan Polje</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 02 - Šćepan Polje</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.272699" lon="18.842203">
+    <name>D09 - 03 - Mratinje-Staumauer</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 03 - Mratinje-Staumauer</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.156228" lon="18.845225">
+    <name>D09 - 04 - Plužine</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 04 - Plužine</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.098619" lon="19.050673">
+    <name>D09 - 05 - Sedlo-Pass</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 05 - Sedlo-Pass</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.156751" lon="19.133861">
+    <name>D09 - 06 - Žabljak</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 06 - Žabljak</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.149711" lon="19.294470">
+    <name>D09 - 07 - Đurđevića-Tara-Brücke</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 07 - Đurđevića-Tara-Brücke</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.156751" lon="19.133861">
+    <name>D09 - 08 - Žabljak</name>
+    <desc>V7 / D09 / MOTORRAD / D09 - 08 - Žabljak</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="43.156751" lon="19.133861">
+    <name>D10 - 01 - Žabljak</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 01 - Žabljak</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.957197" lon="19.094604">
+    <name>D10 - 02 - Šavnik</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 02 - Šavnik</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.773939" lon="18.948810">
+    <name>D10 - 03 - Nikšić</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 03 - Nikšić</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.514979" lon="18.695565">
+    <name>D10 - 04 - Risan</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 04 - Risan</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.486268" lon="18.698859">
+    <name>D10 - 05 - Perast</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 05 - Perast</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D10 - 06 - Kotor</name>
+    <desc>V7 / D10 / MOTORRAD / D10 - 06 - Kotor</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D11 - 01 - Kotor</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 01 - Kotor</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.441524" lon="19.262108">
+    <name>D11 - 02 - Podgorica</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 02 - Podgorica</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.330298" lon="19.420618">
+    <name>D11 - 03 - Hani i Hotit</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 03 - Hani i Hotit</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.462725" lon="19.561714">
+    <name>D11 - 04 - Tamarë</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 04 - Tamarë</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.068137" lon="19.512144">
+    <name>D11 - 05 - Shkodra</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 05 - Shkodra</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.394656" lon="19.775057">
+    <name>D11 - 06 - Theth</name>
+    <desc>V7 / D11 / MOTORRAD / D11 - 06 - Theth</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.394656" lon="19.775057">
+    <name>D12 - 01 - Theth</name>
+    <desc>V7 / D12 / MOTORRAD / D12 - 01 - Theth</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.068137" lon="19.512144">
+    <name>D12 - 02 - Shkodra</name>
+    <desc>V7 / D12 / MOTORRAD / D12 - 02 - Shkodra</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.108561" lon="19.826294">
+    <name>D12 - 03 - Koman Fähranleger</name>
+    <desc>V7 / D12 / MOTORRAD / D12 - 03 - Koman Fähranleger</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.108561" lon="19.826294">
+    <name>D13 - 01 - Koman Fähranleger</name>
+    <desc>V7 / D13 / MOTORRAD / D13 - 01 - Koman Fähranleger</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="41.781664" lon="19.643354">
+    <name>D13 - 02 - Lezha</name>
+    <desc>V7 / D13 / MOTORRAD / D13 - 02 - Lezha</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="42.108561" lon="19.826294">
+    <name>D13ferry - 01 - Koman Fähranleger</name>
+    <desc>V7 / D13ferry / FAEHRE / D13ferry - 01 - Koman Fähranleger</desc>
+    <type>FAEHRE</type>
+  </wpt>
+  <wpt lat="42.265310" lon="20.029359">
+    <name>D13ferry - 02 - Fierzë (Fähre, Fußpassage)</name>
+    <desc>V7 / D13ferry / FAEHRE / D13ferry - 02 - Fierzë (Fähre, Fußpassage)</desc>
+    <type>FAEHRE</type>
+  </wpt>
+  <wpt lat="42.108561" lon="19.826294">
+    <name>D13ferry - 03 - Koman Fähranleger</name>
+    <desc>V7 / D13ferry / FAEHRE / D13ferry - 03 - Koman Fähranleger</desc>
+    <type>FAEHRE</type>
+  </wpt>
+  <wpt lat="41.781664" lon="19.643354">
+    <name>D14 - 01 - Lezha</name>
+    <desc>V7 / D14 / MOTORRAD / D14 - 01 - Lezha</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="41.313255" lon="19.446235">
+    <name>D14 - 02 - Durres</name>
+    <desc>V7 / D14 / MOTORRAD / D14 - 02 - Durres</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="40.725112" lon="19.558208">
+    <name>D14 - 03 - Fier</name>
+    <desc>V7 / D14 / MOTORRAD / D14 - 03 - Fier</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="40.725112" lon="19.558208">
+    <name>D15 - 01 - Fier</name>
+    <desc>V7 / D15 / MOTORRAD / D15 - 01 - Fier</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="40.470760" lon="19.491272">
+    <name>D15 - 02 - Vlora</name>
+    <desc>V7 / D15 / MOTORRAD / D15 - 02 - Vlora</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="40.198191" lon="19.592413">
+    <name>D15 - 03 - Llogara-Pass</name>
+    <desc>V7 / D15 / MOTORRAD / D15 - 03 - Llogara-Pass</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="40.102163" lon="19.747298">
+    <name>D15 - 04 - Himara</name>
+    <desc>V7 / D15 / MOTORRAD / D15 - 04 - Himara</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.875220" lon="20.006526">
+    <name>D15 - 05 - Saranda</name>
+    <desc>V7 / D15 / MOTORRAD / D15 - 05 - Saranda</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.875220" lon="20.006526">
+    <name>D16 - 01 - Saranda</name>
+    <desc>V7 / D16 / MOTORRAD / D16 - 01 - Saranda</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.655606" lon="20.156714">
+    <name>D16 - 02 - Qafë Botë</name>
+    <desc>V7 / D16 / MOTORRAD / D16 - 02 - Qafë Botë</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.663982" lon="20.852278">
+    <name>D16 - 03 - Ioannina</name>
+    <desc>V7 / D16 / MOTORRAD / D16 - 03 - Ioannina</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.707018" lon="21.627943">
+    <name>D16 - 04 - Kalambaka</name>
+    <desc>V7 / D16 / MOTORRAD / D16 - 04 - Kalambaka</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.707018" lon="21.627943">
+    <name>D17 - 01 - Kalambaka</name>
+    <desc>V7 / D17 / MOTORRAD / D17 - 01 - Kalambaka</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.726383" lon="21.626486">
+    <name>D17 - 02 - Großes Meteoron</name>
+    <desc>V7 / D17 / MOTORRAD / D17 - 02 - Großes Meteoron</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.725074" lon="21.629801">
+    <name>D17 - 03 - Kloster Varlaam (Fr geschlossen)</name>
+    <desc>V7 / D17 / MOTORRAD / D17 - 03 - Kloster Varlaam (Fr geschlossen)</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.663982" lon="20.852278">
+    <name>D17 - 04 - Ioannina</name>
+    <desc>V7 / D17 / MOTORRAD / D17 - 04 - Ioannina</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.504500" lon="20.263917">
+    <name>D17 - 05 - Igoumenitsa</name>
+    <desc>V7 / D17 / MOTORRAD / D17 - 05 - Igoumenitsa</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.504500" lon="20.263917">
+    <name>D18 - 01 - Igoumenitsa</name>
+    <desc>V7 / D18 / MOTORRAD / D18 - 01 - Igoumenitsa</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="39.488628" lon="20.259580">
+    <name>D18 - 02 - Igoumenitsa Neuer Hafen (Ticket prüfen)</name>
+    <desc>V7 / D18 / MOTORRAD / D18 - 02 - Igoumenitsa Neuer Hafen (Ticket prüfen)</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="45.419077" lon="12.257771">
+    <name>D20 - 01 - Fusina Ortsorientierung (Terminal laut Ticket)</name>
+    <desc>V7 / D20 / MOTORRAD / D20 - 01 - Fusina Ortsorientierung (Terminal laut Ticket)</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.505262" lon="13.578373">
+    <name>D20 - 02 - Tarvisio</name>
+    <desc>V7 / D20 / MOTORRAD / D20 - 02 - Tarvisio</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.616728" lon="13.850027">
+    <name>D20 - 03 - Villach</name>
+    <desc>V7 / D20 / MOTORRAD / D20 - 03 - Villach</desc>
+    <type>MOTORRAD</type>
+  </wpt>
+  <wpt lat="46.616728" lon="13.850027">
+    <name>D21 - 01 - Villach</name>
+    <desc>V7 / D21 / PKW / D21 - 01 - Villach</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="49.233024" lon="11.671602">
+    <name>D21 - 02 - Velburg</name>
+    <desc>V7 / D21 / PKW / D21 - 02 - Velburg</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="49.233024" lon="11.671602">
+    <name>D22 - 01 - Velburg</name>
+    <desc>V7 / D22 / PKW / D22 - 01 - Velburg</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="51.614382" lon="7.197855">
+    <name>D22 - 02 - Recklinghausen</name>
+    <desc>V7 / D22 / PKW / D22 - 02 - Recklinghausen</desc>
+    <type>PKW</type>
+  </wpt>
+  <wpt lat="46.616728" lon="13.850027">
+    <name>D03alt - 01 - Villach</name>
+    <desc>V7 / D03alt / ALT / D03alt - 01 - Villach</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="46.445915" lon="14.066310">
+    <name>D03alt - 02 - Jesenice</name>
+    <desc>V7 / D03alt / ALT / D03alt - 02 - Jesenice</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="46.050027" lon="14.506929">
+    <name>D03alt - 03 - Ljubljana</name>
+    <desc>V7 / D03alt / ALT / D03alt - 03 - Ljubljana</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="45.943250" lon="14.179940">
+    <name>D03alt - 04 - Logatec</name>
+    <desc>V7 / D03alt / ALT / D03alt - 04 - Logatec</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="46.002398" lon="14.027301">
+    <name>D03alt - 05 - Idrija</name>
+    <desc>V7 / D03alt / ALT / D03alt - 05 - Idrija</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.443497" lon="16.692277">
+    <name>D07alt - 01 - Omiš</name>
+    <desc>V7 / D07alt / ALT / D07alt - 01 - Omiš</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.156147" lon="17.607887">
+    <name>D07alt - 02 - Kravica-Wasserfälle</name>
+    <desc>V7 / D07alt / ALT / D07alt - 02 - Kravica-Wasserfälle</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.343586" lon="17.807658">
+    <name>D07alt - 03 - Mostar</name>
+    <desc>V7 / D07alt / ALT / D07alt - 03 - Mostar</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.505855" lon="18.774393">
+    <name>D09alt - 01 - Foča</name>
+    <desc>V7 / D09alt / ALT / D09alt - 01 - Foča</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.347922" lon="18.845504">
+    <name>D09alt - 02 - Šćepan Polje</name>
+    <desc>V7 / D09alt / ALT / D09alt - 02 - Šćepan Polje</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.272699" lon="18.842203">
+    <name>D09alt - 03 - Mratinje-Staumauer</name>
+    <desc>V7 / D09alt / ALT / D09alt - 03 - Mratinje-Staumauer</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.156228" lon="18.845225">
+    <name>D09alt - 04 - Plužine</name>
+    <desc>V7 / D09alt / ALT / D09alt - 04 - Plužine</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.773939" lon="18.948810">
+    <name>D09alt - 05 - Nikšić</name>
+    <desc>V7 / D09alt / ALT / D09alt - 05 - Nikšić</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.957197" lon="19.094604">
+    <name>D09alt - 06 - Šavnik</name>
+    <desc>V7 / D09alt / ALT / D09alt - 06 - Šavnik</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="43.156751" lon="19.133861">
+    <name>D09alt - 07 - Žabljak</name>
+    <desc>V7 / D09alt / ALT / D09alt - 07 - Žabljak</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D11alt - 01 - Kotor</name>
+    <desc>V7 / D11alt / ALT / D11alt - 01 - Kotor</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.441524" lon="19.262108">
+    <name>D11alt - 02 - Podgorica</name>
+    <desc>V7 / D11alt / ALT / D11alt - 02 - Podgorica</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.330298" lon="19.420618">
+    <name>D11alt - 03 - Hani i Hotit</name>
+    <desc>V7 / D11alt / ALT / D11alt - 03 - Hani i Hotit</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.068137" lon="19.512144">
+    <name>D11alt - 04 - Shkodra</name>
+    <desc>V7 / D11alt / ALT / D11alt - 04 - Shkodra</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D11direkt - 01 - Kotor</name>
+    <desc>V7 / D11direkt / ALT / D11direkt - 01 - Kotor</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.441524" lon="19.262108">
+    <name>D11direkt - 02 - Podgorica</name>
+    <desc>V7 / D11direkt / ALT / D11direkt - 02 - Podgorica</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.330298" lon="19.420618">
+    <name>D11direkt - 03 - Hani i Hotit</name>
+    <desc>V7 / D11direkt / ALT / D11direkt - 03 - Hani i Hotit</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.068137" lon="19.512144">
+    <name>D11direkt - 04 - Shkodra</name>
+    <desc>V7 / D11direkt / ALT / D11direkt - 04 - Shkodra</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.394656" lon="19.775057">
+    <name>D11direkt - 05 - Theth</name>
+    <desc>V7 / D11direkt / ALT / D11direkt - 05 - Theth</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.068137" lon="19.512144">
+    <name>D12alt - 01 - Shkodra</name>
+    <desc>V7 / D12alt / ALT / D12alt - 01 - Shkodra</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.108561" lon="19.826294">
+    <name>D12alt - 02 - Koman Fähranleger</name>
+    <desc>V7 / D12alt / ALT / D12alt - 02 - Koman Fähranleger</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="40.725112" lon="19.558208">
+    <name>D15alt - 01 - Fier</name>
+    <desc>V7 / D15alt / ALT / D15alt - 01 - Fier</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="40.470760" lon="19.491272">
+    <name>D15alt - 02 - Vlora</name>
+    <desc>V7 / D15alt / ALT / D15alt - 02 - Vlora</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="40.181065" lon="19.588848">
+    <name>D15alt - 03 - Llogara-Tunnelzufahrt</name>
+    <desc>V7 / D15alt / ALT / D15alt - 03 - Llogara-Tunnelzufahrt</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="40.102163" lon="19.747298">
+    <name>D15alt - 04 - Himara</name>
+    <desc>V7 / D15alt / ALT / D15alt - 04 - Himara</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="39.875220" lon="20.006526">
+    <name>D15alt - 05 - Saranda</name>
+    <desc>V7 / D15alt / ALT / D15alt - 05 - Saranda</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="39.875220" lon="20.006526">
+    <name>D16alt - 01 - Saranda</name>
+    <desc>V7 / D16alt / ALT / D16alt - 01 - Saranda</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="40.077087" lon="20.139336">
+    <name>D16alt - 02 - Gjirokastër</name>
+    <desc>V7 / D16alt / ALT / D16alt - 02 - Gjirokastër</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="39.663982" lon="20.852278">
+    <name>D16alt - 03 - Ioannina</name>
+    <desc>V7 / D16alt / ALT / D16alt - 03 - Ioannina</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="39.707018" lon="21.627943">
+    <name>D16alt - 04 - Kalambaka</name>
+    <desc>V7 / D16alt / ALT / D16alt - 04 - Kalambaka</desc>
+    <type>ALT</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D10option - 01 - Kotor</name>
+    <desc>V7 / D10option / OPTION / D10option - 01 - Kotor</desc>
+    <type>OPTION</type>
+  </wpt>
+  <wpt lat="42.431297" lon="18.824771">
+    <name>D10option - 02 - Njeguši</name>
+    <desc>V7 / D10option / OPTION / D10option - 02 - Njeguši</desc>
+    <type>OPTION</type>
+  </wpt>
+  <wpt lat="42.424920" lon="18.771333">
+    <name>D10option - 03 - Kotor</name>
+    <desc>V7 / D10option / OPTION / D10option - 03 - Kotor</desc>
+    <type>OPTION</type>
+  </wpt>
+  <rte>
+    <name>V7 D01 PKW</name>
+    <desc>519.0 km; 5.09 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>PKW</type>
+    <rtept lat="51.614382" lon="7.197855">
+      <name>D01 - 01 - Recklinghausen</name>
+    </rtept>
+    <rtept lat="49.233024" lon="11.671602">
+      <name>D01 - 02 - Velburg</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D02 PKW</name>
+    <desc>484.5 km; 4.94 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>PKW</type>
+    <rtept lat="49.233024" lon="11.671602">
+      <name>D02 - 01 - Velburg</name>
+    </rtept>
+    <rtept lat="46.616728" lon="13.850027">
+      <name>D02 - 02 - Villach</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D03 MOTORRAD</name>
+    <desc>152.2 km; 2.88 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="46.616728" lon="13.850027">
+      <name>D03 - 01 - Villach</name>
+    </rtept>
+    <rtept lat="46.523325" lon="13.751561">
+      <name>D03 - 02 - Wurzenpass</name>
+    </rtept>
+    <rtept lat="46.485132" lon="13.784396">
+      <name>D03 - 03 - Kranjska Gora</name>
+    </rtept>
+    <rtept lat="46.434779" lon="13.743712">
+      <name>D03 - 04 - Vršič-Pass</name>
+    </rtept>
+    <rtept lat="46.338585" lon="13.552419">
+      <name>D03 - 05 - Bovec</name>
+    </rtept>
+    <rtept lat="46.182921" lon="13.733338">
+      <name>D03 - 06 - Tolmin</name>
+    </rtept>
+    <rtept lat="46.002398" lon="14.027301">
+      <name>D03 - 07 - Idrija</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D04 MOTORRAD</name>
+    <desc>171.9 km; 3.27 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="46.002398" lon="14.027301">
+      <name>D04 - 01 - Idrija</name>
+    </rtept>
+    <rtept lat="45.775285" lon="14.213994">
+      <name>D04 - 02 - Postojna</name>
+    </rtept>
+    <rtept lat="45.563662" lon="14.245332">
+      <name>D04 - 03 - Ilirska Bistrica</name>
+    </rtept>
+    <rtept lat="45.326798" lon="14.442208">
+      <name>D04 - 04 - Rijeka</name>
+    </rtept>
+    <rtept lat="44.990153" lon="14.902116">
+      <name>D04 - 05 - Senj</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D05 MOTORRAD</name>
+    <desc>188.0 km; 4.00 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="44.990153" lon="14.902116">
+      <name>D05 - 01 - Senj</name>
+    </rtept>
+    <rtept lat="44.527923" lon="15.072495">
+      <name>D05 - 02 - Karlobag</name>
+    </rtept>
+    <rtept lat="44.295054" lon="15.439842">
+      <name>D05 - 03 - Starigrad</name>
+    </rtept>
+    <rtept lat="44.221440" lon="15.545136">
+      <name>D05 - 04 - Maslenica</name>
+    </rtept>
+    <rtept lat="44.211173" lon="15.477695">
+      <name>D05 - 05 - Posedarje</name>
+    </rtept>
+    <rtept lat="44.116859" lon="15.235326">
+      <name>D05 - 06 - Zadar</name>
+    </rtept>
+    <rtept lat="43.937715" lon="15.447764">
+      <name>D05 - 07 - Biograd na Moru</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D06 MOTORRAD</name>
+    <desc>163.3 km; 3.45 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="43.937715" lon="15.447764">
+      <name>D06 - 01 - Biograd na Moru</name>
+    </rtept>
+    <rtept lat="43.758806" lon="15.776918">
+      <name>D06 - 02 - Vodice</name>
+    </rtept>
+    <rtept lat="43.734065" lon="15.894477">
+      <name>D06 - 03 - Šibenik</name>
+    </rtept>
+    <rtept lat="43.586326" lon="15.922777">
+      <name>D06 - 04 - Primošten</name>
+    </rtept>
+    <rtept lat="43.513855" lon="16.108833">
+      <name>D06 - 05 - Marina</name>
+    </rtept>
+    <rtept lat="43.516414" lon="16.249716">
+      <name>D06 - 06 - Trogir</name>
+    </rtept>
+    <rtept lat="43.511638" lon="16.439966">
+      <name>D06 - 07 - Split</name>
+    </rtept>
+    <rtept lat="43.443497" lon="16.692277">
+      <name>D06 - 08 - Omiš</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D07 MOTORRAD</name>
+    <desc>176.4 km; 4.06 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="43.443497" lon="16.692277">
+      <name>D07 - 01 - Omiš</name>
+    </rtept>
+    <rtept lat="43.293976" lon="17.020242">
+      <name>D07 - 02 - Makarska</name>
+    </rtept>
+    <rtept lat="43.106453" lon="17.341693">
+      <name>D07 - 03 - Gradac</name>
+    </rtept>
+    <rtept lat="43.052429" lon="17.436068">
+      <name>D07 - 04 - Ploče</name>
+    </rtept>
+    <rtept lat="43.053533" lon="17.649911">
+      <name>D07 - 05 - Metković</name>
+    </rtept>
+    <rtept lat="43.156147" lon="17.607887">
+      <name>D07 - 06 - Kravica-Wasserfälle</name>
+    </rtept>
+    <rtept lat="43.343586" lon="17.807658">
+      <name>D07 - 07 - Mostar</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D08 MOTORRAD</name>
+    <desc>149.4 km; 2.65 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="43.343586" lon="17.807658">
+      <name>D08 - 01 - Mostar</name>
+    </rtept>
+    <rtept lat="43.258198" lon="18.106113">
+      <name>D08 - 02 - Nevesinje</name>
+    </rtept>
+    <rtept lat="43.166407" lon="18.535798">
+      <name>D08 - 03 - Gacko</name>
+    </rtept>
+    <rtept lat="43.505855" lon="18.774393">
+      <name>D08 - 04 - Foča</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D09 MOTORRAD</name>
+    <desc>144.3 km; 3.54 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="43.505855" lon="18.774393">
+      <name>D09 - 01 - Foča</name>
+    </rtept>
+    <rtept lat="43.347922" lon="18.845504">
+      <name>D09 - 02 - Šćepan Polje</name>
+    </rtept>
+    <rtept lat="43.272699" lon="18.842203">
+      <name>D09 - 03 - Mratinje-Staumauer</name>
+    </rtept>
+    <rtept lat="43.156228" lon="18.845225">
+      <name>D09 - 04 - Plužine</name>
+    </rtept>
+    <rtept lat="43.098619" lon="19.050673">
+      <name>D09 - 05 - Sedlo-Pass</name>
+    </rtept>
+    <rtept lat="43.156751" lon="19.133861">
+      <name>D09 - 06 - Žabljak</name>
+    </rtept>
+    <rtept lat="43.149711" lon="19.294470">
+      <name>D09 - 07 - Đurđevića-Tara-Brücke</name>
+    </rtept>
+    <rtept lat="43.156751" lon="19.133861">
+      <name>D09 - 08 - Žabljak</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D10 MOTORRAD</name>
+    <desc>170.5 km; 3.83 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="43.156751" lon="19.133861">
+      <name>D10 - 01 - Žabljak</name>
+    </rtept>
+    <rtept lat="42.957197" lon="19.094604">
+      <name>D10 - 02 - Šavnik</name>
+    </rtept>
+    <rtept lat="42.773939" lon="18.948810">
+      <name>D10 - 03 - Nikšić</name>
+    </rtept>
+    <rtept lat="42.514979" lon="18.695565">
+      <name>D10 - 04 - Risan</name>
+    </rtept>
+    <rtept lat="42.486268" lon="18.698859">
+      <name>D10 - 05 - Perast</name>
+    </rtept>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D10 - 06 - Kotor</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D11 MOTORRAD</name>
+    <desc>266.2 km; 7.07 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D11 - 01 - Kotor</name>
+    </rtept>
+    <rtept lat="42.441524" lon="19.262108">
+      <name>D11 - 02 - Podgorica</name>
+    </rtept>
+    <rtept lat="42.330298" lon="19.420618">
+      <name>D11 - 03 - Hani i Hotit</name>
+    </rtept>
+    <rtept lat="42.462725" lon="19.561714">
+      <name>D11 - 04 - Tamarë</name>
+    </rtept>
+    <rtept lat="42.068137" lon="19.512144">
+      <name>D11 - 05 - Shkodra</name>
+    </rtept>
+    <rtept lat="42.394656" lon="19.775057">
+      <name>D11 - 06 - Theth</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D12 MOTORRAD</name>
+    <desc>130.9 km; 4.20 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="42.394656" lon="19.775057">
+      <name>D12 - 01 - Theth</name>
+    </rtept>
+    <rtept lat="42.068137" lon="19.512144">
+      <name>D12 - 02 - Shkodra</name>
+    </rtept>
+    <rtept lat="42.108561" lon="19.826294">
+      <name>D12 - 03 - Koman Fähranleger</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D13 MOTORRAD</name>
+    <desc>68.4 km; 2.21 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="42.108561" lon="19.826294">
+      <name>D13 - 01 - Koman Fähranleger</name>
+    </rtept>
+    <rtept lat="41.781664" lon="19.643354">
+      <name>D13 - 02 - Lezha</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D14 MOTORRAD</name>
+    <desc>154.9 km; 2.30 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="41.781664" lon="19.643354">
+      <name>D14 - 01 - Lezha</name>
+    </rtept>
+    <rtept lat="41.313255" lon="19.446235">
+      <name>D14 - 02 - Durres</name>
+    </rtept>
+    <rtept lat="40.725112" lon="19.558208">
+      <name>D14 - 03 - Fier</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D15 MOTORRAD</name>
+    <desc>163.7 km; 3.78 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="40.725112" lon="19.558208">
+      <name>D15 - 01 - Fier</name>
+    </rtept>
+    <rtept lat="40.470760" lon="19.491272">
+      <name>D15 - 02 - Vlora</name>
+    </rtept>
+    <rtept lat="40.198191" lon="19.592413">
+      <name>D15 - 03 - Llogara-Pass</name>
+    </rtept>
+    <rtept lat="40.102163" lon="19.747298">
+      <name>D15 - 04 - Himara</name>
+    </rtept>
+    <rtept lat="39.875220" lon="20.006526">
+      <name>D15 - 05 - Saranda</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D16 MOTORRAD</name>
+    <desc>275.3 km; 4.30 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="39.875220" lon="20.006526">
+      <name>D16 - 01 - Saranda</name>
+    </rtept>
+    <rtept lat="39.655606" lon="20.156714">
+      <name>D16 - 02 - Qafë Botë</name>
+    </rtept>
+    <rtept lat="39.663982" lon="20.852278">
+      <name>D16 - 03 - Ioannina</name>
+    </rtept>
+    <rtept lat="39.707018" lon="21.627943">
+      <name>D16 - 04 - Kalambaka</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D17 MOTORRAD</name>
+    <desc>193.3 km; 3.10 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="39.707018" lon="21.627943">
+      <name>D17 - 01 - Kalambaka</name>
+    </rtept>
+    <rtept lat="39.726383" lon="21.626486">
+      <name>D17 - 02 - Großes Meteoron</name>
+    </rtept>
+    <rtept lat="39.725074" lon="21.629801">
+      <name>D17 - 03 - Kloster Varlaam (Fr geschlossen)</name>
+    </rtept>
+    <rtept lat="39.663982" lon="20.852278">
+      <name>D17 - 04 - Ioannina</name>
+    </rtept>
+    <rtept lat="39.504500" lon="20.263917">
+      <name>D17 - 05 - Igoumenitsa</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D18 MOTORRAD</name>
+    <desc>2.3 km; 0.06 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="39.504500" lon="20.263917">
+      <name>D18 - 01 - Igoumenitsa</name>
+    </rtept>
+    <rtept lat="39.488628" lon="20.259580">
+      <name>D18 - 02 - Igoumenitsa Neuer Hafen (Ticket prüfen)</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D20 MOTORRAD</name>
+    <desc>252.2 km; 2.90 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>MOTORRAD</type>
+    <rtept lat="45.419077" lon="12.257771">
+      <name>D20 - 01 - Fusina Ortsorientierung (Terminal laut Ticket)</name>
+    </rtept>
+    <rtept lat="46.505262" lon="13.578373">
+      <name>D20 - 02 - Tarvisio</name>
+    </rtept>
+    <rtept lat="46.616728" lon="13.850027">
+      <name>D20 - 03 - Villach</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D21 PKW</name>
+    <desc>483.3 km; 4.94 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>PKW</type>
+    <rtept lat="46.616728" lon="13.850027">
+      <name>D21 - 01 - Villach</name>
+    </rtept>
+    <rtept lat="49.233024" lon="11.671602">
+      <name>D21 - 02 - Velburg</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D22 PKW</name>
+    <desc>515.0 km; 5.01 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>PKW</type>
+    <rtept lat="49.233024" lon="11.671602">
+      <name>D22 - 01 - Velburg</name>
+    </rtept>
+    <rtept lat="51.614382" lon="7.197855">
+      <name>D22 - 02 - Recklinghausen</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D03alt ALT</name>
+    <desc>182.6 km; 3.49 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="46.616728" lon="13.850027">
+      <name>D03alt - 01 - Villach</name>
+    </rtept>
+    <rtept lat="46.445915" lon="14.066310">
+      <name>D03alt - 02 - Jesenice</name>
+    </rtept>
+    <rtept lat="46.050027" lon="14.506929">
+      <name>D03alt - 03 - Ljubljana</name>
+    </rtept>
+    <rtept lat="45.943250" lon="14.179940">
+      <name>D03alt - 04 - Logatec</name>
+    </rtept>
+    <rtept lat="46.002398" lon="14.027301">
+      <name>D03alt - 05 - Idrija</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D07alt ALT</name>
+    <desc>148.2 km; 2.55 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="43.443497" lon="16.692277">
+      <name>D07alt - 01 - Omiš</name>
+    </rtept>
+    <rtept lat="43.156147" lon="17.607887">
+      <name>D07alt - 02 - Kravica-Wasserfälle</name>
+    </rtept>
+    <rtept lat="43.343586" lon="17.807658">
+      <name>D07alt - 03 - Mostar</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D09alt ALT</name>
+    <desc>184.4 km; 4.56 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="43.505855" lon="18.774393">
+      <name>D09alt - 01 - Foča</name>
+    </rtept>
+    <rtept lat="43.347922" lon="18.845504">
+      <name>D09alt - 02 - Šćepan Polje</name>
+    </rtept>
+    <rtept lat="43.272699" lon="18.842203">
+      <name>D09alt - 03 - Mratinje-Staumauer</name>
+    </rtept>
+    <rtept lat="43.156228" lon="18.845225">
+      <name>D09alt - 04 - Plužine</name>
+    </rtept>
+    <rtept lat="42.773939" lon="18.948810">
+      <name>D09alt - 05 - Nikšić</name>
+    </rtept>
+    <rtept lat="42.957197" lon="19.094604">
+      <name>D09alt - 06 - Šavnik</name>
+    </rtept>
+    <rtept lat="43.156751" lon="19.133861">
+      <name>D09alt - 07 - Žabljak</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D11alt ALT</name>
+    <desc>133.5 km; 2.99 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D11alt - 01 - Kotor</name>
+    </rtept>
+    <rtept lat="42.441524" lon="19.262108">
+      <name>D11alt - 02 - Podgorica</name>
+    </rtept>
+    <rtept lat="42.330298" lon="19.420618">
+      <name>D11alt - 03 - Hani i Hotit</name>
+    </rtept>
+    <rtept lat="42.068137" lon="19.512144">
+      <name>D11alt - 04 - Shkodra</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D11direkt ALT</name>
+    <desc>206.6 km; 5.21 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D11direkt - 01 - Kotor</name>
+    </rtept>
+    <rtept lat="42.441524" lon="19.262108">
+      <name>D11direkt - 02 - Podgorica</name>
+    </rtept>
+    <rtept lat="42.330298" lon="19.420618">
+      <name>D11direkt - 03 - Hani i Hotit</name>
+    </rtept>
+    <rtept lat="42.068137" lon="19.512144">
+      <name>D11direkt - 04 - Shkodra</name>
+    </rtept>
+    <rtept lat="42.394656" lon="19.775057">
+      <name>D11direkt - 05 - Theth</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D12alt ALT</name>
+    <desc>57.6 km; 1.97 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="42.068137" lon="19.512144">
+      <name>D12alt - 01 - Shkodra</name>
+    </rtept>
+    <rtept lat="42.108561" lon="19.826294">
+      <name>D12alt - 02 - Koman Fähranleger</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D15alt ALT</name>
+    <desc>153.6 km; 3.42 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="40.725112" lon="19.558208">
+      <name>D15alt - 01 - Fier</name>
+    </rtept>
+    <rtept lat="40.470760" lon="19.491272">
+      <name>D15alt - 02 - Vlora</name>
+    </rtept>
+    <rtept lat="40.181065" lon="19.588848">
+      <name>D15alt - 03 - Llogara-Tunnelzufahrt</name>
+    </rtept>
+    <rtept lat="40.102163" lon="19.747298">
+      <name>D15alt - 04 - Himara</name>
+    </rtept>
+    <rtept lat="39.875220" lon="20.006526">
+      <name>D15alt - 05 - Saranda</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D16alt ALT</name>
+    <desc>272.9 km; 4.57 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>ALT</type>
+    <rtept lat="39.875220" lon="20.006526">
+      <name>D16alt - 01 - Saranda</name>
+    </rtept>
+    <rtept lat="40.077087" lon="20.139336">
+      <name>D16alt - 02 - Gjirokastër</name>
+    </rtept>
+    <rtept lat="39.663982" lon="20.852278">
+      <name>D16alt - 03 - Ioannina</name>
+    </rtept>
+    <rtept lat="39.707018" lon="21.627943">
+      <name>D16alt - 04 - Kalambaka</name>
+    </rtept>
+  </rte>
+  <rte>
+    <name>V7 D10option OPTION</name>
+    <desc>45.6 km; 1.08 OSRM-PKW-Modellstunden; ohne Pausen/Grenze. Alternative ersetzt Hauptetappe; Option ist zusätzlich.</desc>
+    <type>OPTION</type>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D10option - 01 - Kotor</name>
+    </rtept>
+    <rtept lat="42.431297" lon="18.824771">
+      <name>D10option - 02 - Njeguši</name>
+    </rtept>
+    <rtept lat="42.424920" lon="18.771333">
+      <name>D10option - 03 - Kotor</name>
+    </rtept>
+  </rte>
+</gpx>

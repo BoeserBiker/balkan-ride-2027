@@ -1,4 +1,4 @@
-# Master-Ablauf- und Prompt-Plan: Von Excel zur Live-Web-App (Polarsteps-Style PWA & 2-Stufen-Agent) – Version 4
+# Master-Ablauf- und Prompt-Plan: Vom V7-Routenplan zur Live-Web-App (Polarsteps-Style PWA & 2-Stufen-Agent) – Version 4
 *(Abgestimmt auf `docs/Balkan_Tour_Pflichtenheft_V4.md` und `docs/todo_plan_v4.md` – Projekt: **Balkan-Ride 2027**)*
 
 ---
@@ -38,13 +38,13 @@ Balkan-Ride-2027/
 │       └── implement-item/SKILL.md
 ├── content/
 │   ├── tag-01.md
-│   └── ... (bis tag-20.md)
+│   └── ... (bis tag-22.md)
 ├── assets/
 │   ├── icons/          (PWA-Icons 192x192, 512x512, Apple-Touch-Icon)
-│   ├── gpx/            (Gesamtroute + tag-01.gpx bis tag-20.gpx)
+│   ├── gpx/            (Gesamtroute + tag-01.gpx bis tag-22.gpx)
 │   └── media/
 │       ├── tag-01/     (Komprimierte Fotos & Videos für Step 1)
-│       └── ... (bis tag-20/)
+│       └── ... (bis tag-22/)
 ├── docs/
 │   ├── Balkan_Tour_Pflichtenheft_V4.md
 │   ├── master_ablauf_prompt_plan_v4.md
@@ -272,10 +272,25 @@ if __name__ == "__main__":
 * Die Skill-Hüllen liegen wie vorgesehen in `config/skills/`, nicht in einem Standardordner für die automatische Copilot-Erkennung. Lokal kannst du die jeweilige `SKILL.md` als Chat-Kontext anhängen und die Argumente im Chat angeben.
 * Die Referenzetappe enthält die GPX- und Medienpfade aus dem Pflichtenheft. Die Dateien hinter diesen Pfaden kommen erst in Phase 3 hinzu.
 
-## Phase 3: Daten-Migration aus Excel & Polarsteps-Web-App (inkl. PWA)
+## Phase 3: Daten-Migration aus dem V7-Plan & Polarsteps-Web-App (inkl. PWA)
 
-* **Prompt 1 (Etappen-Dateien aus Excel im V4-Schema):**
-  > *"Lies `docs/Balkan_Tour_Pflichtenheft_V4.md` und `docs/motorrad_checkliste_logistik.md`. Hier sind die Rohdaten meiner Excel-Tabelle für unsere 20-tägige Motorradtour: [EXCEL-DATEN]. Erstelle im Ordner `content/` für jeden Tag eine eigene Markdown-Datei (`tag-01.md` bis `tag-20.md`) exakt nach dem erweiterten YAML-Schema aus Abschnitt 3A des Pflichtenhefts V4 (`tag`, `datum`, `titel`, `start`, `ziel`, `koordinaten_start`, `koordinaten_ziel`, `kilometer`, `fahrzeit`, `hoehenmeter`, `gpx_datei`, `highlights`, `bilder`, `videos`) und schreibe packende Roadbook-Texte im authentischen Biker-Slang."*
+* **Prompt 1 (Etappen-Dateien aus Final-Plan V7 im V4-Schema):**
+  > *"Lies den lokalen Final-Plan `../../Balkan 27/Tourplaung/Balkan_Tour_Plan_2027_V7.md`, `docs/Balkan_Tour_Pflichtenheft_V4.md` und `docs/motorrad_checkliste_logistik.md`. Übertrage alle 22 Tage (08.09.2027 bis 29.09.2027) nach `content/tag-01.md` bis `content/tag-22.md`. Übernimm Tagesdaten, Alternativen und GPS-Koordinaten exakt aus V7. Verwende das YAML-Schema aus Abschnitt 3A des Pflichtenhefts V4 (`tag`, `datum`, `titel`, `start`, `ziel`, `koordinaten_start`, `koordinaten_ziel`, `kilometer`, `fahrzeit`, `hoehenmeter`, `gpx_datei`, `highlights`, `bilder`, `videos`). Erfinde keine Routendaten; kennzeichne abgeleitete Höhenmeter als Schätzwerte und verwende leere Medien-Arrays. Schreibe praxisnahe Roadbook-Texte im Biker-Stil."*
+
+* **Tages-Tracks nach Datenimport oder Routenänderung neu berechnen:**
+  - Prüfe `../../Balkan 27/Tourplaung/Balkan_Tour_2027.gpx`,
+    `Balkan_Tour_Plan_2027_V7.md` und `Maps_Import.csv` gemeinsam auf
+    Konsistenz. Der Track-Generator liest die importierte Hauptroute aus
+    `assets/gpx/Balkan_Tour_2027.gpx`; Änderungen an Plan oder CSV müssen vor
+    dem Build mit dieser GPX-Quelle abgeglichen werden.
+  - Nach jedem Import der drei Eingabedateien oder jeder Änderung an ihnen vom
+    Repository-Stamm aus `python3 scripts/build_tracks_from_waypoints.py`
+    ausführen. Die maximale Zahl der Trackpunkte pro Tagessegment kann mit
+    `--max-track-points` angepasst werden (Standard und Höchstwert 300,
+    Beispiel für eine niedrigere Grenze: `--max-track-points 250`); dies
+    ändert nicht die Anzahl der `<wpt>`-Orientierungsmarker.
+  - Anschließend alle Tages-GPX-Dateien auf XML, Punktzahl, Dateigröße und
+    Wegpunktkategorien prüfen und `npm run build --prefix web` ausführen.
 
 * **Prompt 2 (Polarsteps-Style Web-Roadbook & PWA):**
   > *"Lies `docs/Balkan_Tour_Pflichtenheft_V4.md` (Abschnitt 1, 2 und 4B/C). Erstelle die mobile Web-App als Vanilla-JavaScript-Anwendung unter `web/` mit Vite, Tailwind CSS und Leaflet.js. Lies beim Build alle Markdown-Dateien aus `content/` samt YAML-Frontmatter ein. Implementiere das Polarsteps-Prinzip: geografische Gesamtrouten-Ansicht mit nummerierten Pins, tageweise Step-Navigation (Vorheriger/Nächster Step + Pin-Klick), geschmeidige Karten-Synchronisation (`flyTo`), Split-Screen am Desktop, Bottom-Sheet auf Mobilgeräten sowie eine integrierte Foto-/Video-Galerie mit Lightbox und Lazy Loading. Zeige fehlende GPX- und Mediendateien transparent an. Ergänze `web/public/manifest.json`, `web/public/sw.js` und den GitHub-Actions-Workflow für GitHub Pages auf Push zu `main`."*

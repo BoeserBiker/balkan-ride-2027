@@ -8,6 +8,7 @@ import matter from 'gray-matter';
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
 const contentDirectory = path.resolve(webDirectory, '../content');
 const iconDirectory = path.resolve(webDirectory, '../assets/icons');
+const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
 const virtualModuleId = 'virtual:roadbook-content';
 const resolvedVirtualModuleId = `\0${virtualModuleId}`;
 const base = '/balkan-ride-2027/';
@@ -95,6 +96,19 @@ function roadbookContentPlugin() {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url, 'http://localhost').pathname;
+        const gpxFile = pathname.startsWith(`${base}assets/gpx/`)
+          ? path.basename(pathname)
+          : '';
+        if (/^tag-\d{2}\.gpx$/.test(gpxFile)) {
+          try {
+            const data = await readFile(path.join(gpxDirectory, gpxFile));
+            response.setHeader('Content-Type', 'application/gpx+xml');
+            response.end(data);
+          } catch (error) {
+            next(error);
+          }
+          return;
+        }
         const fileName = pathname.startsWith(`${base}assets/icons/`)
           ? path.basename(pathname)
           : '';
@@ -114,6 +128,14 @@ function roadbookContentPlugin() {
           type: 'asset',
           fileName: `assets/icons/${fileName}`,
           source: await readFile(path.join(iconDirectory, fileName)),
+        });
+      }
+      const gpxFiles = (await readdir(gpxDirectory)).filter((name) => /^tag-\d{2}\.gpx$/.test(name));
+      for (const fileName of gpxFiles) {
+        this.emitFile({
+          type: 'asset',
+          fileName: `assets/gpx/${fileName}`,
+          source: await readFile(path.join(gpxDirectory, fileName)),
         });
       }
     },

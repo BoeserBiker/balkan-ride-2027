@@ -44,9 +44,9 @@ function renderShell() {
         <section class="journey-panel" aria-label="Etappen und Roadbook">
           <div class="journey-heading">
             <div>
-              <p class="eyebrow">DIE TOUR · 20 TAGE UNTERWEGS</p>
+              <p class="eyebrow">DIE TOUR · ${roadbookDays.length} TAGE UNTERWEGS</p>
               <h1>Der Balkan ruft.</h1>
-              <p class="intro">20 Tage. Eine Menge Kehren. Dein digitales Roadbook für die große Runde.</p>
+              <p class="intro">${roadbookDays.length} Tage. Eine Menge Kehren. Dein digitales Roadbook für die große Runde.</p>
             </div>
             <div class="day-count"><strong id="day-count">00</strong><span>ETAPPEN<br>IM ROADBOOK</span></div>
           </div>
