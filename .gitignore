@@ -7,3 +7,5 @@
 VS_CODE_Tools/
 .codebase-memory/
 node_modules/
+
+daten/chat_verlauf/

@@ -14,8 +14,10 @@
 - GitHub Actions ist aktiviert. Das Secret `ANTHROPIC_API_KEY` sowie die
   Repository-Variablen `ROADBOOK_AGENT_USER` und `ANTHROPIC_MODEL` sind
   vorhanden. Der Secret-Wert wurde nicht ausgelesen.
-- Der Workflow ist aktiv, hat aber noch keinen Lauf. Planungs- und
-  Implementierungsstufe wurden daher noch nicht live gegen GitHub getestet.
+- Der Workflow ist aktiv. Nach Korrektur der Kommentar-Trigger in Commit
+  `b9cd272` liefen Planungs- und Implementierungsstufe am 2026-11-22
+  erfolgreich; [PR #2](https://github.com/BoeserBiker/balkan-ride-2027/pull/2)
+  wurde durch den Agenten erstellt und gemergt.
 - Branch Protection für `main` ist nicht aktiviert: GitHub meldet, dass die
   Funktion für dieses private Repository ein Upgrade oder ein öffentliches
   Repository voraussetzt. Die Sichtbarkeit wurde nicht geändert.
@@ -25,14 +27,16 @@
   gegen ein temporäres lokales Test-Remote geprüft. Kein Live-Lauf auf GitHub.
 - `index.html`, PWA-Dateien, die übrigen 19 Etappen, GPX-Dateien und echte
   Mediendateien sind noch nicht Bestandteil des Grundgerüsts.
-- Der Agent-Workflow erwartet die GitHub-Repository-Variable
-  `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY`, erlaubte PR-Erstellung
-  durch Actions und Branch-Schutz für `main`. Das Standardmodell im Runner ist
-  `claude-sonnet-4-6`; `ANTHROPIC_MODEL` kann es überschreiben.
+- Der Agent-Workflow verwendet die GitHub-Repository-Variable
+  `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY` und die optionale
+  Modellvariable `ANTHROPIC_MODEL`. Der zweistufige Ablauf bis zum gemergten
+  PR ist live verifiziert. Branch Protection bleibt ein separater offener
+  Punkt.
 - Codebase-Memory wurde zuletzt am 2026-11-20 im Vollmodus ausgeführt:
   273 Nodes, 459 Edges; Indexstatus `ready`. Es gab keine Parserfehler,
   Teilparses oder übersprungenen Dateien. Sieben Dateien unter
-  `daten/chat_verlauf/` sind absichtlich wegen `.gitignore` nicht indexiert.
+  `daten/chat_verlauf/` waren wegen `.gitignore` nicht indexiert; diese
+  Chat-Exporte wurden inzwischen entfernt.
   Die Watch-Integration ist in der CLI-Sitzung nicht aktiv (`watched: false`,
   Grund `cli_session`). Nach Umzug oder wesentlichen Workspace-Änderungen
   erneut indizieren und Status prüfen.
@@ -40,20 +44,44 @@
   VS-Code-Benutzerkonfiguration registriert. Die Verbindung muss nach einem
   VS-Code-Neustart noch in der aktiven Sitzung bestätigt werden. Der Graph
   unter `../VS_CODE_Tools/.codebase-memory/` wurde nicht verändert.
-- Drei zuordenbare Chat-Sicherungen liegen als Markdown und JSON in
-  [`daten/chat_verlauf/`](../daten/chat_verlauf/). Die abgeschlossenen
-  Copilot-SDK-Antworten wurden nachträglich aus den Sitzungsabschlüssen
-  ergänzt. Der VS-Code-Chat und der aktuelle Copilot-Chat enden jeweils an
-  einem nicht abgeschlossenen Turn; diese fehlenden Antworten waren in den
-  jeweiligen lokalen Aufzeichnungen nicht vorhanden.
-- **Wichtig für den Umzug:** Die Chatdateien sind durch
+- Die drei lokalen Chat-Sicherungen (jeweils Markdown und JSON) wurden am
+  2026-11-21 auf Nutzerwunsch aus dem Workspace entfernt. Das Verzeichnis
+  [`daten/chat_verlauf/`](../daten/chat_verlauf/) enthält aktuell keine
+  Chat-Exporte; README und Ignore-Regel bleiben erhalten. Die Quelldaten in
+  VS Code oder den Chat-Diensten wurden dadurch nicht gelöscht.
+- **Wichtig für den Umzug:** Künftige Chat-Exporte sind durch
   [`daten/chat_verlauf/.gitignore`](../daten/chat_verlauf/.gitignore) von Git
-  ausgeschlossen. Ein Git-Klon enthält sie daher nicht. Für die Übertragung
-  des vollständigen Workspace müssen diese Dateien separat und geschützt
-  kopiert werden. Nicht ungeprüft in ein öffentliches oder geteiltes
-  Repository aufnehmen.
+  ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-22 – Issue-Kommentar-Trigger korrigiert
+
+- Die GitHub-Action-Läufe `44971633172` bis `44972761257` wurden als
+  `Skipped` geprüft. Der Kommentartext aus Issue #1 enthielt einen
+  abschließenden Zeilenumbruch (`/implement-item\n`), wodurch der exakte
+  Workflow-Stringvergleich nicht passte. Außerdem startete `plan-stage`
+  bislang nur bei `issues.opened`.
+- `plan-stage` akzeptiert nun neue Issues des konfigurierten Benutzers sowie
+  `/plan-item`-Kommentare von diesem Benutzer. `implement-stage` akzeptiert
+  `/implement-item`-Kommentare. Die Runner-Prüfung normalisiert Rand-
+  Leerraum und verlangt danach weiterhin den vollständigen exakten Befehl.
+- Lokal verifiziert: Workflow-YAML geparst, Python-Syntax/Diagnosen ohne
+  Fehler und erlaubte sowie abgelehnte Eventfälle geprüft. GitHub akzeptierte
+  den direkten Push nach `main`, meldete dabei jedoch, dass die PR-Regel
+  umgangen wurde. Danach liefen `plan-stage` (Run `44974850350`) und
+  `implement-stage` (Run `44975179606`) erfolgreich; daraus entstand
+  [PR #2](https://github.com/BoeserBiker/balkan-ride-2027/pull/2), der am
+  2026-11-22 gemergt wurde.
+
+### 2026-11-21 – Workspace-Chat-Exporte entfernt
+
+- Auf Nutzerwunsch die drei Chat-Export-Paare (sechs JSON-/Markdown-Dateien)
+  aus `daten/chat_verlauf/` gelöscht.
+- Die Verzeichnis-README und Ignore-Regeln bleiben bestehen; es liegen keine
+  exportierten Chatverläufe mehr im Workspace.
+- Die ursprünglichen Chats in VS Code oder den Chat-Diensten wurden nicht
+  verändert. Die Dateien waren nicht von Git getrackt.
 
 ### 2026-11-21 – To-do-Fortschritt und Actions-Konfiguration geprüft
 
@@ -262,22 +290,20 @@
 
 ## Offene Punkte und nächste Schritte
 
-1. **Git- und GitHub-Setup verifizieren:** Repository initialisieren oder
-   wieder mit dem passenden Repository verbinden; Remote, Branch `main`,
-   Branch-Schutz und GitHub-Actions-Einstellungen prüfen.
+1. **Branch-Schutz klären:** Für das private Repository ist die PR-Pflicht
+   laut GitHub-Plan nicht verfügbar. Sichtbarkeit nicht ohne Entscheidung
+   ändern; alternativ GitHub-Plan upgraden.
 2. **Workspace-Umzug abschließen:** Workspace einschließlich versteckter
-   Projektdateien kopieren. Die drei Chat-JSON/Markdown-Paare separat aus dem
-   Git-ignorierten Ordner geschützt übertragen. Geheimnisse nicht in Dateien
-   oder Git sichern.
+   Projektdateien prüfen. Die Chat-Exportdateien wurden gelöscht; Geheimnisse
+   weiterhin nicht in Dateien oder Git sichern.
 3. **Ziel-Workspace prüfen:** Projektpfade, VS-Code-Workspace-Datei,
    Synchronisierung und Dateiintegrität verifizieren. VS Code neu laden und
    die MCP-Verbindung in der aktiven Sitzung prüfen; danach bei Bedarf
    `VS_CODE_Tools` neu indexieren. Die Watch-Strategie nach Möglichkeit
    prüfen; für die frühere CLI-Sitzung meldete sie `none`.
-4. **GitHub-Automatisierung einrichten:** `ROADBOOK_AGENT_USER` und
-   `ANTHROPIC_API_KEY` hinterlegen, Actions das Erstellen von PRs erlauben und
-   `main` mit PR-Pflicht schützen. Anschließend Plan → Freigabe → PR mit einem
-   Test-Issue prüfen.
+4. **GitHub-Automatisierung beobachten:** Der Plan → Freigabe → PR-Ablauf
+   wurde mit PR #2 erfolgreich getestet. Nach weiteren Workflow-Änderungen
+   erneut mit einem Test-Issue prüfen.
 5. **Dokumentation bereinigen:** Root-README auf Balkan-Ride 2027 ausrichten
    und die veralteten Claude-3.5-Beispiele im Master-Ablaufplan aktualisieren
    oder eindeutig als historische Vorlage kennzeichnen.
