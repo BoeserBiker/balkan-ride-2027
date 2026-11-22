@@ -105,6 +105,25 @@
 
 ## Chronologie
 
+### 2026-11-22 – Veröffentlichung der Etappen-Navigation freigegeben
+
+- Die Zusammenführung von `feature/fahrzeit-etappen-navigation` nach `main`
+  wurde vom Nutzer angefordert. Die Veröffentlichung erfolgt gemäß
+  Projektvorgabe über einen Pull Request; den anschließenden GitHub-Pages-Lauf
+  und die Darstellung am iMac prüfen.
+
+### 2026-11-22 – Fahrzeit und Etappen-Navigation
+
+- Das Web-Frontend zeigt dezimale `Modell-h`-Werte im Fahrzeitfeld gerundet
+  als Stunden und Minuten (`ca. 2:53 h`); ein Nullwert erscheint als
+  `0 Std.`. Andere Zeitangaben und die YAML-Rohdaten bleiben unverändert.
+- Die Etappenleiste hat Scroll-Pfeile, unterstützt vertikales Mausrad-Scrollen
+  und zentriert die ausgewählte Etappe. Reduzierte Bewegung wird berücksichtigt;
+  am Rand bleibt das normale vertikale Scrollen möglich.
+- Service-Worker-Cache auf Version 6 erhöht. Frontend-Tests und
+  Produktionsbuild waren erfolgreich. Pfeile, Mausrad und Zentrierung wurden
+  im Browser mit dem gebauten Frontend geprüft; ein iMac-Gerätetest steht aus.
+
 ### 2026-11-22 – Vier Fotos und mobile Medienansicht
 
 - [`fetch_stage_media.py`](../scripts/fetch_stage_media.py) ergänzt vorhandene
