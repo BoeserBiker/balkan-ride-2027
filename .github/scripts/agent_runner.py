@@ -189,6 +189,42 @@ def git(*args: str) -> None:
     subprocess.run(["git", "--no-pager", *args], cwd=ROOT, check=True)
 
 
+def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, number: int) -> None:
+    if not allowed_user or number < 1 or event["issue"]["number"] != number:
+        raise ValueError("Ungültige Workflow-Konfiguration.")
+    if "pull_request" in event["issue"]:
+        raise ValueError("Pull-Request-Kommentare sind nicht zulässig.")
+
+    if mode == "plan":
+        if event_name == "issues":
+            if (
+                event["action"] == "opened"
+                and event["issue"]["user"]["login"].casefold() == allowed_user
+            ):
+                return
+        if event_name == "issue_comment":
+            comment = event["comment"]
+            if (
+                event["action"] == "created"
+                and comment["user"]["login"].casefold() == allowed_user
+                and comment["body"].strip() == "/plan-item"
+            ):
+                return
+        raise ValueError("Keine gültige Planungs-Auslösung.")
+
+    if mode == "implement" and event_name == "issue_comment":
+        comment = event["comment"]
+        if (
+            event["action"] == "created"
+            and comment["user"]["login"].casefold() == allowed_user
+            and comment["body"].strip() == APPROVAL
+        ):
+            return
+        raise ValueError("Keine gültige Freigabe.")
+
+    raise ValueError("Ungültiger Modus oder Event.")
+
+
 def implement(session: requests.Session, repo_url: str, issue: dict, changes: dict[str, str]) -> str:
     number = issue["number"]
     branch = f"feature/issue-{number}"
@@ -212,22 +248,11 @@ def implement(session: requests.Session, repo_url: str, issue: dict, changes: di
 
 def main() -> None:
     mode = os.environ["MODE"]
+    event_name = os.environ["GITHUB_EVENT_NAME"]
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     allowed_user = os.environ["ALLOWED_GITHUB_USER"].casefold()
     number = int(os.environ["ISSUE_NUMBER"])
-    if not allowed_user or number < 1 or event["issue"]["number"] != number:
-        raise ValueError("Ungültige Workflow-Konfiguration.")
-    if "pull_request" in event["issue"] or event["issue"]["user"]["login"].casefold() != allowed_user:
-        raise ValueError("Nur Issues des konfigurierten Accounts sind zulässig.")
-    if mode == "implement":
-        comment = event["comment"]
-        if (
-            event["action"] != "created" or comment["user"]["login"].casefold() != allowed_user
-            or comment["body"] != APPROVAL
-        ):
-            raise ValueError("Keine gültige Freigabe.")
-    elif mode != "plan" or event["action"] != "opened":
-        raise ValueError("Ungültiger Modus oder Event.")
+    validate_event(mode, event_name, event, allowed_user, number)
 
     repo_url = f"https://api.github.com/repos/{os.environ['REPOSITORY']}"
     issue_url = f"{repo_url}/issues/{number}"
@@ -253,6 +278,7 @@ def main() -> None:
                 raise ValueError("Der Plan hat nicht das vorgeschriebene Kommentarformat.")
             body = f"{plan[:-len(PLAN_FOOTER)].rstrip()}\n\n{plan_marker(issue)}\n\n{PLAN_FOOTER}"
         else:
+            comment = event["comment"]
             plan, replies = approved_plan(get_comments(session, issue_url), comment["id"], issue)
             paths = planned_paths(plan)
             if not paths:

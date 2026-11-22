@@ -111,7 +111,22 @@ on:
 
 jobs:
   plan-stage:
-    if: github.event_name == 'issues' && github.event.issue.user.login == 'DEIN-GITHUB-BENUTZERNAME'
+    if: |
+      vars.ROADBOOK_AGENT_USER != '' &&
+      (
+        (
+          github.event_name == 'issues' &&
+          github.event.action == 'opened' &&
+          github.event.issue.user.login == vars.ROADBOOK_AGENT_USER
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          github.event.action == 'created' &&
+          !github.event.issue.pull_request &&
+          github.event.comment.user.login == vars.ROADBOOK_AGENT_USER &&
+          contains(github.event.comment.body, '/plan-item')
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -134,7 +149,10 @@ jobs:
   implement-stage:
     if: |
       github.event_name == 'issue_comment' &&
-      github.event.comment.user.login == 'DEIN-GITHUB-BENUTZERNAME' &&
+      github.event.action == 'created' &&
+      vars.ROADBOOK_AGENT_USER != '' &&
+      github.event.comment.user.login == vars.ROADBOOK_AGENT_USER &&
+      !github.event.issue.pull_request &&
       contains(github.event.comment.body, '/implement-item')
     runs-on: ubuntu-latest
     permissions:
@@ -241,7 +259,7 @@ if __name__ == "__main__":
 
 * Lege unter **Settings → Secrets and variables → Actions** das Secret `ANTHROPIC_API_KEY` und die Repository-Variable `ROADBOOK_AGENT_USER` (dein GitHub-Login) an. Ohne den konfigurierten Login läuft keine Stufe. Die optionale Variable `ANTHROPIC_MODEL` überschreibt das Standardmodell `claude-sonnet-4-6`; die Claude-3.5-Modell-ID aus der Vorlage wird nicht mehr verwendet.
 * Erlaube unter **Settings → Actions → General → Workflow permissions** das Erstellen von Pull Requests durch GitHub Actions. Schütze `main` mit der Pflicht zum Pull Request.
-* Eröffne nach dem Upload ein Test-Issue mit einem Änderungswunsch für Tag 01. Prüfe den geposteten Umsetzungsplan und kommentiere danach exakt `/implement-item`. Wurde das Issue seit der Planung inhaltlich geändert, lass zuerst einen neuen Plan erstellen (Planungsjob erneut ausführen). Prüfe den PR vor dem Merge.
+* Eröffne nach dem Upload ein Test-Issue mit einem Änderungswunsch für Tag 01. Prüfe den geposteten Umsetzungsplan und kommentiere danach exakt `/implement-item`. Wurde das Issue seit der Planung inhaltlich geändert, erstelle mit einem Kommentar `/plan-item` einen neuen Plan. Prüfe den PR vor dem Merge.
 * Der Agent übergibt die relevanten Roadbook-Dateien und den Aufgabenkontext an die Anthropic API. Verwende dafür keine vertraulichen Inhalte oder Zugangsdaten.
 * Die Skill-Hüllen liegen wie vorgesehen in `config/skills/`, nicht in einem Standardordner für die automatische Copilot-Erkennung. Lokal kannst du die jeweilige `SKILL.md` als Chat-Kontext anhängen und die Argumente im Chat angeben.
 * Die Referenzetappe enthält die GPX- und Medienpfade aus dem Pflichtenheft. Die Dateien hinter diesen Pfaden kommen erst in Phase 3 hinzu.

@@ -102,10 +102,10 @@ balkan-tour-2027/
 ##### A) Zweistufiger Agenten- & Update-Workflow (Plan → Build → PR)
 1. **Idee / Änderungswunsch:** Der Nutzer erstellt am Smartphone (über die GitHub-App mit Sprachdiktat) ein neues Issue (z. B. Textanpassung, neue Highlights oder Verknüpfung neuer Medien für einen Reisetag).
 2. **Stufe 1 – Planung (`/plan-item`):**
-   * GitHub Actions erkennt das neue Issue (`issues: opened`), prüft zur Sicherheit den GitHub-Benutzernamen des Erstellers und startet `agent_runner.py` im Planungsmodus.
+   * GitHub Actions startet `agent_runner.py` im Planungsmodus bei einem neuen Issue (`issues: opened`) des konfigurierten GitHub-Benutzers oder bei einem Kommentar (`issue_comment: created`) mit exakt `/plan-item` von diesem Benutzer. Pull-Request-Kommentare lösen keine Planungsstufe aus.
    * Der Agent lädt die Regeln aus `config/commands/plan-item.md`, analysiert die betroffene Datei (z. B. `content/tag-05.md`), ändert **keinen Code** und postet einen strukturierten Kommentar beginnend mit `## Umsetzungsplan` (inklusive eventueller Rückfragen).
 3. **Prüfung & Freigabe durch den Nutzer:**
-   * Der Nutzer prüft den Plan direkt in der GitHub-App auf dem Smartphone. Ist er einverstanden, kommentiert er das Ticket mit **`/implement-item`**.
+   * Der Nutzer prüft den Plan direkt in der GitHub-App auf dem Smartphone. Ist er einverstanden, kommentiert er das Ticket mit **`/implement-item`**. Für eine erneute Planung kommentiert er exakt **`/plan-item`**.
 4. **Stufe 2 – Umsetzung & Pull Request (`/implement-item`):**
    * GitHub Actions reagiert auf den Kommentar (`issue_comment: created`), lädt die Regeln aus `config/commands/implement-item.md` und startet `agent_runner.py` im Umsetzungsmodus.
    * Der Agent legt einen eigenen Arbeitszweig (`feature/issue-<nummer>`) an, überarbeitet die betreffende Etappen-Datei unter Beibehaltung des vollständigen YAML-Schemas (inklusive Koordinaten- und Medienfeldern) im gewünschten Biker-Slang, committet die Änderung auf den Branch und eröffnet automatisch einen **Pull Request (PR)** gegen `main` (mit Referenz `Closes #<nummer>`).
