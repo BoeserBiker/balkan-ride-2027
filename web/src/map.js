@@ -12,16 +12,20 @@ function parseGpx(gpxText) {
     .map((point) => {
       const description = point.getElementsByTagNameNS('*', 'desc')[0]?.textContent ?? '';
       const group = description.match(/\/\s*(D\d{2}[a-z]*)\s*\/\s*(MOTORRAD|PKW|ALT|OPTION|FAEHRE)\s*\//);
+      const lat = point.getAttribute('lat');
+      const lon = point.getAttribute('lon');
       return {
-        latitude: Number(point.getAttribute('lat')),
-        longitude: Number(point.getAttribute('lon')),
+        latitude: lat === null || !lat.trim() ? NaN : Number(lat),
+        longitude: lon === null || !lon.trim() ? NaN : Number(lon),
         name: point.getElementsByTagNameNS('*', 'name')[0]?.textContent?.trim() ?? 'V7-Wegpunkt',
+        description: description.trim(),
         routeGroup: group?.[1] ?? '',
         type: group?.[2] ?? '',
       };
     })
     .filter((point) => Number.isFinite(point.latitude)
       && Number.isFinite(point.longitude)
+      && Math.abs(point.latitude) <= 90 && Math.abs(point.longitude) <= 180
       && /^D\d{2}/.test(point.routeGroup));
   const profileSegments = [...xml.getElementsByTagNameNS('*', 'trkseg')]
     .map((segment) => [...segment.getElementsByTagNameNS('*', 'trkpt')].map((point) => {
@@ -85,6 +89,21 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   let activeIndex = 0;
   let trackLoadHandler;
   let livePositionMarkers = null;
+  let highlightedWaypoint = null;
+
+  function setHighlightedWaypoint(waypoint) {
+    if (highlightedWaypoint) {
+      const { layer, waypoint: previous, dayIndex } = highlightedWaypoint;
+      layer.setStyle(waypointStyle(previous, dayIndex === activeIndex));
+    }
+    highlightedWaypoint = waypointLayers.find((entry) => entry.dayIndex === activeIndex && entry.waypoint === waypoint) ?? null;
+    if (highlightedWaypoint) {
+      highlightedWaypoint.layer.setStyle({
+        radius: 11, color: '#fff3d6', weight: 3, fillColor: '#f0a94c', fillOpacity: 1,
+      });
+      highlightedWaypoint.layer.bringToFront();
+    }
+  }
 
   function setLivePosition(point) {
     if (!point) {
@@ -132,6 +151,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     return {
       state: gpx.state,
       profileSegments: gpx.profileSegments,
+      waypoints: gpx.points,
       estimatedAscentMeters: days[index].frontmatter.hoehenmeter,
     };
   }
@@ -221,6 +241,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   function selectDay(index, { moveMap = true } = {}) {
     if (activeIndex !== index) {
       setLivePosition(null);
+      setHighlightedWaypoint(null);
     }
     activeIndex = index;
     const day = days[index];
@@ -229,6 +250,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     waypointLayers.forEach(({ layer, waypoint, dayIndex }) => {
       layer.setStyle(waypointStyle(waypoint, dayIndex === index));
     });
+    if (highlightedWaypoint) setHighlightedWaypoint(highlightedWaypoint.waypoint);
     trackLayers.forEach((layers, dayIndex) => {
       layers.forEach((layer) => layer.setStyle({
         color: dayIndex === index ? '#f0a94c' : '#82908a',
@@ -279,6 +301,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       });
     },
     setLivePosition,
+    setHighlightedWaypoint,
     resize() {
       map.invalidateSize();
     },

@@ -185,12 +185,12 @@ function renderApp() {
     if (route) {
       control.dataset.bound = 'true';
       bindRouteScrubber(control, route, map.setLivePosition);
-      const profile = buildElevationProfile(route);
+      const profile = buildElevationProfile(route, track.waypoints);
       if (profile) {
         const container = dayDetail.querySelector('[data-elevation-profile]');
         container.innerHTML = renderElevationProfile(profile);
         container.hidden = false;
-        bindElevationProfile(container, profile, map.setLivePosition);
+        bindElevationProfile(container, profile, map.setLivePosition, map.setHighlightedWaypoint);
       }
     } else {
       control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
@@ -218,6 +218,7 @@ function renderApp() {
     }
 
     map.setLivePosition(null);
+    map.setHighlightedWaypoint(null);
     activeIndex = index;
     const day = roadbookDays[index];
     dayDetail.innerHTML = renderDayContent(day, {

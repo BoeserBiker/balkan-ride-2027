@@ -1,6 +1,11 @@
 {
-  "version": "v2.36",
+  "version": "v2.37",
   "history": [
+    {
+      "version": "v2.37",
+      "date": "2026-11-22",
+      "message": "Hoehendaten Tag 01 bis Tag 10 auf einheitliches 25m-EU-DEM synchronisiert"
+    },
     {
       "version": "v2.36",
       "date": "2026-11-22",

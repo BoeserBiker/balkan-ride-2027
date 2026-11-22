@@ -1,6 +1,6 @@
 const EARTH_RADIUS_KM = 6371.0088;
 
-function distanceBetween(first, second) {
+export function distanceBetween(first, second) {
   const radians = (degrees) => degrees * Math.PI / 180;
   const latitudeDelta = radians(second.latitude - first.latitude);
   const longitudeDelta = radians(second.longitude - first.longitude);
