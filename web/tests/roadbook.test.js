@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gpxDownload } from '../src/gpx-download.js';
+import { formatDayMapLabel } from '../src/map.js';
 import { renderDayContent } from '../src/roadbook.js';
+
+test('map label matches the selected stage text', () => {
+  assert.equal(formatDayMapLabel({
+    frontmatter: { tag: 2, start: 'Velburg', ziel: 'Villach' },
+  }), 'Tag 2 · Velburg → Villach');
+});
 
 test('GPX download appears only for a loaded track, respecting the deployment base', () => {
   const day = { frontmatter: { gpx_datei: 'assets/gpx/tag-03.gpx' } };

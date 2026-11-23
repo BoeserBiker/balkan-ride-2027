@@ -116,6 +116,26 @@
 
 ## Chronologie
 
+### 2026-11-23 – Kartendarstellung aus Issue #9
+
+- Die Kartenbeschriftung zeigt jetzt `Tag <Nummer> · <Start> → <Ziel>`; für
+  Tag 2 lautet sie `Tag 2 · Velburg → Villach`. Die statische OSRM-/Seetag-Notiz
+  wurde entfernt.
+- Die mobilen Kartenaktionen „Einklappen“ und „Groß“ samt Handlern und
+  Zustandsstyles wurden entfernt. Die Karte bleibt im oberen Bereich sticky
+  und kann beim Scrollen des Etappeninhalts aus dem Sichtbereich wandern;
+  Desktop-Kartenlayout bleibt unverändert.
+- Der Service-Worker-Cache wurde auf v30, die App-Version auf v2.44 erhöht.
+- Sechs Frontend-Tests und `npm run build --prefix web` waren erfolgreich.
+  Browserprüfung: mobil (390 × 844) wird das bestätigte Label angezeigt, die
+  Karte bleibt beim Scrollen oben und wandert am Ende des Etappenbereichs aus
+  dem Viewport; Desktop (1280 × 900) behält `position: sticky` bei 74 px.
+  OpenStreetMap-Kacheln wurden im Browser durch die Umgebung blockiert.
+- Issue #9 ist auf `feature/issue-9` umgesetzt; der Pull Request und die
+  Veröffentlichung auf `main` sind noch offen.
+- Relevante Quellen: `web/src/main.js`, `web/src/map.js`,
+  `web/src/style.css`, `web/tests/roadbook.test.js` und Issue #9.
+
 ### 2026-11-22 – Workspace-Check
 
 - Nachprüfung um 15:16 CET: Git-Integrität erneut ohne Befund; die
