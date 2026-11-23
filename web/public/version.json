@@ -1,6 +1,11 @@
 {
-  "version": "v2.50",
+  "version": "v2.51",
   "history": [
+    {
+      "version": "v2.51",
+      "date": "2026-11-24",
+      "message": "README.md und offene Aenderungen aktualisiert"
+    },
     {
       "version": "v2.50",
       "date": "2026-11-24",

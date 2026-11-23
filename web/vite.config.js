@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
@@ -7,6 +7,7 @@ import { zipSync } from 'fflate';
 import matter from 'gray-matter';
 
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
+const repositoryDirectory = path.resolve(webDirectory, '..');
 const contentDirectory = path.resolve(webDirectory, '../content');
 const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
 const virtualModuleId = 'virtual:roadbook-content';
@@ -23,7 +24,32 @@ function createGpxZip(files) {
   return zipSync(Object.fromEntries(files), { level: 6, mtime: new Date('2027-01-01T00:00:00Z') });
 }
 
-function validateDay(data, fileName) {
+async function assertRepositoryFileExists(relativePath, fieldName, fileName) {
+  if (typeof relativePath !== 'string' || !relativePath.trim()) {
+    throw new Error(`${fileName}: ${fieldName} muss ein nichtleerer relativer Dateipfad sein.`);
+  }
+
+  const filePath = path.resolve(repositoryDirectory, relativePath);
+  const repositoryRelativePath = path.relative(repositoryDirectory, filePath);
+  if (repositoryRelativePath === '..' || repositoryRelativePath.startsWith(`..${path.sep}`)
+    || path.isAbsolute(repositoryRelativePath)) {
+    throw new Error(`${fileName}: ${fieldName} muss auf eine Datei innerhalb des Repositorys zeigen: "${relativePath}".`);
+  }
+
+  try {
+    const file = await stat(filePath);
+    if (!file.isFile()) {
+      throw new Error(`${fileName}: ${fieldName} verweist nicht auf eine Datei: "${relativePath}".`);
+    }
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(`${fileName}: ${fieldName} verweist auf eine fehlende Datei: "${relativePath}".`);
+    }
+    throw error;
+  }
+}
+
+async function validateDay(data, fileName) {
   const tagFromName = Number(fileName.match(/^tag-(\d{2})\.md$/)?.[1]);
   const required = [
     'tag', 'datum', 'titel', 'start', 'ziel', 'koordinaten_start',
@@ -42,6 +68,7 @@ function validateDay(data, fileName) {
       throw new Error(`${fileName}: Frontmatter-Feld "${field}" muss ein nichtleerer Text sein.`);
     }
   }
+  await assertRepositoryFileExists(data.gpx_datei, 'gpx_datei', fileName);
   for (const field of ['kilometer', 'hoehenmeter']) {
     if (!Number.isFinite(data[field]) || data[field] < 0) {
       throw new Error(`${fileName}: Frontmatter-Feld "${field}" muss eine nichtnegative Zahl sein.`);
@@ -59,6 +86,9 @@ function validateDay(data, fileName) {
   }
   if (data.bilder.some((image) => !image || typeof image.datei !== 'string' || typeof image.beschreibung !== 'string')) {
     throw new Error(`${fileName}: jeder Eintrag in bilder benötigt datei und beschreibung.`);
+  }
+  for (const image of data.bilder) {
+    await assertRepositoryFileExists(image.datei, 'bilder[].datei', fileName);
   }
   if (data.videos.some((video) => !video || typeof video.typ !== 'string' || typeof video.quelle !== 'string')) {
     throw new Error(`${fileName}: jeder Eintrag in videos benötigt typ und quelle.`);
@@ -82,7 +112,7 @@ function roadbookContentPlugin() {
       const days = await Promise.all(files.map(async (fileName) => {
         const source = await readFile(path.join(contentDirectory, fileName), 'utf8');
         const parsed = matter(source);
-        validateDay(parsed.data, fileName);
+        await validateDay(parsed.data, fileName);
         return {
           sourcePath: `content/${fileName}`,
           frontmatter: parsed.data,
