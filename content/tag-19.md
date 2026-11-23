@@ -2,8 +2,8 @@
 tag: 19
 datum: "2027-09-26"
 titel: "Seetag auf der Adria"
-start: "Adria"
-ziel: "Adria"
+start: "Igoumenitsa"
+ziel: "Fusina"
 koordinaten_start: [39.488628, 20.259580]
 koordinaten_ziel: [45.419077, 12.257771]
 kilometer: 0.0
@@ -53,7 +53,7 @@ videos:
 
 ## Ein Tag auf See
 
-Heute gibt es kein Straßenprogramm: Kabine, Essen und ein Gang an Deck ersetzen die Kurven. Die im V7 genannten Hafenkoordinaten markieren nur die Endpunkte in Igoumenitsa und Fusina; sie sind keine GPS-Linie über See und keine garantierte Fahrtdauer. Legt die Fähre früh genug in Fusina an, kann die Rückführung nach Villach bereits heute erfolgen.
+Heute gibt es kein Straßenprogramm: Kabine, Essen und ein Gang an Deck ersetzen die Kurven. Die Karte zeigt eine gerade, gestrichelte Linie zwischen Igoumenitsa und Fusina. Sie dient nur zur Orientierung und ist weder die echte Fahrroute der Fähre über See noch eine garantierte Fahrtdauer. Legt die Fähre früh genug in Fusina an, kann die Rückführung nach Villach bereits heute erfolgen.
 
 **Transport:** Fähre.  
 **Übernachtung:** An Bord oder gemäß bestätigtem Fahrplan.  
