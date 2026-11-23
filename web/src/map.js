@@ -225,6 +225,13 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
         bounds.extend([waypoint.latitude, waypoint.longitude]);
       });
       selectDay(activeIndex, { moveMap: false });
+      if (index === activeIndex && window.matchMedia('(max-width: 768px)').matches) {
+        requestAnimationFrame(() => {
+          if (index === activeIndex && window.matchMedia('(max-width: 768px)').matches) {
+            resize({ fitActiveDay: true });
+          }
+        });
+      }
     }).catch((error) => {
       console.error(`GPX-Datei für Tag ${frontmatter.tag} konnte nicht geladen werden.`, error);
       dayGpx[index].state = 'error';
@@ -289,6 +296,13 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     }
   }
 
+  function resize({ fitActiveDay = false } = {}) {
+    map.invalidateSize();
+    if (fitActiveDay && dayBounds[activeIndex].isValid()) {
+      map.fitBounds(dayBounds[activeIndex], { padding: [24, 24], maxZoom: 11, animate: false });
+    }
+  }
+
   return {
     selectDay,
     getTrackData,
@@ -302,9 +316,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     },
     setLivePosition,
     setHighlightedWaypoint,
-    resize() {
-      map.invalidateSize();
-    },
+    resize,
     setSelectHandler(handler) {
       map.options.onSelectDay = handler;
     },

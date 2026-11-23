@@ -41,10 +41,7 @@ function renderShell() {
       <section id="roadbook" class="roadbook-layout mx-auto max-w-[1680px]" aria-label="Tour-Roadbook">
         <section class="map-panel" aria-label="Etappenkarte">
           <div class="mobile-map-context" aria-live="polite">
-            <p class="mobile-map-kicker">BALKAN RIDE · ROADBOOK 2027</p>
-            <h1>Der Balkan ruft.</h1>
-            <p class="mobile-stage-label" id="mobile-stage-label"></p>
-            <h2 id="mobile-stage-title"></h2>
+            <h2><span class="mobile-stage-label" id="mobile-stage-label"></span> · <span id="mobile-stage-title"></span></h2>
             <div class="mobile-stage-route">
               <span><small>START</small><strong id="mobile-stage-start"></strong></span>
               <span><small>ZIEL</small><strong id="mobile-stage-finish"></strong></span>
@@ -233,7 +230,7 @@ function renderApp() {
 
   function syncMobileViewport() {
     mobileDayNavigation.hidden = !mobileViewport.matches;
-    requestAnimationFrame(() => map.resize());
+    requestAnimationFrame(() => map.resize({ fitActiveDay: mobileViewport.matches }));
   }
 
   mobileViewport.addEventListener('change', syncMobileViewport);
@@ -293,6 +290,7 @@ function renderApp() {
       return;
     }
 
+    const changed = index !== activeIndex;
     map.setLivePosition(null);
     map.setHighlightedWaypoint(null);
     activeIndex = index;
@@ -322,7 +320,13 @@ function renderApp() {
     mobileNextDay.disabled = index === roadbookDays.length - 1;
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
-    map.selectDay(index, { moveMap });
+    map.selectDay(index, { moveMap: moveMap && !mobileViewport.matches });
+    if (mobileViewport.matches) {
+      requestAnimationFrame(() => map.resize({ fitActiveDay: mobileViewport.matches }));
+      if (changed) {
+        window.scrollTo({ top: 0, behavior: scrollBehavior() });
+      }
+    }
     updateRouteScrubber(index);
   }
 
@@ -430,7 +434,6 @@ function renderApp() {
   map.setSelectHandler(selectDay);
   map.setTrackLoadHandler(updateRouteScrubber);
   selectDay(0, { moveMap: false, centerDay: false });
-  requestAnimationFrame(() => map.resize());
 }
 
 try {
