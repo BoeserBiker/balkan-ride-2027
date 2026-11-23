@@ -40,6 +40,16 @@ function renderShell() {
     <main id="top">
       <section id="roadbook" class="roadbook-layout mx-auto max-w-[1680px]" aria-label="Tour-Roadbook">
         <section class="map-panel" aria-label="Etappenkarte">
+          <div class="mobile-map-context" aria-live="polite">
+            <p class="mobile-map-kicker">BALKAN RIDE · ROADBOOK 2027</p>
+            <h1>Der Balkan ruft.</h1>
+            <p class="mobile-stage-label" id="mobile-stage-label"></p>
+            <h2 id="mobile-stage-title"></h2>
+            <div class="mobile-stage-route">
+              <span><small>START</small><strong id="mobile-stage-start"></strong></span>
+              <span><small>ZIEL</small><strong id="mobile-stage-finish"></strong></span>
+            </div>
+          </div>
           <div class="map-topline">
             <span class="eyebrow">SLOWENIEN · BALKAN · GRIECHENLAND</span>
             <span class="map-live"><i aria-hidden="true"></i> TOURKARTE</span>
@@ -287,6 +297,10 @@ function renderApp() {
     map.setHighlightedWaypoint(null);
     activeIndex = index;
     const day = roadbookDays[index];
+    document.querySelector('#mobile-stage-label').textContent = `ETAPPE ${String(day.frontmatter.tag).padStart(2, '0')}`;
+    document.querySelector('#mobile-stage-title').textContent = day.frontmatter.titel;
+    document.querySelector('#mobile-stage-start').textContent = day.frontmatter.start;
+    document.querySelector('#mobile-stage-finish').textContent = day.frontmatter.ziel;
     document.querySelector('#maps-navigation').href = googleMapsDirectionsUrl(...day.frontmatter.koordinaten_ziel);
     dayDetail.innerHTML = renderDayContent(day, {
       marked,

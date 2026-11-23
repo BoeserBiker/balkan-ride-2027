@@ -1,6 +1,11 @@
 {
-  "version": "v2.44",
+  "version": "v2.45",
   "history": [
+    {
+      "version": "v2.45",
+      "date": "2026-11-23",
+      "message": "Buttons und Etappen-Navigationspfeile optisch vereinheitlicht"
+    },
     {
       "version": "v2.44",
       "date": "2026-11-23",

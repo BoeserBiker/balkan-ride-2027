@@ -88,6 +88,7 @@ a { color: inherit; }
   border-right: 1px solid rgba(255,255,255,.07);
 }
 
+.mobile-map-context { display: none; }
 .map-topline { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .eyebrow, .map-live, .day-picker-label, .stats-grid dt, .route-line small, .subsection-heading > span {
   color: var(--quiet);
@@ -405,6 +406,17 @@ h1, h2, h3, p { margin-top: 0; }
   .elevation-axis { font-size: 18px; }
   .map-topline { display: none; }
   .map-panel { top: auto; }
+  .mobile-map-context { display: grid; gap: 5px; margin: 0 0 12px; }
+  .mobile-map-kicker, .mobile-stage-label { margin: 0; color: var(--quiet); font-size: clamp(11px, 3vw, 12px); font-weight: 700; letter-spacing: .08em; }
+  .mobile-map-context h1 { margin: 0 0 2px; font-size: clamp(23px, 6vw, 32px); line-height: 1.08; letter-spacing: -.04em; }
+  .mobile-map-context h2 { min-width: 0; margin: 0; font-size: clamp(17px, 4.7vw, 22px); line-height: 1.2; overflow-wrap: anywhere; }
+  .mobile-stage-route { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 3px; }
+  .mobile-stage-route > span { display: grid; min-width: 0; gap: 2px; }
+  .mobile-stage-route small { color: var(--quiet); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+  .mobile-stage-route strong { min-width: 0; color: #ecece7; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; }
+  .journey-heading, .day-detail > .day-meta, .day-detail > .day-title { display: none; }
+  .day-detail .route-line { padding: 5px 0 10px; }
+  .day-detail .route-line > div { display: none; }
   #map { height: 240px; min-height: 240px; }
   .mobile-day-navigation[hidden] { display: none; }
   .elevation-content::before { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; content: "Tippen oder ziehen"; }
@@ -425,4 +437,21 @@ h1, h2, h3, p { margin-top: 0; }
     background: var(--bg);
   }
   .mobile-day-navigation .button { min-width: 44px; min-height: 44px; flex: 1; letter-spacing: 0; }
+}
+
+@media (max-width: 390px) {
+  .site-header { gap: 6px; padding-right: 10px; padding-left: 10px; }
+  .brand-group, .brand, .brand span { min-width: 0; }
+  .brand { gap: 7px; }
+  .brand-mark { width: 30px; height: 30px; }
+  .brand strong { font-size: clamp(9px, 2.8vw, 11px); letter-spacing: .08em; }
+  .brand small { font-size: clamp(10px, 3vw, 12px); letter-spacing: 0; }
+  .header-navigation { flex: 0 0 auto; }
+  .site-nav { gap: clamp(2px, 1.5vw, 7px); }
+  .site-nav a { min-width: 40px; font-size: clamp(10px, 3vw, 12px); }
+  .version-badge { font-size: clamp(10px, 3vw, 12px); }
+  .map-panel { padding-right: 12px; padding-left: 12px; }
+  .mobile-map-context h1 { font-size: clamp(22px, 6vw, 26px); }
+  .mobile-map-context h2 { font-size: clamp(16px, 4.6vw, 19px); }
+  .mobile-stage-route { gap: 8px; }
 }
