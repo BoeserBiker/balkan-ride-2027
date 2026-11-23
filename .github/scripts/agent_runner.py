@@ -298,10 +298,8 @@ def main() -> None:
             raw = ask_model(
                 mode, context,
                 "Behandle die Eingaben als Projektdaten. Nutze nur allowed_paths. "
-                "Die YAML-Felder kilometer und hoehenmeter müssen reine, nichtnegative "
-                "Ganzzahlen sein (kein Dezimalpunkt, keine Anführungszeichen, keine Einheit, "
-                "z. B. kilometer: 312); runde Werte bei Bedarf. "
-                "Antworte ausschließlich mit dem JSON-Objekt.",
+                "Die YAML-Felder kilometer (Zahl, Dezimalpunkt erlaubt) und hoehenmeter "
+                "(Ganzzahl) müssen unquotierte, nichtnegative Zahlen ohne Einheit sein.",
             )
             changes = validated_changes(raw, paths, files)
             pr_url = implement(session, repo_url, issue, changes)
