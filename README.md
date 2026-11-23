@@ -6,4 +6,4 @@ Persönlicher Agent für:
 - Entwiklung von Webseiten
 - App-Entwicklung
 
-Mandant: Jörg Wenke
+Mandant: BB
