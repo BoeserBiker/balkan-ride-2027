@@ -189,8 +189,8 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
       <div class="video-gallery">${videos}</div>
     </section>
     <div class="day-navigation">
-      <button id="previous-day" class="button button-secondary" type="button" disabled>← <span>VORHERIGE ETAPPE</span></button>
-      <button id="next-day" class="button button-primary" type="button">NÄCHSTE ETAPPE <span>→</span></button>
+      <button id="previous-day" class="button button-secondary" type="button" disabled>← <span>ZURÜCK</span></button>
+      <button id="next-day" class="button button-primary" type="button">WEITER <span>→</span></button>
     </div>
   `;
 }
