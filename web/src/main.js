@@ -99,10 +99,18 @@ function renderShell() {
       <span>BALKAN-RIDE 2027 · ROADBOOK</span>
     </footer>
 
-    <dialog id="lightbox" class="lightbox" aria-label="Bildansicht">
+    <dialog id="lightbox" class="lightbox" aria-label="Medienansicht">
       <button class="lightbox-close" type="button" aria-label="Bildansicht schließen">SCHLIESSEN <span aria-hidden="true">×</span></button>
-      <img alt="">
+      <div class="lightbox-media">
+        <img alt="" hidden>
+        <video controls playsinline hidden></video>
+        <iframe title="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen hidden></iframe>
+      </div>
       <p class="lightbox-caption"></p>
+      <nav class="lightbox-navigation" aria-label="Galerie-Navigation">
+        <button class="lightbox-previous" type="button" aria-label="Vorheriges Medium">←</button>
+        <button class="lightbox-next" type="button" aria-label="Nächstes Medium">→</button>
+      </nav>
     </dialog>
     <dialog id="version-history" class="version-dialog" aria-labelledby="version-history-title">
       <button class="version-close" type="button" aria-label="Versionsverlauf schließen">×</button>
@@ -169,12 +177,49 @@ function renderApp() {
   const mobileViewport = window.matchMedia('(max-width: 768px)');
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
+  const lightboxVideo = lightbox.querySelector('video');
+  const lightboxFrame = lightbox.querySelector('iframe');
   const lightboxCaption = lightbox.querySelector('.lightbox-caption');
+  const lightboxPrevious = lightbox.querySelector('.lightbox-previous');
+  const lightboxNext = lightbox.querySelector('.lightbox-next');
   const map = createRoadbookMap(
     L, roadbookDays, document.querySelector('#map-status'), document.querySelector('#gpx-download'),
   );
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
+  let lightboxItems = [];
+  let lightboxIndex = -1;
+  let touchStart = null;
+
+  function showLightboxItem(index) {
+    if (index < 0 || index >= lightboxItems.length) {
+      return;
+    }
+
+    lightboxIndex = index;
+    const item = lightboxItems[index];
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute('src');
+    lightboxFrame.removeAttribute('src');
+    lightboxImage.removeAttribute('src');
+    lightboxImage.hidden = item.type !== 'image';
+    lightboxVideo.hidden = item.type !== 'video';
+    lightboxFrame.hidden = item.type !== 'youtube';
+
+    if (item.type === 'image') {
+      lightboxImage.src = item.src;
+      lightboxImage.alt = item.alt;
+    } else if (item.type === 'video') {
+      lightboxVideo.src = item.src;
+      lightboxVideo.load();
+    } else {
+      lightboxFrame.src = item.src;
+      lightboxFrame.title = item.alt;
+    }
+    lightboxCaption.textContent = item.caption;
+    lightboxPrevious.disabled = index === 0;
+    lightboxNext.disabled = index === lightboxItems.length - 1;
+  }
 
   function syncMobileViewport() {
     mobileDayNavigation.hidden = !mobileViewport.matches;
@@ -304,15 +349,46 @@ function renderApp() {
       selectDay(activeIndex + 1);
       return;
     }
-    const imageButton = event.target.closest('[data-lightbox-src]');
-    if (imageButton) {
-      lightboxImage.src = imageButton.dataset.lightboxSrc;
-      lightboxImage.alt = imageButton.dataset.lightboxAlt;
-      lightboxCaption.textContent = imageButton.dataset.lightboxCaption;
+    const mediaButton = event.target.closest('[data-lightbox-src]');
+    if (mediaButton) {
+      const itemsByIndex = new Map();
+      dayDetail.querySelectorAll('[data-lightbox-index]').forEach((item) => {
+        itemsByIndex.set(item.dataset.lightboxIndex, {
+          index: Number(item.dataset.lightboxIndex),
+          type: item.dataset.lightboxType,
+          src: item.dataset.lightboxSrc,
+          alt: item.dataset.lightboxAlt,
+          caption: item.dataset.lightboxCaption,
+        });
+      });
+      lightboxItems = [...itemsByIndex.values()].sort((a, b) => a.index - b.index);
+      const selectedIndex = lightboxItems.findIndex(
+        (item) => item.index === Number(mediaButton.dataset.lightboxIndex),
+      );
+      showLightboxItem(selectedIndex);
       lightbox.showModal();
     }
   });
 
+  lightboxPrevious.addEventListener('click', () => showLightboxItem(lightboxIndex - 1));
+  lightboxNext.addEventListener('click', () => showLightboxItem(lightboxIndex + 1));
+  lightbox.addEventListener('touchstart', (event) => {
+    touchStart = event.touches.length === 1
+      ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
+      : null;
+  }, { passive: true });
+  lightbox.addEventListener('touchend', (event) => {
+    if (!touchStart || event.changedTouches.length !== 1) {
+      touchStart = null;
+      return;
+    }
+    const deltaX = event.changedTouches[0].clientX - touchStart.x;
+    const deltaY = event.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      showLightboxItem(lightboxIndex + (deltaX < 0 ? 1 : -1));
+    }
+    touchStart = null;
+  }, { passive: true });
   lightbox.querySelector('.lightbox-close').addEventListener('click', () => lightbox.close());
   lightbox.addEventListener('click', (event) => {
     if (event.target === lightbox) {
@@ -320,9 +396,15 @@ function renderApp() {
     }
   });
   lightbox.addEventListener('close', () => {
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute('src');
+    lightboxVideo.load();
+    lightboxFrame.removeAttribute('src');
     lightboxImage.removeAttribute('src');
     lightboxImage.alt = '';
     lightboxCaption.textContent = '';
+    lightboxItems = [];
+    lightboxIndex = -1;
   });
 
   renderLogisticsChecklist({

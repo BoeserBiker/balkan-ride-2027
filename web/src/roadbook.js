@@ -31,12 +31,12 @@ function externalLink(url, label) {
   return escapeDisplayText(label);
 }
 
-function lightboxAttributes(photo, url) {
+function lightboxAttributes(photo, url, index) {
   const caption = photo.beschreibung || photo.caption || photo.title || photo.titel || photo.alt || 'Etappenfoto';
   const credit = photo.urheber && photo.lizenz
     ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
     : '';
-  return `data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText([caption, credit].filter(Boolean).join(' · '))}"`;
+  return `data-lightbox-index="${index}" data-lightbox-type="image" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText([caption, credit].filter(Boolean).join(' · '))}"`;
 }
 
 function keywords(text) {
@@ -60,7 +60,7 @@ function highlightPhoto(highlight, index, photos) {
   return bestPhoto || photos[index % photos.length];
 }
 
-function renderPhoto(photo, urls) {
+function renderPhoto(photo, urls, index) {
   const url = urls[photo.datei];
   if (!url) {
     return `
@@ -78,7 +78,7 @@ function renderPhoto(photo, urls) {
     : '';
   return `
     <figure class="photo-card">
-      <button class="photo-button" type="button" ${lightboxAttributes(photo, url)}>
+      <button class="photo-button" type="button" ${lightboxAttributes(photo, url, index)}>
         <img src="${escapeHtml(url)}" alt="${escapeDisplayText(caption)}" loading="lazy">
         <span class="photo-caption">${escapeDisplayText(caption)}</span>
       </button>
@@ -116,7 +116,7 @@ function renderVideo(video, urls) {
   if (video.typ === 'youtube') {
     const videoId = youtubeVideoId(video.quelle);
     return videoId
-      ? `<div class="video-item"><div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><a class="video-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen</a></div>`
+      ? `<div class="video-item"><button class="video-open-button" type="button" data-lightbox-index="${video.index}" data-lightbox-type="youtube" data-lightbox-src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" data-lightbox-alt="${title}" data-lightbox-caption="${title}" aria-label="Video ${title} in Galerie öffnen"><span aria-hidden="true">▶</span> In Galerie ansehen</button><div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><a class="video-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen</a></div>`
       : `<div class="media-placeholder"><small>VIDEO-QUELLE UNGÜLTIG</small><p>${title}</p></div>`;
   }
 
@@ -126,11 +126,14 @@ function renderVideo(video, urls) {
   }
   const poster = urls[video.poster];
   return `
-    <video controls preload="metadata" ${poster ? `poster="${escapeHtml(poster)}"` : ''} aria-label="${title}">
+    <div class="video-item">
+      <button class="video-open-button" type="button" data-lightbox-index="${video.index}" data-lightbox-type="video" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${title}" data-lightbox-caption="${title}" aria-label="Video ${title} in Galerie öffnen"><span aria-hidden="true">▶</span> In Galerie ansehen</button>
+      <video controls preload="metadata" ${poster ? `poster="${escapeHtml(poster)}"` : ''} aria-label="${title}">
       <source src="${escapeHtml(url)}" type="video/mp4">
       Dein Browser unterstützt dieses Videoformat nicht.
-    </video>
-    <p class="media-caption">${title}</p>
+      </video>
+      <p class="media-caption">${title}</p>
+    </div>
   `;
 }
 
@@ -138,20 +141,23 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
   const { frontmatter, body } = day;
   const urls = mediaPathMap(assetUrls);
   const availablePhotos = frontmatter.bilder.filter((photo) => urls[photo.datei]);
+  const photoIndexes = new Map(availablePhotos.map((photo, index) => [photo, index]));
   const highlights = frontmatter.highlights.length
     ? `<ul class="highlight-list">${frontmatter.highlights.map((highlight, index) => {
       if (!availablePhotos.length) {
         return `<li><span class="highlight-badge">${escapeDisplayText(highlight)}</span></li>`;
       }
       const photo = highlightPhoto(highlight, index, availablePhotos);
-      return `<li><button class="highlight-badge highlight-button" type="button" aria-label="Foto zum Highlight ${escapeDisplayText(highlight)} öffnen" ${lightboxAttributes(photo, urls[photo.datei])}><span aria-hidden="true">📷</span> ${escapeDisplayText(highlight)}</button></li>`;
+      return `<li><button class="highlight-badge highlight-button" type="button" aria-label="Foto zum Highlight ${escapeDisplayText(highlight)} öffnen" ${lightboxAttributes(photo, urls[photo.datei], photoIndexes.get(photo))}><span aria-hidden="true">📷</span> ${escapeDisplayText(highlight)}</button></li>`;
     }).join('')}</ul>`
     : '<p class="muted-copy">Für diese Etappe sind noch keine Highlights hinterlegt.</p>';
   const photos = frontmatter.bilder.length
-    ? frontmatter.bilder.map((photo) => renderPhoto(photo, urls)).join('')
+    ? frontmatter.bilder.map((photo, index) => renderPhoto(photo, urls, photoIndexes.get(photo) ?? index)).join('')
     : '<div class="media-placeholder"><small>NOCH KEINE FOTOS HINTERLEGT</small></div>';
   const videos = frontmatter.videos.length
-    ? frontmatter.videos.map((video) => renderVideo(video, urls)).join('')
+    ? frontmatter.videos.map((video, index) => renderVideo({
+      ...video, index: availablePhotos.length + index,
+    }, urls)).join('')
     : '<div class="media-placeholder"><small>NOCH KEINE VIDEOS HINTERLEGT</small></div>';
   const safeBody = DOMPurify.sanitize(marked.parse(formatDuration(body)));
 
