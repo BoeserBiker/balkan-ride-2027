@@ -12,7 +12,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
-STAGE_PATH = re.compile(r"content/tag-(0[1-9]|1[0-9]|20)\.md")
+STAGE_PATH = re.compile(r"content/tag-(0[1-9]|1[0-9]|2[0-2])\.md")
 PLAN_HEADING = "## Umsetzungsplan"
 APPROVAL = "/implement-item"
 PLAN_FOOTER = (
@@ -24,7 +24,11 @@ TEXT_FIELDS = {"titel", "start", "ziel", "fahrzeit", "gpx_datei"}
 NUMBER_FIELDS = {"kilometer", "hoehenmeter"}
 MEDIA_FIELDS = {
     "bilder": {"datei", "beschreibung"},
-    "videos": {"typ", "quelle", "poster", "titel"},
+    "videos": {"typ", "quelle", "titel"},
+}
+OPTIONAL_MEDIA_KEYS = {
+    "bilder": {"urheber", "lizenz", "lizenz_url", "quelle", "bearbeitung"},
+    "videos": {"poster"},
 }
 V4_FIELDS = TEXT_FIELDS | NUMBER_FIELDS | MEDIA_FIELDS.keys() | {
     "tag", "datum", "koordinaten_start", "koordinaten_ziel", "highlights",
@@ -123,8 +127,10 @@ def validate_stage(path: str, text: str, old: str | None = None) -> dict:
         if not nonempty_text(data[field]):
             raise ValueError(f"{path}: {field} muss Text enthalten.")
     for field in NUMBER_FIELDS:
-        if type(data[field]) is not int or data[field] < 0:
-            raise ValueError(f"{path}: {field} muss eine nichtnegative Ganzzahl sein.")
+        numeric = (int,) if field == "hoehenmeter" else (int, float)
+        if type(data[field]) not in numeric or data[field] < 0:
+            kind = "Ganzzahl" if field == "hoehenmeter" else "Zahl"
+            raise ValueError(f"{path}: {field} muss eine nichtnegative {kind} sein.")
     for field in ("koordinaten_start", "koordinaten_ziel"):
         coords = data[field]
         if not isinstance(coords, list) or len(coords) != 2 or not all(
@@ -138,7 +144,9 @@ def validate_stage(path: str, text: str, old: str | None = None) -> dict:
     for field, keys in MEDIA_FIELDS.items():
         items = data[field]
         if not isinstance(items, list) or any(
-            not isinstance(item, dict) or item.keys() != keys or not all(map(nonempty_text, item.values()))
+            not isinstance(item, dict)
+            or not keys <= item.keys() <= keys | OPTIONAL_MEDIA_KEYS[field]
+            or not all(map(nonempty_text, item.values()))
             for item in items
         ):
             raise ValueError(f"{path}: {field} muss dem V4-Medienschema entsprechen.")
