@@ -1,6 +1,11 @@
 {
-  "version": "v2.47",
+  "version": "v2.48",
   "history": [
+    {
+      "version": "v2.48",
+      "date": "2026-11-24",
+      "message": "iPhone 12 mini: Header, Auto-Scroll, Etappen-Zoom und Navigation optimiert"
+    },
     {
       "version": "v2.47",
       "date": "2026-11-23",
