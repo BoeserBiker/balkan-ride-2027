@@ -1,6 +1,11 @@
 {
-  "version": "v2.45",
+  "version": "v2.46",
   "history": [
+    {
+      "version": "v2.46",
+      "date": "2026-11-23",
+      "message": "Mobile Darstellung: Ueberschrift und Beschriftung ueber der Karte (Closes #13)"
+    },
     {
       "version": "v2.45",
       "date": "2026-11-23",
