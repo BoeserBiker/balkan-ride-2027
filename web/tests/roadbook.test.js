@@ -50,6 +50,40 @@ test('gallery renders attribution links and nocookie video', () => {
   assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=abcdefghijk" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen/);
 });
 
+test('day media receives stable indices and video gallery launch controls', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
+      kilometer: 10, fahrzeit: '1 h', hoehenmeter: 10, highlights: ['Blick'],
+      bilder: [
+        { datei: 'assets/media/first.jpg', beschreibung: 'Blick' },
+        { datei: 'assets/media/second.jpg', beschreibung: 'Berge' },
+      ],
+      videos: [
+        { typ: 'youtube', quelle: 'https://youtu.be/abcdefghijk', titel: 'YouTube' },
+        { typ: 'local', quelle: 'assets/media/clip.mp4', titel: 'Clip' },
+      ],
+    },
+    body: '',
+  };
+  const html = renderDayContent(day, {
+    marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text },
+    assetUrls: {
+      '../../assets/media/first.jpg': '/first.jpg',
+      '../../assets/media/second.jpg': '/second.jpg',
+      '../../assets/media/clip.mp4': '/clip.mp4',
+    },
+  });
+
+  assert.match(html, /data-lightbox-index="0" data-lightbox-type="image" data-lightbox-src="\/first\.jpg"/);
+  assert.match(html, /data-lightbox-index="1" data-lightbox-type="image" data-lightbox-src="\/second\.jpg"/);
+  assert.match(html, /data-lightbox-index="2" data-lightbox-type="youtube" data-lightbox-src="https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?rel=0&amp;playsinline=1"/);
+  assert.match(html, /data-lightbox-index="3" data-lightbox-type="video" data-lightbox-src="\/clip\.mp4"/);
+  assert.match(html, /aria-label="Video YouTube in Galerie öffnen"/);
+  assert.match(html, /aria-label="Video Clip in Galerie öffnen"/);
+  assert.match(html, /data-lightbox-index="0" data-lightbox-type="image" data-lightbox-src="\/first\.jpg"[^>]*>.*Blick/s);
+});
+
 test('model hours are displayed as rounded hours and minutes without changing the source', () => {
   const day = {
     frontmatter: {
