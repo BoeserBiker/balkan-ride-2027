@@ -71,6 +71,11 @@ function dayIcon(L, day, active) {
   });
 }
 
+export function formatDayMapLabel(day) {
+  const { tag, start, ziel } = day.frontmatter;
+  return `Tag ${tag} · ${start} → ${ziel}`;
+}
+
 export function createRoadbookMap(L, days, statusElement, downloadElement) {
   const map = L.map('map', {
     zoomControl: false,
@@ -274,18 +279,9 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       downloadElement.href = download.href;
       downloadElement.download = download.filename;
     }
-    const dayWaypoints = gpx.points;
-    const routeGroups = [...new Set(dayWaypoints.map((waypoint) => waypoint.routeGroup))];
-    const dayLabel = `Tag ${String(day.frontmatter.tag).padStart(2, '0')}`;
-    statusElement.textContent = gpx.state === 'loading'
-      ? `${dayLabel}: GPX-Daten werden geladen.`
-      : gpx.state === 'missing' || gpx.state === 'error'
-        ? `${dayLabel}: Tages-GPX konnte nicht geladen werden.`
-        : gpx.segments.length
-      ? `${dayLabel}: OSRM-PKW-Vorab-Track und ${dayWaypoints.length} V7-Wegpunkte (${routeGroups.join(', ')}). Nicht vor Ort geprüft.`
-      : day.frontmatter.tag === 19
-        ? `${dayLabel}: Seetag ohne Straßenroute; nur Hafenmarker, keine Linie über See.`
-        : `${dayLabel}: Kein Straßen-Track verfügbar; angezeigte Wegpunkte und Streckenführung prüfen.`;
+    statusElement.textContent = gpx.state === 'missing' || gpx.state === 'error'
+      ? `${formatDayMapLabel(day)} · Tages-GPX konnte nicht geladen werden.`
+      : formatDayMapLabel(day);
 
     if (moveMap && bounds.isValid()) {
       const zoom = Math.min(map.getBoundsZoom(bounds.pad(0.22)), 11);

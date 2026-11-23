@@ -1,6 +1,11 @@
 {
-  "version": "v2.43",
+  "version": "v2.44",
   "history": [
+    {
+      "version": "v2.44",
+      "date": "2026-11-23",
+      "message": "Mobile Kartenansicht vereinfacht und Etappenbeschriftung angepasst"
+    },
     {
       "version": "v2.43",
       "date": "2026-11-22",

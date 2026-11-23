@@ -44,10 +44,6 @@ function renderShell() {
             <span class="eyebrow">SLOWENIEN · BALKAN · GRIECHENLAND</span>
             <span class="map-live"><i aria-hidden="true"></i> TOURKARTE</span>
           </div>
-          <div class="mobile-map-controls" id="mobile-map-controls" hidden>
-            <button type="button" class="button button-secondary" id="mobile-map-toggle" aria-expanded="true" aria-controls="map-content">Einklappen</button>
-            <button type="button" class="button button-secondary" id="mobile-map-expand" aria-pressed="false" aria-controls="map-content">Groß</button>
-          </div>
           <div id="map-content" class="map-content">
             <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
             <p id="map-status" class="map-status" aria-live="polite"></p>
@@ -56,7 +52,6 @@ function renderShell() {
               <a id="maps-navigation" class="button button-primary" target="_blank" rel="noopener noreferrer">Navigation</a>
               <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>ZIP</a>
             </div>
-            <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
           </div>
         </section>
 
@@ -171,10 +166,6 @@ function renderApp() {
   const mobilePreviousDay = document.querySelector('#mobile-previous-day');
   const mobileNextDay = document.querySelector('#mobile-next-day');
   const mobileDayNavigation = document.querySelector('#mobile-day-navigation');
-  const mobileMapControls = document.querySelector('#mobile-map-controls');
-  const mapPanel = document.querySelector('.map-panel');
-  const mapToggle = document.querySelector('#mobile-map-toggle');
-  const mapExpand = document.querySelector('#mobile-map-expand');
   const mobileViewport = window.matchMedia('(max-width: 768px)');
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
@@ -185,48 +176,11 @@ function renderApp() {
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
 
-  function updateMobileMapControls() {
-    const collapsed = mapPanel.classList.contains('is-map-collapsed');
-    const expanded = mapPanel.classList.contains('is-map-expanded');
-    mapToggle.textContent = collapsed ? 'Karte' : 'Einklappen';
-    mapToggle.setAttribute('aria-expanded', String(!collapsed));
-    mapExpand.textContent = expanded ? 'Zurück' : 'Groß';
-    mapExpand.setAttribute('aria-pressed', String(expanded));
-    mobileDayNavigation.hidden = !mobileViewport.matches || expanded;
-  }
-
   function syncMobileViewport() {
-    const wasCollapsed = mapPanel.classList.contains('is-map-collapsed');
-    mobileMapControls.hidden = !mobileViewport.matches;
-    if (!mobileViewport.matches) {
-      mapPanel.classList.remove('is-map-collapsed', 'is-map-expanded');
-    }
-    updateMobileMapControls();
-    requestAnimationFrame(() => {
-      map.resize();
-      if (wasCollapsed && !mobileViewport.matches) map.selectDay(activeIndex);
-    });
+    mobileDayNavigation.hidden = !mobileViewport.matches;
+    requestAnimationFrame(() => map.resize());
   }
 
-  mapToggle.addEventListener('click', () => {
-    const collapsed = mapPanel.classList.toggle('is-map-collapsed');
-    if (collapsed) mapPanel.classList.remove('is-map-expanded');
-    updateMobileMapControls();
-    if (!collapsed) requestAnimationFrame(() => {
-      map.resize();
-      map.selectDay(activeIndex);
-    });
-  });
-  mapExpand.addEventListener('click', () => {
-    const wasCollapsed = mapPanel.classList.contains('is-map-collapsed');
-    mapPanel.classList.remove('is-map-collapsed');
-    mapPanel.classList.toggle('is-map-expanded');
-    updateMobileMapControls();
-    requestAnimationFrame(() => {
-      map.resize();
-      if (wasCollapsed) map.selectDay(activeIndex);
-    });
-  });
   mobileViewport.addEventListener('change', syncMobileViewport);
   syncMobileViewport();
 
@@ -309,7 +263,7 @@ function renderApp() {
     mobileNextDay.disabled = index === roadbookDays.length - 1;
     document.querySelector('#previous-day').disabled = index === 0;
     document.querySelector('#next-day').disabled = index === roadbookDays.length - 1;
-    map.selectDay(index, { moveMap: moveMap && !(mobileViewport.matches && mapPanel.classList.contains('is-map-collapsed')) });
+    map.selectDay(index, { moveMap });
     updateRouteScrubber(index);
   }
 

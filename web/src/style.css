@@ -305,7 +305,7 @@ h1, h2, h3, p { margin-top: 0; }
 
 @media (max-width: 900px) {
   .roadbook-layout { display: flex; flex-direction: column; }
-  .map-panel { top: 64px; z-index: 30; width: 100%; max-height: clamp(220px, 35vh, 300px); min-height: auto; overflow-y: auto; overscroll-behavior: contain; padding: 20px 20px 8px; border-right: 0; background: var(--bg); }
+  .map-panel { top: 64px; z-index: 30; width: 100%; min-height: auto; padding: 20px 20px 8px; border-right: 0; background: var(--bg); }
   #map { height: min(28vh, 220px); min-height: 160px; }
   .journey-panel { position: relative; z-index: 20; width: 100%; margin-top: 0; padding: 27px 20px 45px; border-radius: 14px 14px 0 0; background: var(--bg); }
 }
@@ -371,27 +371,9 @@ h1, h2, h3, p { margin-top: 0; }
   .leaflet-control-zoom a { width: 44px; height: 44px; line-height: 44px; }
   .intro, .roadbook-copy, .elevation-title { font-size: 13px; }
   .elevation-axis { font-size: 18px; }
-  .map-panel { top: 92px; max-height: min(60vh, 500px); overflow-y: auto; }
+  .map-panel { top: 92px; }
   #map { height: 240px; min-height: 240px; }
-  .mobile-map-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .mobile-map-controls[hidden], .mobile-day-navigation[hidden] { display: none; }
-  .mobile-map-controls .button { min-width: 44px; min-height: 44px; letter-spacing: 0; }
-  .map-panel.is-map-collapsed .map-content { display: none; }
-  .map-panel.is-map-expanded {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    max-height: none;
-    padding: max(15px, env(safe-area-inset-top, 0px)) 14px max(15px, env(safe-area-inset-bottom, 0px));
-    background: var(--bg);
-  }
-  .map-panel.is-map-expanded .map-content { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; }
-  .map-panel.is-map-expanded #map { flex: 1 1 auto; height: auto; min-height: 160px; }
+  .mobile-day-navigation[hidden] { display: none; }
   .elevation-content::before { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; content: "Tippen oder ziehen"; }
   .elevation-chart { touch-action: pan-y; }
   .elevation-poi-pin { width: 44px; height: 44px; }
