@@ -45,16 +45,16 @@ function renderShell() {
             <span class="map-live"><i aria-hidden="true"></i> TOURKARTE</span>
           </div>
           <div class="mobile-map-controls" id="mobile-map-controls" hidden>
-            <button type="button" class="button button-secondary" id="mobile-map-toggle" aria-expanded="true" aria-controls="map-content">Karte einklappen</button>
-            <button type="button" class="button button-secondary" id="mobile-map-expand" aria-pressed="false" aria-controls="map-content">Große Kartenansicht</button>
+            <button type="button" class="button button-secondary" id="mobile-map-toggle" aria-expanded="true" aria-controls="map-content">Einklappen</button>
+            <button type="button" class="button button-secondary" id="mobile-map-expand" aria-pressed="false" aria-controls="map-content">Groß</button>
           </div>
           <div id="map-content" class="map-content">
             <div id="map" role="application" aria-label="Interaktive Karte der verfügbaren Etappen"></div>
             <p id="map-status" class="map-status" aria-live="polite"></p>
             <div class="gpx-downloads">
-              <a id="gpx-download" class="button button-primary" hidden>GPX Datei</a>
-              <a id="maps-navigation" class="button button-primary" target="_blank" rel="noopener noreferrer">In Karten-App öffnen</a>
-              <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>Alle GPX als ZIP</a>
+              <a id="gpx-download" class="button button-primary" hidden>GPX</a>
+              <a id="maps-navigation" class="button button-primary" target="_blank" rel="noopener noreferrer">Navigation</a>
+              <a class="button button-secondary" href="${import.meta.env.BASE_URL}assets/gpx/balkan-ride-2027-alle-etappen.zip" download>ZIP</a>
             </div>
             <p class="map-status">OSRM-Vorab-Tracks, nicht vor Ort geprüft. Tag 19 enthält keinen Straßen-Track.</p>
           </div>
@@ -95,8 +95,8 @@ function renderShell() {
     </main>
 
     <nav class="mobile-day-navigation" id="mobile-day-navigation" aria-label="Etappe wechseln" hidden>
-      <button type="button" class="button button-secondary" id="mobile-previous-day">← Zurück</button>
-      <button type="button" class="button button-primary" id="mobile-next-day">Weiter →</button>
+      <button type="button" class="button button-secondary" id="mobile-previous-day" aria-label="Vorherige Etappe">←</button>
+      <button type="button" class="button button-primary" id="mobile-next-day" aria-label="Nächste Etappe">→</button>
     </nav>
 
     <footer class="site-footer">
@@ -188,9 +188,9 @@ function renderApp() {
   function updateMobileMapControls() {
     const collapsed = mapPanel.classList.contains('is-map-collapsed');
     const expanded = mapPanel.classList.contains('is-map-expanded');
-    mapToggle.textContent = collapsed ? 'Karte anzeigen' : 'Karte einklappen';
+    mapToggle.textContent = collapsed ? 'Karte' : 'Einklappen';
     mapToggle.setAttribute('aria-expanded', String(!collapsed));
-    mapExpand.textContent = expanded ? 'Zurück zum Roadbook' : 'Große Kartenansicht';
+    mapExpand.textContent = expanded ? 'Zurück' : 'Groß';
     mapExpand.setAttribute('aria-pressed', String(expanded));
     mobileDayNavigation.hidden = !mobileViewport.matches || expanded;
   }
