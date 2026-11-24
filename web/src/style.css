@@ -414,7 +414,7 @@ h1, h2, h3, p { margin-top: 0; }
 .checklist-grid li:has(input:checked) { color: var(--quiet); text-decoration: line-through; text-decoration-color: #66716a; }
 .checklist-note { margin: 18px 0 0; color: var(--quiet); font-size: 10px; text-align: center; }
 
-.site-footer { display: flex; justify-content: space-between; gap: 15px; padding: 20px clamp(20px, 4vw, 64px); color: var(--quiet); font-size: 8px; font-weight: 700; letter-spacing: .17em; }
+.site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 15px; padding: 20px clamp(20px, 4vw, 64px); color: var(--quiet); font-size: 8px; font-weight: 700; letter-spacing: .17em; }
 .lightbox { width: min(92vw, 1000px); width: min(100dvw, 1000px); max-width: 100%; max-height: 100vh; max-height: 100dvh; padding: 44px 20px 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); }
 .lightbox::backdrop { background: rgba(0,0,0,.86); backdrop-filter: blur(5px); }
 .lightbox-media { display: grid; min-height: 120px; place-items: center; touch-action: pan-y; }
