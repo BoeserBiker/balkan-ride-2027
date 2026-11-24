@@ -50,6 +50,7 @@ jobs:
       - name: Stufe 1 - Plan erstellen
         env:
           MODE: plan
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_PLAN_MODEL || 'claude-haiku-4-5' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/agent_runner.py
@@ -82,6 +83,7 @@ jobs:
       - name: Stufe 2a - Änderungen erzeugen und Feature-Branch pushen
         env:
           MODE: implement
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-sonnet-5-5' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/agent_runner.py

@@ -1,6 +1,11 @@
 {
-  "version": "v2.60",
+  "version": "v2.61",
   "history": [
+    {
+      "version": "v2.61",
+      "date": "2026-11-25",
+      "message": "Cloud-Agent auf sparsame Search/Replace-Patches umgestellt"
+    },
     {
       "version": "v2.60",
       "date": "2026-11-24",

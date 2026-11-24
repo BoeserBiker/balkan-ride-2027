@@ -38,26 +38,19 @@ class AskModelTests(unittest.TestCase):
         self.create.return_value = response("end_turn", ("thinking", ""), ("text", " Plan "))
         self.assertEqual(agent_runner.ask_model("plan", {}, "Regeln"), "Plan")
         self.assertEqual(self.create.call_count, 1)
-        self.assertEqual(self.create.call_args.kwargs["max_tokens"], 2500)
+        self.assertEqual(self.create.call_args.kwargs["max_tokens"], 6000)
 
-    def test_truncated_plan_is_retried_with_larger_budget(self):
-        self.create.side_effect = [
-            response("max_tokens", ("text", "Unvollständig")),
-            response("end_turn", ("text", "Vollständig")),
-        ]
-        self.assertEqual(agent_runner.ask_model("plan", {}, "Regeln"), "Vollständig")
-        self.assertEqual([call.kwargs["max_tokens"] for call in self.create.call_args_list], [2500, 8192])
-
-    def test_empty_plan_is_retried(self):
-        self.create.side_effect = [response("end_turn"), response("end_turn", ("text", "Plan"))]
-        self.assertEqual(agent_runner.ask_model("plan", {}, "Regeln"), "Plan")
-        self.assertEqual(self.create.call_count, 2)
-
-    def test_repeated_truncation_fails_without_returning_partial_text(self):
+    def test_plan_uses_a_single_budget_without_retry_of_the_whole_context(self):
         self.create.return_value = response("max_tokens", ("text", "Unvollständig"))
         with self.assertRaisesRegex(ValueError, "stop_reason='max_tokens'"):
             agent_runner.ask_model("plan", {}, "Regeln")
-        self.assertEqual(self.create.call_count, 2)
+        self.assertEqual([call.kwargs["max_tokens"] for call in self.create.call_args_list], [6000])
+
+    def test_empty_plan_fails_after_the_single_attempt(self):
+        self.create.return_value = response("end_turn")
+        with self.assertRaises(ValueError):
+            agent_runner.ask_model("plan", {}, "Regeln")
+        self.assertEqual(self.create.call_count, 1)
 
     def test_other_stop_reason_is_not_retried(self):
         self.create.return_value = response("refusal", ("text", "Ablehnung"))
@@ -542,8 +535,49 @@ class RunnerFlowTests(TemporaryRoot):
         with patch.object(agent_runner, "ask_model", return_value=good_plan) as ask:
             comment = agent_runner.plan_comment(self.issue)
         self.assertIn(agent_runner.plan_marker(self.issue), comment)
-        self.assertEqual(sorted(ask.call_args.args[1]["files"]), ["content/tag-01.md", "web/src/main.js"])
+        context = ask.call_args.args[1]
+        self.assertEqual(sorted(context["files"]), ["web/src/main.js"])
+        self.assertEqual(context["file_list"], ["content/tag-01.md", "web/src/main.js"])
         self.assertNotIn("logistik", ask.call_args.args[1])
+
+
+class CollectContextTests(TemporaryRoot):
+    def issue(self, title, body=""):
+        return {"title": title, "body": body}
+
+    def setUp(self):
+        super().setUp()
+        self.write("content/tag-06.md", STAGE)
+        self.write("content/tag-07.md", STAGE.replace("Zadar", "Mostar").replace("Split", "Sarajevo"))
+        self.write("web/src/main.js", "m" * 100)
+        self.write("web/src/style.css", "s" * 100)
+        self.write("web/tests/features.test.js", "t")
+        self.write("config/settings.json", "{}")
+
+    def test_stage_issue_loads_only_matching_days_but_lists_every_path(self):
+        context = agent_runner.collect_context(self.issue("Tag 6 überarbeiten"))
+        self.assertEqual(sorted(context["files"]), ["content/tag-06.md"])
+        self.assertEqual(len(context["file_list"]), 6)
+        context = agent_runner.collect_context(self.issue("Highlights", "Etappe nach Sarajevo"))
+        self.assertEqual(sorted(context["files"]), ["content/tag-07.md"])
+
+    def test_ui_issue_loads_app_files_but_no_stages(self):
+        context = agent_runner.collect_context(self.issue("Neuer Button in der Karte"))
+        self.assertEqual(
+            sorted(context["files"]),
+            ["web/src/main.js", "web/src/style.css", "web/tests/features.test.js"],
+        )
+
+    def test_unrelated_issue_loads_no_file_contents(self):
+        context = agent_runner.collect_context(self.issue("Danke", "Alles gut"))
+        self.assertEqual(context["files"], {})
+        self.assertIn("web/src/main.js", context["file_list"])
+
+    def test_context_stays_within_the_plan_budget(self):
+        with patch.object(agent_runner, "PLAN_CONTEXT_BYTES", 150):
+            context = agent_runner.collect_context(self.issue("CSS Layout der Karte"))
+        self.assertLessEqual(sum(len(text) for text in context["files"].values()), 150)
+        self.assertEqual(agent_runner.PLAN_CONTEXT_BYTES, 45000)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ TEXT_SUFFIXES = {
 MAX_PLANNED_FILES = 25
 MAX_FILE_BYTES = 256 * 1024
 MAX_CONTEXT_BYTES = 600 * 1024
+PLAN_CONTEXT_BYTES = 45000
 MAX_CHANGESET_BYTES = 1024 * 1024
 PLAN_HEADING = "## Umsetzungsplan"
 APPROVAL = "/implement-item"
@@ -269,7 +270,7 @@ def ask_model(mode: str, context: dict, extra_rules: str) -> str:
     command = {"plan": "plan-item", "implement": "implement-item"}[mode]
     rules = (ROOT / "config" / "commands" / f"{command}.md").read_text(encoding="utf-8")
     client = anthropic.Anthropic(timeout=90)
-    budgets = (2500, 8192) if mode == "plan" else (4096, 8192)
+    budgets = (6000,) if mode == "plan" else (4096, 8192)
     for max_tokens in budgets:
         response = client.messages.create(
             model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6",
@@ -494,11 +495,71 @@ def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]
     commit_branch(issue, validated_changes(raw, paths, files))
 
 
-def plan_comment(issue: dict) -> str:
-    context = {
-        "title": issue["title"], "body": issue.get("body"),
-        "files": read_files(list_allowed_files()),
+UI_KEYWORDS = (
+    "app", "ui", "karte", "map", "button", "menü", "menu", "layout", "css", "design", "seite",
+    "anzeige", "darstellung", "pwa", "offline", "filter", "test", "web", "header", "footer",
+    "style", "farbe", "suche", "übersicht", "profil", "höhenprofil", "scrubber", "download",
+    "logistik", "service worker", "sw.js", "manifest", "roadbook",
+)
+
+
+def stage_places(text: str) -> list[str]:
+    return [
+        place.strip().strip("'\"").casefold()
+        for place in re.findall(r"^(?:start|ziel):[ \t]*(.+)$", text, re.MULTILINE)
+    ]
+
+
+def collect_context(issue: dict) -> dict:
+    """Lädt nur zum Issue passende Dateien innerhalb von PLAN_CONTEXT_BYTES plus die Dateiliste."""
+    paths = list_allowed_files()
+    haystack = f"{issue['title']}\n{issue.get('body') or ''}".casefold()
+    selected = []
+    numbers = {
+        int(number) for number in re.findall(r"(?:tag|etappe|day)[ \t_-]*0*(\d{1,2})\b", haystack)
     }
+    for path in paths:
+        match = STAGE_PATH.fullmatch(path)
+        if not match:
+            continue
+        target = safe_target(path)
+        places = stage_places(target.read_text(encoding="utf-8"))
+        if int(match[1]) in numbers or any(place and place in haystack for place in places):
+            selected.append(path)
+    words = set(re.findall(r"[\wäöüß.-]+", haystack))
+    ui_issue = any(
+        keyword in haystack if " " in keyword or "." in keyword else keyword in words
+        for keyword in UI_KEYWORDS
+    )
+    app_paths = [
+        path for path in paths
+        if path == "web/index.html" or path.startswith(("web/src/", "web/public/", "web/tests/"))
+    ]
+    if ui_issue:
+        # Dateien, deren Name im Issue vorkommt, kommen zuerst; große Dateien zuletzt.
+        app_paths.sort(key=lambda path: (
+            PurePosixPath(path).stem.casefold().removesuffix(".test") not in haystack,
+            safe_target(path).stat().st_size,
+        ))
+        selected.extend(app_paths)
+    if "config" in haystack:
+        selected.extend(path for path in paths if path.startswith("config/"))
+
+    files = {}
+    remaining = PLAN_CONTEXT_BYTES
+    for path in selected:
+        size = safe_target(path).stat().st_size
+        if size <= remaining:
+            files.update(read_files([path]))
+            remaining -= size
+    return {
+        "title": issue["title"], "body": issue.get("body"),
+        "file_list": paths, "files": files,
+    }
+
+
+def plan_comment(issue: dict) -> str:
+    context = collect_context(issue)
     logistik = ROOT / "docs" / "motorrad_checkliste_logistik.md"
     if logistik.is_file() and not logistik.is_symlink():
         context["logistik"] = logistik.read_text(encoding="utf-8")
