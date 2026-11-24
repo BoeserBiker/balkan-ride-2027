@@ -161,16 +161,23 @@ def ask_model(mode: str, context: dict, extra_rules: str) -> str:
     command = {"plan": "plan-item", "implement": "implement-item"}[mode]
     rules = (ROOT / "config" / "commands" / f"{command}.md").read_text(encoding="utf-8")
     client = anthropic.Anthropic(timeout=90)
-    response = client.messages.create(
-        model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6",
-        system=f"{rules}\n\n{extra_rules}",
-        max_tokens=2500 if mode == "plan" else 8000,
-        messages=[{"role": "user", "content": json.dumps(context, ensure_ascii=False)}],
+    budgets = (2500, 8192) if mode == "plan" else (8000,)
+    for max_tokens in budgets:
+        response = client.messages.create(
+            model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6",
+            system=f"{rules}\n\n{extra_rules}",
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": json.dumps(context, ensure_ascii=False)}],
+        )
+        text = "\n".join(block.text for block in response.content if block.type == "text").strip()
+        if response.stop_reason == "end_turn" and text:
+            return text
+        if response.stop_reason not in ("max_tokens", "end_turn"):
+            break
+    raise ValueError(
+        f"Das Modell hat keine vollständige Textantwort geliefert "
+        f"(stop_reason={response.stop_reason!r}, Text vorhanden={bool(text)})."
     )
-    text = "\n".join(block.text for block in response.content if block.type == "text").strip()
-    if response.stop_reason != "end_turn" or not text:
-        raise ValueError("Das Modell hat keine vollständige Textantwort geliefert.")
-    return text
 
 
 def validated_changes(raw: str, paths: set[str], files: dict[str, str]) -> dict[str, str]:
