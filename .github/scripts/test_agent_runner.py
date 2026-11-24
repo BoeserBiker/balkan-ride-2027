@@ -76,7 +76,7 @@ class AskModelTests(unittest.TestCase):
         )
         self.assertEqual(
             [call.kwargs["max_tokens"] for call in self.create.call_args_list],
-            [16000, 32000],
+            [4096, 8192],
         )
 
     def test_incomplete_implementation_after_retry_fails_without_partial_text(self):
@@ -85,7 +85,7 @@ class AskModelTests(unittest.TestCase):
             agent_runner.ask_model("implement", {}, "Regeln")
         self.assertEqual(
             [call.kwargs["max_tokens"] for call in self.create.call_args_list],
-            [16000, 32000],
+            [4096, 8192],
         )
 
 
@@ -249,20 +249,13 @@ class FileAccessTests(TemporaryRoot):
         with self.assertRaises(ValueError):
             agent_runner.read_files([".github/workflows/ai-agent-workflow.yml"])
 
-    def test_reference_tests_are_read_only_context_and_respect_the_shared_limit(self):
+    def test_reference_tests_are_listed_by_name_only(self):
         self.write("web/tests/reference.test.js", "reference")
         self.write("web/tests/approved.test.js", "approved")
-        files = {"web/src/main.js": "source"}
-        references = agent_runner.read_reference_tests(
-            {"web/src/main.js", "web/tests/approved.test.js"}, files
+        self.assertEqual(
+            agent_runner.list_reference_tests({"web/tests/approved.test.js"}),
+            ["web/tests/reference.test.js"],
         )
-        self.assertEqual(references, {"web/tests/reference.test.js": "reference"})
-
-        with patch.object(agent_runner, "MAX_CONTEXT_BYTES", 10):
-            references = agent_runner.read_reference_tests(
-                {"web/src/main.js"}, files
-            )
-        self.assertEqual(references, {})
 
 
 class ValidatedChangesTests(TemporaryRoot):
@@ -277,6 +270,44 @@ class ValidatedChangesTests(TemporaryRoot):
         return agent_runner.validated_changes(
             json.dumps(mapping), paths or set(mapping), files or {}
         )
+
+    def test_multiple_edits_apply_sequentially_and_new_files_use_content(self):
+        files = {"web/src/main.js": "alpha\nbeta\ngamma\n"}
+        result = self.changes(
+            {
+                "web/src/main.js": {"edits": [
+                    {"search": "alpha", "replace": "ALPHA"},
+                    {"search": "ALPHA\nbeta", "replace": "ALPHA\nBETA"},
+                ]},
+                "web/tests/neu.test.js": {"content": "test\n"},
+            },
+            files=files,
+        )
+        self.assertEqual(result, {
+            "web/src/main.js": "ALPHA\nBETA\ngamma\n", "web/tests/neu.test.js": "test\n",
+        })
+
+    def test_edit_search_must_match_exactly_once(self):
+        files = {"web/src/main.js": "a\na\nb\n"}
+        for search, pattern in (("fehlt", "nicht gefunden"), ("a", "2-mal")):
+            with self.subTest(search=search), self.assertRaisesRegex(
+                ValueError, rf"web/src/main\.js.*{pattern}"
+            ):
+                self.changes(
+                    {"web/src/main.js": {"edits": [{"search": search, "replace": "x"}]}},
+                    files=files,
+                )
+
+    def test_malformed_edits_are_rejected(self):
+        files = {"web/src/main.js": "a\n"}
+        for spec in (
+            {"edits": []}, {"edits": [{"search": "", "replace": "x"}]},
+            {"edits": [{"search": "a"}]}, {"edits": "a"}, {"foo": 1},
+        ):
+            with self.subTest(spec=spec), self.assertRaises(ValueError):
+                self.changes({"web/src/main.js": spec}, files=files)
+        with self.assertRaisesRegex(ValueError, "content"):
+            self.changes({"web/src/neu.js": {"edits": [{"search": "a", "replace": "b"}]}})
 
     def test_approved_app_and_test_files_are_accepted_with_trailing_newline(self):
         result = self.changes(
@@ -470,7 +501,8 @@ class RunnerFlowTests(TemporaryRoot):
         context = ask.call_args.args[1]
         self.assertEqual(context["allowed_paths"], ["web/src/main.js", "web/tests/main.test.js"])
         self.assertEqual(context["files"], {"web/src/main.js": "old\n"})
-        self.assertEqual(context["reference_tests"], {"web/tests/existing.test.js": "x"})
+        self.assertEqual(context["reference_test_files"], ["web/tests/existing.test.js"])
+        self.assertNotIn("reference_tests", context)
         self.assertNotIn("web/tests/existing.test.js", context["allowed_paths"])
         self.assertEqual(commit.call_args.args[1], {"web/src/main.js": "new\n", "web/tests/main.test.js": "test\n"})
         self.assertEqual(posted, [])

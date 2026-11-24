@@ -1,6 +1,11 @@
 {
-  "version": "v2.59",
+  "version": "v2.60",
   "history": [
+    {
+      "version": "v2.60",
+      "date": "2026-11-24",
+      "message": "Implement-Token-Budget auf 16000/32000 fuer groessere Web-Dateien erhoeht"
+    },
     {
       "version": "v2.59",
       "date": "2026-11-24",
