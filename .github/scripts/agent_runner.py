@@ -245,7 +245,7 @@ def ask_model(mode: str, context: dict, extra_rules: str) -> str:
     command = {"plan": "plan-item", "implement": "implement-item"}[mode]
     rules = (ROOT / "config" / "commands" / f"{command}.md").read_text(encoding="utf-8")
     client = anthropic.Anthropic(timeout=90)
-    budgets = (2500, 8192) if mode == "plan" else (8000,)
+    budgets = (2500, 8192) if mode == "plan" else (8000, 16000)
     for max_tokens in budgets:
         response = client.messages.create(
             model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6",
@@ -281,10 +281,16 @@ def validate_text_file(path: str, text: str) -> None:
 
 def validated_changes(raw: str, paths: set[str], files: dict[str, str]) -> dict[str, str]:
     changes = json.loads(raw)
-    if not isinstance(changes, dict) or not changes or changes.keys() - paths:
+    if isinstance(changes, dict) and not changes:
         raise ValueError(
-            "Die Umsetzung muss ein nicht leeres JSON-Objekt mit ausschließlich freigegebenen "
-            "Pfaden sein. Wird eine weitere Datei benötigt, muss neu geplant werden."
+            "Das Modell hat keine Änderungen zurückgegeben ({}) – vermutlich wird eine "
+            "weitere Datei außerhalb von allowed_paths benötigt oder eine Rückfrage im Plan "
+            "muss zuerst beantwortet werden."
+        )
+    if not isinstance(changes, dict) or changes.keys() - paths:
+        raise ValueError(
+            "Die Umsetzung muss ein JSON-Objekt mit ausschließlich freigegebenen Pfaden sein. "
+            "Wird eine weitere Datei benötigt, muss neu geplant werden."
         )
     updated = {}
     for path, text in changes.items():

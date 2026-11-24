@@ -1,6 +1,11 @@
 {
-  "version": "v2.56",
+  "version": "v2.57",
   "history": [
+    {
+      "version": "v2.57",
+      "date": "2026-11-24",
+      "message": "Erweiterte app-weite Agentenfaehigkeit mit 3-stufiger Workflow-Trennung (V5) umgesetzt"
+    },
     {
       "version": "v2.56",
       "date": "2026-11-24",

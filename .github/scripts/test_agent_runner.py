@@ -65,12 +65,28 @@ class AskModelTests(unittest.TestCase):
             agent_runner.ask_model("plan", {}, "Regeln")
         self.assertEqual(self.create.call_count, 1)
 
-    def test_implementation_still_rejects_incomplete_response_without_retry(self):
+    def test_truncated_implementation_is_retried_with_larger_budget(self):
+        self.create.side_effect = [
+            response("max_tokens", ("text", '{"web/src/main.js":')),
+            response("end_turn", ("text", '{"web/src/main.js":"vollständig"}')),
+        ]
+        self.assertEqual(
+            agent_runner.ask_model("implement", {}, "Regeln"),
+            '{"web/src/main.js":"vollständig"}',
+        )
+        self.assertEqual(
+            [call.kwargs["max_tokens"] for call in self.create.call_args_list],
+            [8000, 16000],
+        )
+
+    def test_incomplete_implementation_after_retry_fails_without_partial_text(self):
         self.create.return_value = response("max_tokens", ("text", "{}"))
         with self.assertRaisesRegex(ValueError, "stop_reason='max_tokens'"):
             agent_runner.ask_model("implement", {}, "Regeln")
-        self.assertEqual(self.create.call_count, 1)
-        self.assertEqual(self.create.call_args.kwargs["max_tokens"], 8000)
+        self.assertEqual(
+            [call.kwargs["max_tokens"] for call in self.create.call_args_list],
+            [8000, 16000],
+        )
 
 
 STAGE = """---
@@ -266,11 +282,24 @@ class ValidatedChangesTests(TemporaryRoot):
 
     def test_empty_unchanged_or_non_text_results_are_rejected(self):
         files = {"web/src/main.js": "old\n"}
-        for raw in ("{}", "[]", json.dumps({"web/src/main.js": "old"}),
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Das Modell hat keine Änderungen zurückgegeben \(\{\}\).*allowed_paths",
+        ):
+            agent_runner.validated_changes("{}", {"web/src/main.js"}, files)
+        for raw in ("[]", json.dumps({"web/src/main.js": "old"}),
                     json.dumps({"web/src/main.js": 5}), json.dumps({"web/src/main.js": "  "}),
                     json.dumps({"web/src/main.js": "a\x00b"}), "kein json"):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 agent_runner.validated_changes(raw, {"web/src/main.js"}, files)
+
+    def test_unapproved_paths_have_a_distinct_error_from_empty_changes(self):
+        with self.assertRaisesRegex(ValueError, "ausschließlich freigegebenen Pfaden"):
+            agent_runner.validated_changes(
+                json.dumps({"web/src/other.js": "x"}),
+                {"web/src/main.js"},
+                {},
+            )
 
     def test_structured_files_must_stay_valid(self):
         with self.assertRaises(ValueError):
