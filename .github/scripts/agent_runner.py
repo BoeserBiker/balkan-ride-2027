@@ -284,7 +284,7 @@ def ask_model(mode: str, context: dict, extra_rules: str) -> str:
     command = {"plan": "plan-item", "implement": "implement-item"}[mode]
     rules = (ROOT / "config" / "commands" / f"{command}.md").read_text(encoding="utf-8")
     client = anthropic.Anthropic(timeout=90)
-    budgets = (2500, 8192) if mode == "plan" else (8000, 16000)
+    budgets = (2500, 8192) if mode == "plan" else (16000, 32000)
     for max_tokens in budgets:
         response = client.messages.create(
             model=os.environ.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6",

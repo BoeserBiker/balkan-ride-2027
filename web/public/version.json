@@ -1,6 +1,11 @@
 {
-  "version": "v2.58",
+  "version": "v2.59",
   "history": [
+    {
+      "version": "v2.59",
+      "date": "2026-11-24",
+      "message": "Implement-Kontext um Referenz-Tests erweitert und vorschnellen Abbruch behoben"
+    },
     {
       "version": "v2.58",
       "date": "2026-11-24",
