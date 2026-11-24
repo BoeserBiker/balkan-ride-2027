@@ -1,5 +1,50 @@
 import { escapeHtml, escapeDisplayText, formatDuration } from './html.js';
 
+const poiPrefix = /^D\d+\s*-\s*(\d+)\s*-\s*/i;
+const poiDistanceFormatter = new Intl.NumberFormat('de-DE', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+const poiElevationFormatter = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+
+export function cleanPoiName(value) {
+  return String(value ?? '').replace(poiPrefix, '').trim() || 'Unbenannter Stopp';
+}
+
+export function poiStopNumber(waypoint, index) {
+  const match = String(waypoint?.name ?? '').match(poiPrefix);
+  return match ? Number(match[1]) : index + 1;
+}
+
+export function editorialPoiDescription(waypoint) {
+  const description = String(waypoint?.description ?? '').trim();
+  if (!description || /\bV7\s*\/|\/\s*D\d+\s*\//i.test(description)) {
+    return '';
+  }
+
+  const cleanedDescription = description
+    .replace(/^(?:MOTORRAD|PKW|ALT|OPTION|FAEHRE)\s*[·–/-]\s*/i, '')
+    .trim();
+  const rawName = String(waypoint?.name ?? '').trim();
+  const cleanedName = cleanPoiName(rawName);
+  if (!cleanedDescription || [rawName, cleanedName].some(
+    (name) => name && cleanedDescription.localeCompare(name, 'de', { sensitivity: 'base' }) === 0,
+  )) {
+    return '';
+  }
+  return cleanedDescription;
+}
+
+export function formatPoiSummary(waypoint, index, point) {
+  const distance = Number.isFinite(point?.distanceKm)
+    ? poiDistanceFormatter.format(point.distanceKm)
+    : 'n/v';
+  const height = Number.isFinite(point?.elevationMeters)
+    ? poiElevationFormatter.format(point.elevationMeters)
+    : 'n/v';
+  return `Stopp ${poiStopNumber(waypoint, index)} · ${distance} km · ${height} m`;
+}
+
 function formatDate(value) {
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) {
@@ -137,6 +182,70 @@ function renderVideo(video, urls) {
   `;
 }
 
+function renderGalleryVideo(video, urls, index) {
+  const title = escapeDisplayText(video.titel || 'Etappenvideo');
+  let type = 'video';
+  let source = urls[video.quelle];
+  if (video.typ === 'youtube') {
+    const videoId = youtubeVideoId(video.quelle);
+    if (!videoId) {
+      return `<div class="media-placeholder"><small>VIDEO-QUELLE UNGÜLTIG</small><p>${title}</p></div>`;
+    }
+    type = 'youtube';
+    source = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&playsinline=1`;
+  }
+  if (!source) {
+    return `<div class="media-placeholder"><span aria-hidden="true">▶</span><small>VIDEO NOCH NICHT IM WORKSPACE</small><p>${title}</p></div>`;
+  }
+
+  const poster = urls[video.poster];
+  return `
+    <button class="media-gallery-video" type="button" data-lightbox-index="${index}"
+      data-lightbox-type="${type}" data-lightbox-src="${escapeHtml(source)}"
+      data-lightbox-alt="${title}" data-lightbox-caption="${title}"
+      aria-label="Video ${title} in Vollbild ansehen">
+      ${poster
+    ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy">`
+    : '<span class="media-gallery-video-placeholder" aria-hidden="true">▶</span>'}
+      <span class="media-gallery-video-overlay"><strong>${title}</strong><span>▶ Video ansehen</span></span>
+    </button>
+  `;
+}
+
+export function renderMediaGallery(days, { assetUrls }) {
+  const urls = mediaPathMap(assetUrls);
+  return `${days.map(({ frontmatter }, dayIndex) => {
+    const dayLabel = String(frontmatter.tag).padStart(2, '0');
+    const photos = frontmatter.bilder.map((photo, index) => `
+      <div class="media-gallery-entry" data-media-type="photo">
+        ${renderPhoto(photo, urls, index)}
+      </div>
+    `).join('');
+    const videos = frontmatter.videos.map((video, index) => `
+      <div class="media-gallery-entry" data-media-type="video">
+        ${renderGalleryVideo(video, urls, frontmatter.bilder.length + index)}
+      </div>
+    `).join('');
+    return `
+      <article class="media-gallery-stage" data-media-stage data-day-index="${dayIndex}">
+        <header class="media-gallery-stage-heading">
+          <div>
+            <p class="eyebrow">ETAPPE ${dayLabel}</p>
+            <h3>${escapeDisplayText(frontmatter.titel)}</h3>
+          </div>
+          <button class="button button-secondary media-stage-jump" type="button"
+            data-select-day-index="${dayIndex}" aria-label="Etappe ${dayLabel} im Roadbook öffnen">
+            Etappe ansehen
+          </button>
+        </header>
+        <div class="media-gallery-grid">${photos}${videos}</div>
+        <p class="media-gallery-empty" data-media-empty hidden>Für diese Etappe sind noch keine Medien hinterlegt.</p>
+      </article>
+    `;
+  }).join('')}
+  <p class="media-gallery-no-results" data-media-no-results hidden>Für diesen Filter sind keine Medien vorhanden.</p>`;
+}
+
 export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
   const { frontmatter, body } = day;
   const urls = mediaPathMap(assetUrls);
@@ -167,11 +276,21 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
       <span>${formatDate(frontmatter.datum)}</span>
     </div>
     <h2 class="day-title">${escapeDisplayText(frontmatter.titel)}</h2>
-    <div class="route-line">
+    <div class="route-line" data-route-line>
       <div><span class="route-point start-point"></span><small>START</small><strong>${escapeDisplayText(frontmatter.start)}</strong></div>
-      <button class="route-connector" data-route-scrubber type="button" role="slider" aria-label="Streckenfortschritt: GPX wird geladen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" disabled>
-        <span class="route-connector-line" aria-hidden="true"><span class="route-connector-fill"></span><span class="route-connector-thumb"><span data-route-distance></span></span></span>
-      </button>
+      <div class="route-connector-wrap">
+        <button class="route-connector" data-route-scrubber type="button" role="slider" aria-label="Streckenfortschritt: GPX wird geladen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" disabled>
+          <span class="route-connector-line" aria-hidden="true"><span class="route-connector-fill"></span><span class="route-connector-thumb"><span data-route-distance></span></span></span>
+        </button>
+        <div class="route-poi-markers" data-route-poi-markers aria-label="Etappen-POIs"></div>
+      </div>
+      <div class="route-poi-popover" data-route-poi-popover role="dialog" aria-live="polite" hidden>
+        <button class="route-poi-close" data-route-poi-close type="button" aria-label="POI-Information schließen">×</button>
+        <strong data-route-poi-name></strong>
+        <span data-route-poi-summary></span>
+        <span data-route-poi-description hidden></span>
+        <a class="poi-navigation" data-route-poi-navigation target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>
+      </div>
       <div><span class="route-point finish-point"></span><small>ZIEL</small><strong>${escapeDisplayText(frontmatter.ziel)}</strong></div>
     </div>
     <dl class="stats-grid">

@@ -28,6 +28,7 @@ export function buildRouteTrack(segments) {
       previous = point;
     });
   });
+
   return points.length >= 2 && totalDistanceKm > 0 ? { points, totalDistanceKm } : null;
 }
 
@@ -57,14 +58,19 @@ export function sampleRouteTrack(track, progress) {
   };
 }
 
-export function bindRouteScrubber(control, track, setLivePosition) {
+export function bindRouteScrubber(control, track, setLivePosition, {
+  findPoi = () => null,
+  onProgress = () => {},
+  isPinned = () => false,
+} = {}) {
   const label = control.querySelector('[data-route-distance]');
   const distanceFormatter = new Intl.NumberFormat('de-DE', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
 
-  function update(progress) {
+  function update(progress, poi = null, selected = false) {
+    if (poi) progress = poi.point.distanceKm / track.totalDistanceKm;
     const sample = sampleRouteTrack(track, progress);
     const distance = `${distanceFormatter.format(sample.distanceKm)} km`;
     control.style.setProperty('--route-progress', `${sample.progress * 100}%`);
@@ -73,22 +79,31 @@ export function bindRouteScrubber(control, track, setLivePosition) {
     control.setAttribute('aria-valuetext', distance);
     label.textContent = distance;
     setLivePosition(sample);
+    onProgress(sample, poi, { selected });
+    return sample;
   }
 
-  function updateFromX(clientX) {
+  function updateFromX(clientX, selected = false) {
+    if (isPinned() && !selected) return;
     const bounds = control.getBoundingClientRect();
     if (bounds.width > 0) {
-      update((clientX - bounds.left) / bounds.width);
+      const progress = Math.min(1, Math.max(0, (clientX - bounds.left) / bounds.width));
+      const match = findPoi(progress, bounds.width);
+      update(match?.progress ?? progress, match?.poi ?? null, selected && Boolean(match));
     }
   }
 
-  function reset() {
+  function reset(force = false) {
+    if (!force && isPinned()) {
+      return;
+    }
     control.classList.remove('is-active');
     control.style.removeProperty('--route-progress');
     control.setAttribute('aria-valuenow', '0');
     control.removeAttribute('aria-valuetext');
     label.textContent = '';
     setLivePosition(null);
+    onProgress(null, null, { reset: true });
   }
 
   control.disabled = false;
@@ -98,12 +113,15 @@ export function bindRouteScrubber(control, track, setLivePosition) {
     if (event.pointerType !== 'mouse' && control.setPointerCapture) {
       control.setPointerCapture(event.pointerId);
     }
-    updateFromX(event.clientX);
+    updateFromX(event.clientX, true);
   });
   control.addEventListener('pointerleave', (event) => {
     if (event.pointerType === 'mouse') reset();
   });
-  control.addEventListener('pointerup', reset);
+  control.addEventListener('pointerup', (event) => {
+    updateFromX(event.clientX, true);
+    reset();
+  });
   control.addEventListener('pointercancel', reset);
   control.addEventListener('touchmove', (event) => {
     if (event.touches[0]) {
@@ -111,7 +129,10 @@ export function bindRouteScrubber(control, track, setLivePosition) {
       updateFromX(event.touches[0].clientX);
     }
   }, { passive: false });
-  control.addEventListener('touchend', reset);
+  control.addEventListener('touchend', (event) => {
+    if (event.changedTouches[0]) updateFromX(event.changedTouches[0].clientX, true);
+    reset();
+  });
   control.addEventListener('touchcancel', reset);
   control.addEventListener('blur', reset);
   control.addEventListener('keydown', (event) => {

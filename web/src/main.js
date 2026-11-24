@@ -6,18 +6,267 @@ import './style.css';
 import roadbookDays from 'virtual:roadbook-content';
 import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
-import { renderDayContent } from './roadbook.js';
+import {
+  cleanPoiName, editorialPoiDescription, formatPoiSummary, renderDayContent, renderMediaGallery,
+} from './roadbook.js';
 import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
-import { bindElevationProfile, buildElevationProfile, renderElevationProfile } from './elevation-profile.js';
+import {
+  bindElevationProfile, buildElevationProfile, buildPoiPositions, renderElevationProfile,
+} from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
-import { escapeDisplayText, googleMapsDirectionsUrl } from './html.js';
+import {
+  directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
+} from './html.js';
 
 const app = document.querySelector('#app');
+const SETTINGS_KEYS = {
+  theme: 'balkan-ride-theme',
+  fontSize: 'balkan-ride-font-size',
+};
+const APP_CACHE_PREFIX = 'balkan-ride-shell-';
+const THEMES = new Set(['default', 'schalke', 'bvb']);
+const FONT_SIZES = new Set(['normal', 'large']);
 const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg,png,webp,mp4,webm}', {
   eager: true,
   query: '?url',
   import: 'default',
 });
+
+function readSetting(key, allowedValues, fallback) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved && !allowedValues.has(saved)) {
+      console.error(`Gespeicherte Einstellung "${key}" ist ungültig.`);
+    }
+    return allowedValues.has(saved) ? saved : fallback;
+  } catch (error) {
+    console.error(`Einstellung "${key}" konnte nicht gelesen werden.`, error);
+    return fallback;
+  }
+}
+
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.error(`Einstellung "${key}" konnte nicht gespeichert werden.`, error);
+  }
+}
+
+function updateNavigationLinks() {
+  document.querySelectorAll('[data-navigation-lat][data-navigation-lon]').forEach((link) => {
+    link.href = directionsUrl(Number(link.dataset.navigationLat), Number(link.dataset.navigationLon));
+  });
+}
+
+function setNavigationTarget(link, latitude, longitude) {
+  link.dataset.navigationLat = String(latitude);
+  link.dataset.navigationLon = String(longitude);
+  link.href = directionsUrl(latitude, longitude);
+}
+
+function initializeSettings() {
+  const root = document.documentElement;
+  const dialog = document.querySelector('#settings-dialog');
+  const toggle = document.querySelector('#settings-toggle');
+  const themeButtons = [...dialog.querySelectorAll('[data-theme-choice]')];
+  const fontButtons = [...dialog.querySelectorAll('[data-font-size]')];
+  const navigationSelect = dialog.querySelector('#navigation-app');
+  const refreshButton = dialog.querySelector('#refresh-app');
+  const status = dialog.querySelector('#settings-status');
+  let onThemeChange = () => {};
+
+  function applyTheme(theme, persist = false) {
+    root.dataset.theme = theme;
+    themeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.themeChoice === theme));
+    });
+    document.querySelector('meta[name="theme-color"]').content = ({
+      default: '#101311',
+      schalke: '#071426',
+      bvb: '#09090b',
+    })[theme];
+    if (persist) saveSetting(SETTINGS_KEYS.theme, theme);
+    onThemeChange();
+  }
+
+  function applyFontSize(size, persist = false) {
+    root.dataset.fontSize = size;
+    fontButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.fontSize === size));
+    });
+    if (persist) saveSetting(SETTINGS_KEYS.fontSize, size);
+  }
+
+  applyTheme(readSetting(SETTINGS_KEYS.theme, THEMES, 'default'));
+  applyFontSize(readSetting(SETTINGS_KEYS.fontSize, FONT_SIZES, 'normal'));
+  navigationSelect.value = getNavigationApp();
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => applyTheme(button.dataset.themeChoice, true));
+  });
+  fontButtons.forEach((button) => {
+    button.addEventListener('click', () => applyFontSize(button.dataset.fontSize, true));
+  });
+  navigationSelect.addEventListener('change', () => {
+    setNavigationApp(navigationSelect.value);
+    updateNavigationLinks();
+  });
+
+  toggle.addEventListener('click', () => {
+    dialog.showModal();
+    toggle.setAttribute('aria-expanded', 'true');
+  });
+  dialog.querySelector('.settings-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => {
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.focus();
+  });
+  dialog.addEventListener('click', (event) => {
+    const bounds = dialog.getBoundingClientRect();
+    if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right
+      || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
+      dialog.close();
+    }
+  });
+
+  refreshButton.addEventListener('click', async () => {
+    if (!navigator.onLine) {
+      status.textContent = 'Zum Aktualisieren ist eine Internetverbindung erforderlich.';
+      return;
+    }
+    refreshButton.disabled = true;
+    status.textContent = 'App und Offline-Cache werden aktualisiert …';
+    try {
+      const appScope = new URL(import.meta.env.BASE_URL, location.origin).pathname;
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations
+          .filter((registration) => {
+            const scope = new URL(registration.scope);
+            return scope.origin === location.origin && scope.pathname === appScope;
+          })
+          .map((registration) => registration.update()));
+      }
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        const appCaches = cacheNames
+          .filter((name) => name.startsWith(APP_CACHE_PREFIX))
+          .sort((left, right) => {
+            const version = (name) => Number(name.match(/v(\d+)$/)?.[1] ?? 0);
+            return version(right) - version(left);
+          });
+        await Promise.all(appCaches.slice(1).map((name) => caches.delete(name)));
+      }
+      status.textContent = 'Cache bereinigt. Die App wird neu geladen …';
+      location.reload();
+    } catch (error) {
+      console.error('App und Offline-Cache konnten nicht aktualisiert werden.', error);
+      status.textContent = 'Aktualisierung fehlgeschlagen. Prüfe die Verbindung und versuche es erneut.';
+      refreshButton.disabled = false;
+    }
+  });
+
+  return {
+    setThemeChangeHandler(handler) {
+      onThemeChange = handler;
+      onThemeChange();
+    },
+  };
+}
+
+function bindRoutePoiControl(line, control, profile) {
+  const markers = line.querySelector('[data-route-poi-markers]');
+  const popover = line.querySelector('[data-route-poi-popover]');
+  const closeButton = line.querySelector('[data-route-poi-close]');
+  const name = line.querySelector('[data-route-poi-name]');
+  const summary = line.querySelector('[data-route-poi-summary]');
+  const description = line.querySelector('[data-route-poi-description]');
+  const navigation = line.querySelector('[data-route-poi-navigation]');
+  const connector = line.querySelector('.route-connector-wrap');
+  let scrubber;
+  let pinnedPoi = null;
+
+  function progressFor(poi) {
+    return poi.point.distanceKm / profile.track.totalDistanceKm;
+  }
+
+  function show(poi, { pin = false } = {}) {
+    if (!poi) {
+      if (pinnedPoi) return;
+      markers.querySelectorAll('.route-poi-marker').forEach((marker) => marker.classList.remove('is-active'));
+      popover.hidden = true;
+      return;
+    }
+
+    if (pin) pinnedPoi = poi;
+    else if (pinnedPoi && pinnedPoi !== poi) pinnedPoi = null;
+    const index = profile.pois.indexOf(poi);
+    const progress = progressFor(poi);
+    const positionInLine = (connector.offsetLeft + progress * control.clientWidth) / line.clientWidth;
+    const align = progress < 0.25 ? 'left' : progress > 0.75 ? 'right' : 'center';
+    popover.dataset.align = align;
+    name.textContent = cleanPoiName(poi.waypoint.name);
+    summary.textContent = formatPoiSummary(poi.waypoint, index, poi.point);
+    const editorialDescription = editorialPoiDescription(poi.waypoint);
+    description.hidden = !editorialDescription;
+    description.textContent = editorialDescription;
+    setNavigationTarget(navigation, poi.waypoint.latitude, poi.waypoint.longitude);
+    popover.hidden = false;
+    const popoverWidth = popover.offsetWidth;
+    const edgePadding = Math.min(12, Math.max(0, (line.clientWidth - popoverWidth) / 2));
+    const preferredLeft = positionInLine * line.clientWidth
+      - (align === 'center' ? popoverWidth / 2 : align === 'right' ? popoverWidth : 0);
+    const maximumLeft = Math.max(edgePadding, line.clientWidth - popoverWidth - edgePadding);
+    popover.style.left = `${Math.max(edgePadding, Math.min(maximumLeft, preferredLeft))}px`;
+    markers.querySelectorAll('.route-poi-marker').forEach((marker) => {
+      marker.classList.toggle('is-active', marker.dataset.poiIndex === String(index));
+    });
+  }
+
+  profile.pois.forEach((poi, index) => {
+    const marker = document.createElement('button');
+    marker.className = 'route-poi-marker';
+    marker.type = 'button';
+    marker.dataset.poiIndex = String(index);
+    marker.style.left = `${progressFor(poi) * 100}%`;
+    marker.setAttribute('aria-label', `${cleanPoiName(poi.waypoint.name)} · ${formatPoiSummary(poi.waypoint, index, poi.point)}`);
+    marker.innerHTML = '<span aria-hidden="true"></span>';
+    marker.addEventListener('pointerenter', () => {
+      if (!pinnedPoi) scrubber?.update(progressFor(poi), poi);
+    });
+    marker.addEventListener('focus', () => {
+      if (!pinnedPoi) scrubber?.update(progressFor(poi), poi);
+    });
+    marker.addEventListener('click', () => scrubber?.update(progressFor(poi), poi, true));
+    markers.append(marker);
+  });
+
+  closeButton.addEventListener('click', () => {
+    pinnedPoi = null;
+    show(null);
+    scrubber?.reset(true);
+  });
+
+  return {
+    findPoi(progress, width) {
+      const nearest = profile.pois.reduce((best, poi) => {
+        const distance = Math.abs(progressFor(poi) - progress) * width;
+        return distance <= 20 && (!best || distance < best.distance) ? { poi, distance } : best;
+      }, null);
+      return nearest ? { poi: nearest.poi, progress: progressFor(nearest.poi) } : null;
+    },
+    show,
+    isPinned: () => Boolean(pinnedPoi),
+    setScrubber(value) {
+      scrubber = value;
+    },
+    clear() {
+      pinnedPoi = null;
+      show(null);
+    },
+  };
+}
 
 function renderShell() {
   app.innerHTML = `
@@ -29,11 +278,15 @@ function renderShell() {
         </a>
       </div>
       <div class="header-navigation">
+        <div class="header-tools">
+          <button id="version-badge" class="version-badge" type="button" aria-haspopup="dialog" aria-controls="version-history" disabled>Version lädt</button>
+          <button id="settings-toggle" class="settings-toggle" type="button" aria-label="Einstellungen" aria-haspopup="dialog" aria-controls="settings-dialog" aria-expanded="false">⋮</button>
+        </div>
         <nav class="site-nav" aria-label="Hauptnavigation">
           <a href="#roadbook">Etappen</a>
+          <a href="#media">Medien</a>
           <a href="#logistics">Logistik</a>
         </nav>
-        <button id="version-badge" class="version-badge" type="button" aria-haspopup="dialog" aria-controls="version-history" disabled>Version lädt</button>
       </div>
     </header>
 
@@ -85,6 +338,34 @@ function renderShell() {
         </section>
       </section>
 
+      <section id="media" class="media-page" aria-labelledby="media-title">
+        <div class="section-heading">
+          <p class="eyebrow">FOTOS · VIDEOS · ETAPPEN</p>
+          <h2 id="media-title">Momente der Tour.</h2>
+          <p>Alle Bilder und Videos aus dem Roadbook, gesammelt an einem Ort.</p>
+        </div>
+        <div class="media-gallery-toolbar">
+          <label>
+            <span>Medientyp</span>
+            <select id="media-type-filter">
+              <option value="all">Alle</option>
+              <option value="photo">Fotos</option>
+              <option value="video">Videos</option>
+            </select>
+          </label>
+          <label>
+            <span>Etappe</span>
+            <select id="media-stage-filter">
+              <option value="all">Alle Etappen</option>
+              ${roadbookDays.map(({ frontmatter }, index) => `
+                <option value="${index}">Etappe ${String(frontmatter.tag).padStart(2, '0')} · ${escapeDisplayText(frontmatter.titel)}</option>
+              `).join('')}
+            </select>
+          </label>
+        </div>
+        <div id="media-gallery" class="media-gallery-list"></div>
+      </section>
+
       <section id="logistics" class="logistics-section">
         <div class="section-heading">
           <p class="eyebrow">VORBEREITUNG · UNTERWEGS</p>
@@ -123,6 +404,44 @@ function renderShell() {
       <button class="version-close" type="button" aria-label="Versionsverlauf schließen">×</button>
       <h2 id="version-history-title">Versionsverlauf</h2>
       <ol class="version-history-list"></ol>
+    </dialog>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <button class="settings-close" type="button" aria-label="Einstellungen schließen">×</button>
+      <h2 id="settings-title">Einstellungen</h2>
+      <fieldset class="settings-group">
+        <legend>Farbschema</legend>
+        <div class="theme-options">
+          <button class="theme-choice" type="button" data-theme-choice="default" aria-pressed="false">
+            <span class="theme-swatches theme-swatches-gold" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>Balkan Gold</span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="schalke" aria-pressed="false">
+            <span class="theme-swatches theme-swatches-blue" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>Königsblau</span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+          <button class="theme-choice" type="button" data-theme-choice="bvb" aria-pressed="false">
+            <span class="theme-swatches theme-swatches-yellow" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>Borussia</span><span class="theme-check" aria-hidden="true">✓</span>
+          </button>
+        </div>
+      </fieldset>
+      <label class="settings-select-label" for="navigation-app">
+        <span>Standard-Navi-App</span>
+        <select id="navigation-app">
+          <option value="google">Google Maps</option>
+          <option value="apple">Apple Karten</option>
+          <option value="kurviger">Kurviger</option>
+        </select>
+      </label>
+      <fieldset class="settings-group">
+        <legend>Schriftgröße / Handschuh-Modus</legend>
+        <div class="settings-segment">
+          <button type="button" data-font-size="normal" aria-pressed="false">Normal</button>
+          <button type="button" data-font-size="large" aria-pressed="false">Groß</button>
+        </div>
+      </fieldset>
+      <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
+      <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
     </dialog>
   `;
 }
@@ -172,6 +491,24 @@ function renderApp() {
   }
 
   renderShell();
+  const navigationLinks = [...document.querySelectorAll('.site-nav a')];
+  const updateNavigationState = () => {
+    const activeHash = location.hash || '#roadbook';
+    navigationLinks.forEach((link) => {
+      if (link.hash === activeHash) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+  navigationLinks.forEach((link) => link.addEventListener('click', updateNavigationState));
+  window.addEventListener('hashchange', updateNavigationState);
+  updateNavigationState();
+
+  const mediaGallery = document.querySelector('#media-gallery');
+  mediaGallery.innerHTML = renderMediaGallery(roadbookDays, { assetUrls: mediaAssets });
+  const settings = initializeSettings();
   loadVersionHistory();
 
   const dayList = document.querySelector('#day-list');
@@ -192,6 +529,7 @@ function renderApp() {
   const map = createRoadbookMap(
     L, roadbookDays, document.querySelector('#map-status'), document.querySelector('#gpx-download'),
   );
+  settings.setThemeChangeHandler(map.setTheme);
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
   let lightboxItems = [];
@@ -228,6 +566,25 @@ function renderApp() {
     lightboxNext.disabled = index === lightboxItems.length - 1;
   }
 
+  function openLightbox(container, trigger) {
+    const itemsByIndex = new Map();
+    container.querySelectorAll('[data-lightbox-index]').forEach((item) => {
+      itemsByIndex.set(item.dataset.lightboxIndex, {
+        index: Number(item.dataset.lightboxIndex),
+        type: item.dataset.lightboxType,
+        src: item.dataset.lightboxSrc,
+        alt: item.dataset.lightboxAlt,
+        caption: item.dataset.lightboxCaption,
+      });
+    });
+    lightboxItems = [...itemsByIndex.values()].sort((first, second) => first.index - second.index);
+    const selectedIndex = lightboxItems.findIndex(
+      (item) => item.index === Number(trigger.dataset.lightboxIndex),
+    );
+    showLightboxItem(selectedIndex);
+    lightbox.showModal();
+  }
+
   function syncMobileViewport() {
     mobileDayNavigation.hidden = !mobileViewport.matches;
     requestAnimationFrame(() => map.resize({ fitActiveDay: mobileViewport.matches }));
@@ -257,13 +614,66 @@ function renderApp() {
     const route = buildRouteTrack(track.profileSegments);
     if (route) {
       control.dataset.bound = 'true';
-      bindRouteScrubber(control, route, map.setLivePosition);
-      const profile = buildElevationProfile(route, track.waypoints);
+      const poiPositions = buildPoiPositions(route, track.waypoints);
+      const poiData = { track: route, pois: poiPositions };
+      const routeLine = dayDetail.querySelector('[data-route-line]');
+      let profileController;
+      const poiControl = poiPositions.length
+        ? bindRoutePoiControl(routeLine, control, poiData)
+        : null;
+      let syncingFromRoute = false;
+      const routeScrubber = bindRouteScrubber(control, route, map.setLivePosition, {
+        findPoi: poiControl?.findPoi,
+        isPinned: poiControl?.isPinned,
+        onProgress(sample, poi, { selected = false, reset = false } = {}) {
+          if (reset) {
+            poiControl?.clear();
+            map.setHighlightedWaypoint(null);
+            profileController?.clearSelection();
+            return;
+          }
+          if (poi) {
+            poiControl?.show(poi, { pin: selected });
+            map.setHighlightedWaypoint(poi.waypoint);
+            if (selected) {
+              syncingFromRoute = true;
+              try {
+                profileController?.selectPoi(poi);
+              } finally {
+                syncingFromRoute = false;
+              }
+            } else {
+              profileController?.preview(poi.point.distanceKm / route.totalDistanceKm, poi, false);
+            }
+          } else {
+            poiControl?.show(null);
+            map.setHighlightedWaypoint(null);
+            if (sample) profileController?.preview(sample.progress, null, false);
+          }
+        },
+      });
+      poiControl?.setScrubber(routeScrubber);
+      const profile = buildElevationProfile(route, track.waypoints, poiPositions);
       if (profile) {
         const container = dayDetail.querySelector('[data-elevation-profile]');
         container.innerHTML = renderElevationProfile(profile);
         container.hidden = false;
-        bindElevationProfile(container, profile, map.setLivePosition, map.setHighlightedWaypoint);
+        profileController = bindElevationProfile(
+          container,
+          profile,
+          map.setLivePosition,
+          map.setHighlightedWaypoint,
+          (poi, { pinned } = {}) => {
+            if (!poi) {
+              poiControl?.clear();
+              return;
+            }
+            poiControl?.show(poi, { pin: pinned });
+            if (pinned && !syncingFromRoute) {
+              routeScrubber.update(poi.point.distanceKm / route.totalDistanceKm, poi, true);
+            }
+          },
+        );
       }
     } else {
       control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
@@ -299,7 +709,7 @@ function renderApp() {
     document.querySelector('#mobile-stage-title').textContent = day.frontmatter.titel;
     document.querySelector('#mobile-stage-start').textContent = day.frontmatter.start;
     document.querySelector('#mobile-stage-finish').textContent = day.frontmatter.ziel;
-    document.querySelector('#maps-navigation').href = googleMapsDirectionsUrl(...day.frontmatter.koordinaten_ziel);
+    setNavigationTarget(document.querySelector('#maps-navigation'), ...day.frontmatter.koordinaten_ziel);
     dayDetail.innerHTML = renderDayContent(day, {
       marked,
       DOMPurify,
@@ -369,24 +779,58 @@ function renderApp() {
     }
     const mediaButton = event.target.closest('[data-lightbox-src]');
     if (mediaButton) {
-      const itemsByIndex = new Map();
-      dayDetail.querySelectorAll('[data-lightbox-index]').forEach((item) => {
-        itemsByIndex.set(item.dataset.lightboxIndex, {
-          index: Number(item.dataset.lightboxIndex),
-          type: item.dataset.lightboxType,
-          src: item.dataset.lightboxSrc,
-          alt: item.dataset.lightboxAlt,
-          caption: item.dataset.lightboxCaption,
-        });
-      });
-      lightboxItems = [...itemsByIndex.values()].sort((a, b) => a.index - b.index);
-      const selectedIndex = lightboxItems.findIndex(
-        (item) => item.index === Number(mediaButton.dataset.lightboxIndex),
-      );
-      showLightboxItem(selectedIndex);
-      lightbox.showModal();
+      openLightbox(dayDetail, mediaButton);
     }
   });
+
+  function filterMediaGallery() {
+    const selectedType = document.querySelector('#media-type-filter').value;
+    const selectedStage = document.querySelector('#media-stage-filter').value;
+    const noResults = mediaGallery.querySelector('[data-media-no-results]');
+    let visibleStages = 0;
+
+    mediaGallery.querySelectorAll('[data-media-stage]').forEach((stage) => {
+      const stageMatches = selectedStage === 'all' || stage.dataset.dayIndex === selectedStage;
+      const entries = [...stage.querySelectorAll('[data-media-type]')];
+      let matchingEntries = 0;
+      entries.forEach((entry) => {
+        const matches = selectedType === 'all' || entry.dataset.mediaType === selectedType;
+        entry.hidden = !matches;
+        if (matches) matchingEntries += 1;
+      });
+
+      const hasSelectedType = selectedType === 'all'
+        || entries.some((entry) => entry.dataset.mediaType === selectedType);
+      stage.hidden = !stageMatches || (selectedStage === 'all' && !hasSelectedType);
+      if (stage.hidden) return;
+
+      visibleStages += 1;
+      const empty = stage.querySelector('[data-media-empty]');
+      empty.hidden = matchingEntries > 0;
+      if (matchingEntries === 0) {
+        empty.textContent = selectedType === 'all'
+          ? 'Für diese Etappe sind noch keine Medien hinterlegt.'
+          : `Für diese Etappe sind keine ${selectedType === 'photo' ? 'Fotos' : 'Videos'} hinterlegt.`;
+      }
+    });
+    noResults.hidden = visibleStages > 0;
+  }
+
+  document.querySelector('#media-type-filter').addEventListener('change', filterMediaGallery);
+  document.querySelector('#media-stage-filter').addEventListener('change', filterMediaGallery);
+  mediaGallery.addEventListener('click', (event) => {
+    const dayButton = event.target.closest('[data-select-day-index]');
+    if (dayButton) {
+      selectDay(Number(dayButton.dataset.selectDayIndex));
+      document.querySelector('#roadbook').scrollIntoView({ behavior: scrollBehavior() });
+      return;
+    }
+    const mediaButton = event.target.closest('[data-lightbox-src]');
+    if (mediaButton) {
+      openLightbox(mediaButton.closest('[data-media-stage]'), mediaButton);
+    }
+  });
+  filterMediaGallery();
 
   lightboxPrevious.addEventListener('click', () => showLightboxItem(lightboxIndex - 1));
   lightboxNext.addEventListener('click', () => showLightboxItem(lightboxIndex + 1));

@@ -1,6 +1,11 @@
 {
-  "version": "v2.51",
+  "version": "v2.52",
   "history": [
+    {
+      "version": "v2.52",
+      "date": "2026-11-24",
+      "message": "Riderrix-Agent, README und GPX-/Medien-Buildpruefung aktualisiert"
+    },
     {
       "version": "v2.51",
       "date": "2026-11-24",

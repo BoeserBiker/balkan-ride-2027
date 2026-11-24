@@ -1,5 +1,7 @@
-import { escapeHtml, googleMapsDirectionsUrl } from './html.js';
+import { directionsUrl, escapeHtml } from './html.js';
 import { gpxDownload } from './gpx-download.js';
+import { buildRouteTrack, distanceBetween } from './route-scrubber.js';
+import { cleanPoiName, editorialPoiDescription, formatPoiSummary } from './roadbook.js';
 
 function parseGpx(gpxText) {
   const xml = new DOMParser().parseFromString(gpxText, 'application/xml');
@@ -44,7 +46,21 @@ function parseGpx(gpxText) {
   return { points, segments, profileSegments };
 }
 
+function mapColors() {
+  const styles = getComputedStyle(document.documentElement);
+  const read = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+  return {
+    accent: read('--accent', '#f0a94c'),
+    poiActive: read('--poi-active', '#f0a94c'),
+    routeActive: read('--route-active', '#f0a94c'),
+    routeMuted: read('--route-muted', '#82908a'),
+    outline: read('--map-outline', '#101513'),
+    markerHighlight: read('--marker-highlight', '#fff3d6'),
+  };
+}
+
 function waypointStyle(waypoint, active) {
+  const theme = mapColors();
   const colors = {
     MOTORRAD: '#82908a',
     PKW: '#b5c3bb',
@@ -55,9 +71,9 @@ function waypointStyle(waypoint, active) {
   const primary = waypoint.type === 'MOTORRAD' || waypoint.type === 'PKW';
   return {
     radius: waypoint.type === 'FAEHRE' ? 6 : 4,
-    color: '#101513',
+    color: theme.outline,
     weight: 1.5,
-    fillColor: active && primary ? '#f0a94c' : (colors[waypoint.type] ?? '#82908a'),
+    fillColor: active && primary ? theme.poiActive : (colors[waypoint.type] ?? '#82908a'),
     fillOpacity: active ? 0.95 : 0.75,
   };
 }
@@ -69,6 +85,14 @@ function dayIcon(L, day, active) {
     iconSize: [40, 40],
     iconAnchor: [20, 20],
   });
+}
+
+function nearestTrackPoint(track, waypoint) {
+  if (!track) return null;
+  return track.points.reduce((nearest, point) => {
+    const distance = distanceBetween(waypoint, point);
+    return !nearest || distance < nearest.distance ? { point, distance } : nearest;
+  }, null)?.point ?? null;
 }
 
 export function formatDayMapLabel(day) {
@@ -90,6 +114,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   const dayBounds = [];
   const waypointLayers = [];
   const trackLayers = [];
+  const finishLayers = [];
   const dayGpx = [];
   let activeIndex = 0;
   let trackLoadHandler;
@@ -97,6 +122,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   let highlightedWaypoint = null;
 
   function setHighlightedWaypoint(waypoint) {
+    const colors = mapColors();
     if (highlightedWaypoint) {
       const { layer, waypoint: previous, dayIndex } = highlightedWaypoint;
       layer.setStyle(waypointStyle(previous, dayIndex === activeIndex));
@@ -104,7 +130,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     highlightedWaypoint = waypointLayers.find((entry) => entry.dayIndex === activeIndex && entry.waypoint === waypoint) ?? null;
     if (highlightedWaypoint) {
       highlightedWaypoint.layer.setStyle({
-        radius: 11, color: '#fff3d6', weight: 3, fillColor: '#f0a94c', fillOpacity: 1,
+        radius: 11, color: colors.markerHighlight, weight: 3, fillColor: colors.poiActive, fillOpacity: 1,
       });
       highlightedWaypoint.layer.bringToFront();
     }
@@ -123,13 +149,14 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       return;
     }
 
+    const colors = mapColors();
     livePositionMarkers = [
       L.circleMarker(position, {
         pane: 'live-position-pane',
         radius: 15,
-        color: '#f0a94c',
+        color: colors.routeActive,
         weight: 3,
-        fillColor: '#f0a94c',
+        fillColor: colors.accent,
         fillOpacity: 0.16,
         className: 'live-position-halo',
         interactive: false,
@@ -137,9 +164,9 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       L.circleMarker(position, {
         pane: 'live-position-pane',
         radius: 6,
-        color: '#fff3d6',
+        color: colors.markerHighlight,
         weight: 2,
-        fillColor: '#f0a94c',
+        fillColor: colors.poiActive,
         fillOpacity: 1,
         className: 'live-position-marker',
         interactive: false,
@@ -186,17 +213,19 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       .on('click', () => map.fire('roadbook:select-day', { index }));
     dayMarkers.push({ marker: startMarker, dayIndex: index });
 
-    L.circleMarker(finish, {
+    const colors = mapColors();
+    const finishMarker = L.circleMarker(finish, {
       radius: 8,
-      color: '#101513',
+      color: colors.outline,
       weight: 3,
-      fillColor: '#f0a94c',
+      fillColor: colors.accent,
       fillOpacity: 1,
       title: `Ziel: ${frontmatter.ziel}`,
     })
       .addTo(markerLayer)
       .bindTooltip(`Ziel · ${escapeHtml(frontmatter.ziel)}`)
       .on('click', () => map.fire('roadbook:select-day', { index }));
+    finishLayers.push(finishMarker);
 
     fetch(`${import.meta.env.BASE_URL}${frontmatter.gpx_datei}`).then((response) => {
       if (!response.ok) {
@@ -205,6 +234,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       return response.text();
     }).then((text) => {
       const { points, segments, profileSegments } = parseGpx(text);
+      const route = buildRouteTrack(profileSegments);
       dayGpx[index] = { state: 'loaded', points, segments, profileSegments };
       trackLoadHandler?.(index);
       segments.forEach((segment) => {
@@ -212,15 +242,28 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
         trackLayers[index].push(layer);
         bounds.extend(layer.getBounds());
       });
-      points.forEach((waypoint) => {
+      points.forEach((waypoint, waypointIndex) => {
+        const poiName = cleanPoiName(waypoint.name);
+        const poiPoint = nearestTrackPoint(route, waypoint);
+        const description = editorialPoiDescription(waypoint);
+        const summary = formatPoiSummary(waypoint, waypointIndex, poiPoint);
+        const details = description
+          ? `<p>${escapeHtml(description)}</p>`
+          : `<small>${escapeHtml(summary)}</small>`;
         const layer = L.circleMarker([waypoint.latitude, waypoint.longitude], waypointStyle(waypoint, index === activeIndex))
           .addTo(markerLayer)
-          .bindTooltip(`${escapeHtml(waypoint.name)} · ${escapeHtml(waypoint.routeGroup)}`)
+          .bindTooltip(escapeHtml(poiName))
           .on('click', () => map.fire('roadbook:select-day', { index }))
-          .bindPopup(`<strong>${escapeHtml(waypoint.name)}</strong><br>
-            ${escapeHtml(waypoint.type)} · ${escapeHtml(waypoint.routeGroup)}<br>
-            <a class="poi-navigation" href="${escapeHtml(googleMapsDirectionsUrl(waypoint.latitude, waypoint.longitude))}"
+          .bindPopup(`<strong>${escapeHtml(poiName)}</strong><br>${details}<br>
+            <a class="poi-navigation" data-navigation-lat="${waypoint.latitude}" data-navigation-lon="${waypoint.longitude}"
+              href="${escapeHtml(directionsUrl(waypoint.latitude, waypoint.longitude))}"
               target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>`);
+        layer.on('popupopen', (event) => {
+          const link = event.popup.getElement()?.querySelector('[data-navigation-lat]');
+          if (link) {
+            link.href = directionsUrl(waypoint.latitude, waypoint.longitude);
+          }
+        });
         waypointLayers.push({ layer, waypoint, dayIndex: index });
         bounds.extend([waypoint.latitude, waypoint.longitude]);
       });
@@ -254,6 +297,32 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     map.setView([44.7, 20.5], 5);
   }
 
+  function applyTheme() {
+    const colors = mapColors();
+    waypointLayers.forEach(({ layer, waypoint, dayIndex }) => {
+      layer.setStyle(waypointStyle(waypoint, dayIndex === activeIndex));
+    });
+    if (highlightedWaypoint) setHighlightedWaypoint(highlightedWaypoint.waypoint);
+    trackLayers.forEach((layers, dayIndex) => {
+      layers.forEach((layer) => layer.setStyle({
+        color: dayIndex === activeIndex ? colors.routeActive : colors.routeMuted,
+        weight: dayIndex === activeIndex ? 5 : 3,
+        opacity: dayIndex === activeIndex ? 0.95 : 0.55,
+      }));
+    });
+    finishLayers.forEach((layer) => layer.setStyle({
+      color: colors.outline, fillColor: colors.accent,
+    }));
+    if (livePositionMarkers) {
+      livePositionMarkers[0].setStyle({
+        color: colors.routeActive, fillColor: colors.accent,
+      });
+      livePositionMarkers[1].setStyle({
+        color: colors.markerHighlight, fillColor: colors.poiActive,
+      });
+    }
+  }
+
   function selectDay(index, { moveMap = true } = {}) {
     if (activeIndex !== index) {
       setLivePosition(null);
@@ -267,9 +336,10 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       layer.setStyle(waypointStyle(waypoint, dayIndex === index));
     });
     if (highlightedWaypoint) setHighlightedWaypoint(highlightedWaypoint.waypoint);
+    const colors = mapColors();
     trackLayers.forEach((layers, dayIndex) => {
       layers.forEach((layer) => layer.setStyle({
-        color: dayIndex === index ? '#f0a94c' : '#82908a',
+        color: dayIndex === index ? colors.routeActive : colors.routeMuted,
         weight: dayIndex === index ? 5 : 3,
         opacity: dayIndex === index ? 0.95 : 0.55,
       }));
@@ -316,6 +386,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     },
     setLivePosition,
     setHighlightedWaypoint,
+    setTheme: applyTheme,
     resize,
     setSelectHandler(handler) {
       map.options.onSelectDay = handler;

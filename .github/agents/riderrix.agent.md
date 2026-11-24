@@ -35,6 +35,10 @@ Prüfe vor jeder Aufgabe und Code-Änderung die folgenden Dokumente im Verzeichn
 * **PWA & Performance:**
   * Bewahre die Lauffähigkeit als Progressive Web App (`manifest.json`, `sw.js`) und achte auf Lazy Loading sowie komprimierte Medienpfade unter `assets/`.
 
+## Verbindliche Testpflicht für Web-Änderungen
+
+Bei jeder neuen Funktion, Bugfix- oder UI-Änderung in `web/` müssen immer passende automatisierte Tests in `web/tests/` (`node:test`) ergänzt oder aktualisiert werden. Die Tests müssen in GitHub Actions vor dem Produktionsbuild laufen; sie dürfen nicht stillschweigend übersprungen werden.
+
 
 ## Wissensbasis
 
