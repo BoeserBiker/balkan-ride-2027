@@ -1,6 +1,11 @@
 {
-  "version": "v2.57",
+  "version": "v2.58",
   "history": [
+    {
+      "version": "v2.58",
+      "date": "2026-11-24",
+      "message": "Token-Budget, Leere-Antwort-Diagnose und Test-Planung in V5 verbessert"
+    },
     {
       "version": "v2.57",
       "date": "2026-11-24",

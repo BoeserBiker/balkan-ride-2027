@@ -144,6 +144,45 @@ def read_files(paths: list[str], limit: int = MAX_CONTEXT_BYTES) -> dict[str, st
     return files
 
 
+def read_reference_tests(
+    allowed_paths: set[str], files: dict[str, str],
+) -> dict[str, str]:
+    """Liest zusätzliche Webtests nur als Kontext und innerhalb des gemeinsamen Limits."""
+    total = sum(len(text.encode("utf-8")) for text in files.values())
+    available = MAX_CONTEXT_BYTES - total
+    references = {}
+    directory = ROOT / "web" / "tests"
+    if available <= 0 or directory.is_symlink() or not directory.is_dir():
+        return references
+
+    for current, dirnames, filenames in os.walk(directory):
+        dirnames[:] = sorted(
+            name for name in dirnames
+            if not (Path(current) / name).is_symlink()
+            and name.casefold() not in FORBIDDEN_PARTS
+        )
+        for filename in sorted(filenames):
+            path = (Path(current) / filename).relative_to(ROOT).as_posix()
+            if path in allowed_paths:
+                continue
+            try:
+                target = safe_target(path)
+            except ValueError:
+                continue
+            if not target.is_file() or target.stat().st_size > MAX_FILE_BYTES:
+                continue
+            raw = target.read_bytes()
+            if b"\x00" in raw or len(raw) > available:
+                continue
+            try:
+                text = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            references[path] = text
+            available -= len(raw)
+    return references
+
+
 def plan_marker(issue: dict) -> str:
     data = json.dumps([issue["number"], issue["title"], issue.get("body")])
     return f"<!-- roadbook-plan:{hashlib.sha256(data.encode()).hexdigest()} -->"
@@ -423,6 +462,7 @@ def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]
     context = {
         "title": issue["title"], "body": issue.get("body"), "plan": plan,
         "replies": replies, "allowed_paths": sorted(paths), "files": files,
+        "reference_tests": read_reference_tests(paths, files),
     }
     raw = ask_model(
         "implement", context,

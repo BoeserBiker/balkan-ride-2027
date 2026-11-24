@@ -249,6 +249,21 @@ class FileAccessTests(TemporaryRoot):
         with self.assertRaises(ValueError):
             agent_runner.read_files([".github/workflows/ai-agent-workflow.yml"])
 
+    def test_reference_tests_are_read_only_context_and_respect_the_shared_limit(self):
+        self.write("web/tests/reference.test.js", "reference")
+        self.write("web/tests/approved.test.js", "approved")
+        files = {"web/src/main.js": "source"}
+        references = agent_runner.read_reference_tests(
+            {"web/src/main.js", "web/tests/approved.test.js"}, files
+        )
+        self.assertEqual(references, {"web/tests/reference.test.js": "reference"})
+
+        with patch.object(agent_runner, "MAX_CONTEXT_BYTES", 10):
+            references = agent_runner.read_reference_tests(
+                {"web/src/main.js"}, files
+            )
+        self.assertEqual(references, {})
+
 
 class ValidatedChangesTests(TemporaryRoot):
     def setUp(self):
@@ -455,6 +470,8 @@ class RunnerFlowTests(TemporaryRoot):
         context = ask.call_args.args[1]
         self.assertEqual(context["allowed_paths"], ["web/src/main.js", "web/tests/main.test.js"])
         self.assertEqual(context["files"], {"web/src/main.js": "old\n"})
+        self.assertEqual(context["reference_tests"], {"web/tests/existing.test.js": "x"})
+        self.assertNotIn("web/tests/existing.test.js", context["allowed_paths"])
         self.assertEqual(commit.call_args.args[1], {"web/src/main.js": "new\n", "web/tests/main.test.js": "test\n"})
         self.assertEqual(posted, [])
 
