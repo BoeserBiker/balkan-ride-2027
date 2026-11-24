@@ -1,6 +1,16 @@
 {
-  "version": "v2.53",
+  "version": "v2.55",
   "history": [
+    {
+      "version": "v2.55",
+      "date": "2026-11-24",
+      "message": "Hoehenprofil ohne Layout-Sprung (Overlay) und POI-Info nur einfach angezeigt"
+    },
+    {
+      "version": "v2.54",
+      "date": "2026-11-24",
+      "message": "Hoehenprofil ohne Layout-Sprung (Overlay) und POI-Info nur einfach angezeigt"
+    },
     {
       "version": "v2.53",
       "date": "2026-11-24",
