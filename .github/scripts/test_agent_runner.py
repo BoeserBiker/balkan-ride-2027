@@ -540,6 +540,29 @@ class RunnerFlowTests(TemporaryRoot):
         self.assertEqual(context["file_list"], ["content/tag-01.md", "web/src/main.js"])
         self.assertNotIn("logistik", ask.call_args.args[1])
 
+    def test_plan_with_intro_text_and_altered_footer_is_normalized(self):
+        self.write("web/src/main.js", "old\n")
+        body = plan_with("- `web/src/main.js`").rstrip()
+        for answer in (
+            "Gerne, hier der Plan:\n\n" + body + "\n" + agent_runner.PLAN_FOOTER,
+            "Hier der Plan:\n" + body + "\n\n*Freigabe erteilen: kommentiere /implement-item.*",
+            body,
+        ):
+            with self.subTest(answer=answer[-40:]), \
+                    patch.object(agent_runner, "ask_model", return_value=answer):
+                comment = agent_runner.plan_comment(self.issue)
+            self.assertTrue(comment.startswith("## Umsetzungsplan\n"))
+            self.assertTrue(comment.endswith(agent_runner.PLAN_FOOTER))
+            self.assertEqual(comment.count("Freigabe erteilen"), 1)
+            self.assertIn(agent_runner.plan_marker(self.issue), comment)
+        with patch.object(agent_runner, "ask_model", return_value="Kein Plan hier"):
+            with self.assertRaises(ValueError):
+                agent_runner.plan_comment(self.issue)
+        bad = "Intro\n" + plan_with("- `.github/scripts/agent_runner.py`")
+        with patch.object(agent_runner, "ask_model", return_value=bad):
+            with self.assertRaises(ValueError):
+                agent_runner.plan_comment(self.issue)
+
 
 class CollectContextTests(TemporaryRoot):
     def issue(self, title, body=""):

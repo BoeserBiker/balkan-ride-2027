@@ -558,6 +558,20 @@ def collect_context(issue: dict) -> dict:
     }
 
 
+def normalize_plan(plan: str) -> str:
+    """Entfernt Einleitungstext vor der Überschrift und ersetzt einen abgewandelten Schlusssatz."""
+    heading = re.search(rf"^{re.escape(PLAN_HEADING)}[ \t]*$", plan, re.MULTILINE)
+    if not heading:
+        return plan
+    plan = plan[heading.start():].rstrip()
+    if not plan.endswith(PLAN_FOOTER):
+        lines = plan.split("\n")
+        if lines[-1].lstrip("*_ ").startswith("Freigabe erteilen"):
+            lines.pop()
+        plan = "\n".join(lines).rstrip() + f"\n\n{PLAN_FOOTER}"
+    return plan
+
+
 def plan_comment(issue: dict) -> str:
     context = collect_context(issue)
     logistik = ROOT / "docs" / "motorrad_checkliste_logistik.md"
@@ -573,6 +587,7 @@ def plan_comment(issue: dict) -> str:
         "an web/ gehört auch die passende Testdatei unter web/tests/ dazu. Beginne die "
         "weiteren Abschnitte mit '**'.",
     )
+    plan = normalize_plan(plan)
     if not plan.startswith(f"{PLAN_HEADING}\n") or not plan.endswith(PLAN_FOOTER):
         raise ValueError("Der Plan hat nicht das vorgeschriebene Kommentarformat.")
     planned_paths(plan)

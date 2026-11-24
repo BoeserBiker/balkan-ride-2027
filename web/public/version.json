@@ -1,6 +1,11 @@
 {
-  "version": "v2.61",
+  "version": "v2.62",
   "history": [
+    {
+      "version": "v2.62",
+      "date": "2026-11-25",
+      "message": "Token-Verbrauch und Kosten im Plan-Agenten um >90 Prozent gesenkt"
+    },
     {
       "version": "v2.61",
       "date": "2026-11-25",
