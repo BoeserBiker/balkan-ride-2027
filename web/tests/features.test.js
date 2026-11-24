@@ -2,14 +2,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
-  cleanPoiName, editorialPoiDescription, formatPoiSummary, renderMediaGallery,
+  cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderMediaGallery,
 } from '../src/roadbook.js';
 import { directionsUrl, setNavigationApp } from '../src/html.js';
 
-const [indexHtml, mainSource, styleSource, serviceWorkerSource, deployWorkflow] = await Promise.all([
+const [indexHtml, mainSource, styleSource, elevationSource, serviceWorkerSource, deployWorkflow] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/style.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/elevation-profile.js', import.meta.url), 'utf8'),
   readFile(new URL('../public/sw.js', import.meta.url), 'utf8'),
   readFile(new URL('../../.github/workflows/deploy-pages.yml', import.meta.url), 'utf8'),
 ]);
@@ -38,6 +39,25 @@ test('cleans POI export prefixes and hides technical descriptions', () => {
     0,
     { distanceKm: 74.5, elevationMeters: 2 },
   ), 'Stopp 4 · 74,5 km · 2 m');
+});
+
+test('shows at most one POI information card and keeps the elevation card overlaid', () => {
+  for (const [source, routeLine, elevation] of [
+    ['route-line', true, false],
+    ['elevation', false, true],
+    ['map', false, true],
+  ]) {
+    assert.deepEqual(poiInfoVisibility(source, true), { routeLine, elevation });
+    assert.notEqual(routeLine, elevation, `POI cards must be exclusive for ${source}`);
+  }
+  assert.deepEqual(poiInfoVisibility('elevation', false), { routeLine: false, elevation: false });
+
+  assert.match(mainSource, /const \{ routeLine \} = poiInfoVisibility\(source, true\)/);
+  assert.match(elevationSource, /const visibility = poiInfoVisibility\(source, poi\)/);
+  assert.match(elevationSource, /const TOP = 36;/);
+  assert.match(styleSource, /\.elevation-chart \{ position: relative;/);
+  assert.match(styleSource, /\.elevation-poi-card \{ position: absolute; z-index: 20; top: 8px;/);
+  assert.doesNotMatch(styleSource, /\.elevation-chart\.has-poi/);
 });
 
 test('builds navigation URLs for each supported app', () => {

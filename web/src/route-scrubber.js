@@ -69,7 +69,7 @@ export function bindRouteScrubber(control, track, setLivePosition, {
     maximumFractionDigits: 1,
   });
 
-  function update(progress, poi = null, selected = false) {
+  function update(progress, poi = null, selected = false, source = 'route-line') {
     if (poi) progress = poi.point.distanceKm / track.totalDistanceKm;
     const sample = sampleRouteTrack(track, progress);
     const distance = `${distanceFormatter.format(sample.distanceKm)} km`;
@@ -79,7 +79,7 @@ export function bindRouteScrubber(control, track, setLivePosition, {
     control.setAttribute('aria-valuetext', distance);
     label.textContent = distance;
     setLivePosition(sample);
-    onProgress(sample, poi, { selected });
+    onProgress(sample, poi, { selected, source });
     return sample;
   }
 
@@ -89,11 +89,11 @@ export function bindRouteScrubber(control, track, setLivePosition, {
     if (bounds.width > 0) {
       const progress = Math.min(1, Math.max(0, (clientX - bounds.left) / bounds.width));
       const match = findPoi(progress, bounds.width);
-      update(match?.progress ?? progress, match?.poi ?? null, selected && Boolean(match));
+      update(match?.progress ?? progress, match?.poi ?? null, selected && Boolean(match), 'route-line');
     }
   }
 
-  function reset(force = false) {
+  function reset(force = false, source = 'route-line') {
     if (!force && isPinned()) {
       return;
     }
@@ -103,7 +103,7 @@ export function bindRouteScrubber(control, track, setLivePosition, {
     control.removeAttribute('aria-valuetext');
     label.textContent = '';
     setLivePosition(null);
-    onProgress(null, null, { reset: true });
+    onProgress(null, null, { reset: true, source });
   }
 
   control.disabled = false;

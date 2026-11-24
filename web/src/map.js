@@ -1,7 +1,6 @@
-import { directionsUrl, escapeHtml } from './html.js';
+import { escapeHtml } from './html.js';
 import { gpxDownload } from './gpx-download.js';
-import { buildRouteTrack, distanceBetween } from './route-scrubber.js';
-import { cleanPoiName, editorialPoiDescription, formatPoiSummary } from './roadbook.js';
+import { cleanPoiName } from './roadbook.js';
 
 function parseGpx(gpxText) {
   const xml = new DOMParser().parseFromString(gpxText, 'application/xml');
@@ -85,14 +84,6 @@ function dayIcon(L, day, active) {
     iconSize: [40, 40],
     iconAnchor: [20, 20],
   });
-}
-
-function nearestTrackPoint(track, waypoint) {
-  if (!track) return null;
-  return track.points.reduce((nearest, point) => {
-    const distance = distanceBetween(waypoint, point);
-    return !nearest || distance < nearest.distance ? { point, distance } : nearest;
-  }, null)?.point ?? null;
 }
 
 export function formatDayMapLabel(day) {
@@ -234,7 +225,6 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       return response.text();
     }).then((text) => {
       const { points, segments, profileSegments } = parseGpx(text);
-      const route = buildRouteTrack(profileSegments);
       dayGpx[index] = { state: 'loaded', points, segments, profileSegments };
       trackLoadHandler?.(index);
       segments.forEach((segment) => {
@@ -242,28 +232,12 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
         trackLayers[index].push(layer);
         bounds.extend(layer.getBounds());
       });
-      points.forEach((waypoint, waypointIndex) => {
+      points.forEach((waypoint) => {
         const poiName = cleanPoiName(waypoint.name);
-        const poiPoint = nearestTrackPoint(route, waypoint);
-        const description = editorialPoiDescription(waypoint);
-        const summary = formatPoiSummary(waypoint, waypointIndex, poiPoint);
-        const details = description
-          ? `<p>${escapeHtml(description)}</p>`
-          : `<small>${escapeHtml(summary)}</small>`;
         const layer = L.circleMarker([waypoint.latitude, waypoint.longitude], waypointStyle(waypoint, index === activeIndex))
           .addTo(markerLayer)
           .bindTooltip(escapeHtml(poiName))
-          .on('click', () => map.fire('roadbook:select-day', { index }))
-          .bindPopup(`<strong>${escapeHtml(poiName)}</strong><br>${details}<br>
-            <a class="poi-navigation" data-navigation-lat="${waypoint.latitude}" data-navigation-lon="${waypoint.longitude}"
-              href="${escapeHtml(directionsUrl(waypoint.latitude, waypoint.longitude))}"
-              target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>`);
-        layer.on('popupopen', (event) => {
-          const link = event.popup.getElement()?.querySelector('[data-navigation-lat]');
-          if (link) {
-            link.href = directionsUrl(waypoint.latitude, waypoint.longitude);
-          }
-        });
+          .on('click', () => map.fire('roadbook:select-day', { index, waypoint }));
         waypointLayers.push({ layer, waypoint, dayIndex: index });
         bounds.extend([waypoint.latitude, waypoint.longitude]);
       });
@@ -286,6 +260,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   map.on('roadbook:select-day', (event) => {
     if (Number.isInteger(event.index)) {
       map.options.onSelectDay?.(event.index);
+      if (event.waypoint) map.options.onSelectPoi?.(event.waypoint);
     }
   });
 
@@ -390,6 +365,9 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     resize,
     setSelectHandler(handler) {
       map.options.onSelectDay = handler;
+    },
+    setPoiSelectHandler(handler) {
+      map.options.onSelectPoi = handler;
     },
   };
 }

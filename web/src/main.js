@@ -7,7 +7,7 @@ import roadbookDays from 'virtual:roadbook-content';
 import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
 import {
-  cleanPoiName, editorialPoiDescription, formatPoiSummary, renderDayContent, renderMediaGallery,
+  cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderDayContent, renderMediaGallery,
 } from './roadbook.js';
 import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
 import {
@@ -191,18 +191,27 @@ function bindRoutePoiControl(line, control, profile) {
     return poi.point.distanceKm / profile.track.totalDistanceKm;
   }
 
-  function show(poi, { pin = false } = {}) {
+  function show(poi, { pin = false, source = 'route-line', force = false } = {}) {
     if (!poi) {
-      if (pinnedPoi) return;
+      if (pinnedPoi && !force && source === 'route-line') return;
+      if (source !== 'route-line' || force) pinnedPoi = null;
       markers.querySelectorAll('.route-poi-marker').forEach((marker) => marker.classList.remove('is-active'));
       popover.hidden = true;
       return;
     }
 
-    if (pin) pinnedPoi = poi;
+    if (source !== 'route-line') pinnedPoi = null;
+    else if (pin) pinnedPoi = poi;
     else if (pinnedPoi && pinnedPoi !== poi) pinnedPoi = null;
     const index = profile.pois.indexOf(poi);
     const progress = progressFor(poi);
+    markers.querySelectorAll('.route-poi-marker').forEach((marker) => {
+      marker.classList.toggle('is-active', marker.dataset.poiIndex === String(index));
+    });
+    const { routeLine } = poiInfoVisibility(source, true);
+    popover.hidden = !routeLine;
+    if (!routeLine) return;
+
     const positionInLine = (connector.offsetLeft + progress * control.clientWidth) / line.clientWidth;
     const align = progress < 0.25 ? 'left' : progress > 0.75 ? 'right' : 'center';
     popover.dataset.align = align;
@@ -212,16 +221,12 @@ function bindRoutePoiControl(line, control, profile) {
     description.hidden = !editorialDescription;
     description.textContent = editorialDescription;
     setNavigationTarget(navigation, poi.waypoint.latitude, poi.waypoint.longitude);
-    popover.hidden = false;
     const popoverWidth = popover.offsetWidth;
     const edgePadding = Math.min(12, Math.max(0, (line.clientWidth - popoverWidth) / 2));
     const preferredLeft = positionInLine * line.clientWidth
       - (align === 'center' ? popoverWidth / 2 : align === 'right' ? popoverWidth : 0);
     const maximumLeft = Math.max(edgePadding, line.clientWidth - popoverWidth - edgePadding);
     popover.style.left = `${Math.max(edgePadding, Math.min(maximumLeft, preferredLeft))}px`;
-    markers.querySelectorAll('.route-poi-marker').forEach((marker) => {
-      marker.classList.toggle('is-active', marker.dataset.poiIndex === String(index));
-    });
   }
 
   profile.pois.forEach((poi, index) => {
@@ -263,7 +268,7 @@ function bindRoutePoiControl(line, control, profile) {
     },
     clear() {
       pinnedPoi = null;
-      show(null);
+      show(null, { force: true });
     },
   };
 }
@@ -532,6 +537,10 @@ function renderApp() {
   settings.setThemeChangeHandler(map.setTheme);
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
+  let poiInfoSource = null;
+  let activePoiControl = null;
+  let activeProfileController = null;
+  let activePoiData = null;
   let lightboxItems = [];
   let lightboxIndex = -1;
   let touchStart = null;
@@ -621,34 +630,36 @@ function renderApp() {
       const poiControl = poiPositions.length
         ? bindRoutePoiControl(routeLine, control, poiData)
         : null;
-      let syncingFromRoute = false;
+      activePoiData = poiData;
+      activePoiControl = poiControl;
+      activeProfileController = null;
       const routeScrubber = bindRouteScrubber(control, route, map.setLivePosition, {
         findPoi: poiControl?.findPoi,
         isPinned: poiControl?.isPinned,
-        onProgress(sample, poi, { selected = false, reset = false } = {}) {
+        onProgress(sample, poi, {
+          selected = false, reset = false, source = 'route-line',
+        } = {}) {
+          poiInfoSource = source;
           if (reset) {
-            poiControl?.clear();
+            if (source === 'route-line') poiControl?.clear();
+            else poiControl?.show(null, { source, force: true });
             map.setHighlightedWaypoint(null);
-            profileController?.clearSelection();
+            if (source === 'route-line') profileController?.clearSelection('route-line');
+            return;
+          }
+          if (source !== 'route-line') {
+            poiControl?.show(poi, { source, force: true });
+            map.setHighlightedWaypoint(poi?.waypoint ?? null);
             return;
           }
           if (poi) {
-            poiControl?.show(poi, { pin: selected });
+            poiControl?.show(poi, { pin: selected, source });
             map.setHighlightedWaypoint(poi.waypoint);
-            if (selected) {
-              syncingFromRoute = true;
-              try {
-                profileController?.selectPoi(poi);
-              } finally {
-                syncingFromRoute = false;
-              }
-            } else {
-              profileController?.preview(poi.point.distanceKm / route.totalDistanceKm, poi, false);
-            }
+            profileController?.preview(poi.point.distanceKm / route.totalDistanceKm, poi, false, source);
           } else {
-            poiControl?.show(null);
+            poiControl?.show(null, { source, force: true });
             map.setHighlightedWaypoint(null);
-            if (sample) profileController?.preview(sample.progress, null, false);
+            if (sample) profileController?.preview(sample.progress, null, false, source);
           }
         },
       });
@@ -663,18 +674,25 @@ function renderApp() {
           profile,
           map.setLivePosition,
           map.setHighlightedWaypoint,
-          (poi, { pinned } = {}) => {
-            if (!poi) {
-              poiControl?.clear();
+          (poi, {
+            pinned, source = poiInfoSource ?? 'elevation', progress,
+          } = {}) => {
+            poiInfoSource = source;
+            if (source === 'route-line') {
+              poiControl?.show(poi, { pin: pinned, source, force: true });
               return;
             }
-            poiControl?.show(poi, { pin: pinned });
-            if (pinned && !syncingFromRoute) {
-              routeScrubber.update(poi.point.distanceKm / route.totalDistanceKm, poi, true);
+            poiControl?.show(poi, { source, force: true });
+            if (Number.isFinite(progress)) {
+              routeScrubber.update(progress, poi, false, source);
+            } else {
+              routeScrubber.reset(true, source);
             }
           },
         );
+        activeProfileController = profileController;
       }
+      activePoiData = poiData;
     } else {
       control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
       control.title = 'Kein Straßen-Track verfügbar.';
@@ -701,6 +719,10 @@ function renderApp() {
     }
 
     const changed = index !== activeIndex;
+    poiInfoSource = null;
+    activePoiControl = null;
+    activeProfileController = null;
+    activePoiData = null;
     map.setLivePosition(null);
     map.setHighlightedWaypoint(null);
     activeIndex = index;
@@ -875,7 +897,17 @@ function renderApp() {
     marked,
     DOMPurify,
   });
-  map.setSelectHandler(selectDay);
+  map.setSelectHandler((index) => {
+    if (index !== activeIndex) selectDay(index);
+  });
+  map.setPoiSelectHandler((waypoint) => {
+    const poi = activePoiData?.pois.find((entry) => entry.waypoint === waypoint);
+    if (poi) {
+      poiInfoSource = 'map';
+      activePoiControl?.show(poi, { source: 'map', force: true });
+      activeProfileController?.selectPoi(poi, 'map');
+    }
+  });
   map.setTrackLoadHandler(updateRouteScrubber);
   selectDay(0, { moveMap: false, centerDay: false });
 }

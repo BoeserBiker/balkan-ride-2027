@@ -45,6 +45,14 @@ export function formatPoiSummary(waypoint, index, point) {
   return `Stopp ${poiStopNumber(waypoint, index)} · ${distance} km · ${height} m`;
 }
 
+export function poiInfoVisibility(source, hasPoi) {
+  const active = Boolean(hasPoi);
+  return {
+    routeLine: active && source === 'route-line',
+    elevation: active && (source === 'elevation' || source === 'map'),
+  };
+}
+
 function formatDate(value) {
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) {

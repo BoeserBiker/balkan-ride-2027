@@ -1,12 +1,14 @@
 import { distanceBetween, sampleRouteTrack } from './route-scrubber.js';
 import { directionsUrl, escapeHtml } from './html.js';
-import { cleanPoiName, editorialPoiDescription, formatPoiSummary } from './roadbook.js';
+import {
+  cleanPoiName, formatPoiSummary, poiInfoVisibility,
+} from './roadbook.js';
 
 const WIDTH = 420;
 const LEFT = 48;
 const RIGHT = 410;
 const HEIGHT = 230;
-const TOP = 112;
+const TOP = 36;
 const BOTTOM = 184;
 const integer = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -120,7 +122,6 @@ export function renderElevationProfile(profile) {
         <button class="elevation-poi-close" data-elevation-poi-close type="button" aria-label="POI-Information schließen">×</button>
         <strong data-poi-title></strong>
         <span data-poi-position></span>
-        <span data-poi-description hidden></span>
         <a class="poi-navigation" data-poi-navigation target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>
       </div>
       <div class="elevation-plot">
@@ -167,29 +168,32 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
   const card = container.querySelector('[data-elevation-poi-card]');
   const title = card.querySelector('[data-poi-title]');
   const position = card.querySelector('[data-poi-position]');
-  const description = card.querySelector('[data-poi-description]');
   const navigation = card.querySelector('[data-poi-navigation]');
   const closeButton = card.querySelector('[data-elevation-poi-close]');
   let activePoi = null;
   let activePoiPinned = false;
   let pinnedPoi = null;
+  let activeSource = null;
 
-  function showPoi(poi) {
+  function showPoi(poi, source, progress, forceNotify = false) {
     container.querySelectorAll('[data-elevation-poi]').forEach((button) => {
       button.classList.toggle('is-active', poi === profile.pois[Number(button.dataset.elevationPoi)]);
     });
     chart.querySelectorAll('[data-elevation-dot]').forEach((dot) => {
       dot.classList.toggle('is-active', poi === profile.pois[Number(dot.dataset.elevationDot)]);
     });
-    card.hidden = !poi;
+    const visibility = poiInfoVisibility(source, poi);
+    card.hidden = !visibility.elevation;
     setHighlightedWaypoint(poi?.waypoint ?? null);
     if (!poi) {
       const hadActivePoi = Boolean(activePoi);
+      const sourceChanged = activeSource !== source;
       activePoi = null;
       activePoiPinned = false;
-      chart.classList.remove('has-poi');
-      chart.style.removeProperty('--elevation-poi-space');
-      if (hadActivePoi) onPoiChange(null, { pinned: false });
+      activeSource = source;
+      if (hadActivePoi || sourceChanged || forceNotify) {
+        onPoiChange(null, { pinned: false, source, progress });
+      }
       return;
     }
 
@@ -198,26 +202,25 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     card.dataset.align = x / WIDTH < 0.25 ? 'left' : x / WIDTH > 0.75 ? 'right' : 'center';
     title.textContent = cleanPoiName(poi.waypoint.name);
     position.textContent = formatPoiSummary(poi.waypoint, index, poi.point);
-    const editorialDescription = editorialPoiDescription(poi.waypoint);
-    description.hidden = !editorialDescription;
-    description.textContent = editorialDescription;
     navigation.dataset.navigationLat = String(poi.waypoint.latitude);
     navigation.dataset.navigationLon = String(poi.waypoint.longitude);
     navigation.href = directionsUrl(poi.waypoint.latitude, poi.waypoint.longitude);
-    chart.classList.add('has-poi');
-    chart.style.setProperty('--elevation-poi-space', `${card.offsetHeight + 37}px`);
-    const chartWidth = chart.clientWidth;
-    const cardWidth = card.offsetWidth;
-    const maximumLeft = Math.max(0, chartWidth - cardWidth);
-    card.style.left = `${Math.max(0, Math.min(maximumLeft, x / WIDTH * chartWidth - cardWidth / 2))}px`;
+    badge.hidden = true;
+    if (visibility.elevation) {
+      const chartWidth = chart.clientWidth;
+      const cardWidth = card.offsetWidth;
+      const maximumLeft = Math.max(0, chartWidth - cardWidth);
+      card.style.left = `${Math.max(0, Math.min(maximumLeft, x / WIDTH * chartWidth - cardWidth / 2))}px`;
+    }
     const isPinned = pinnedPoi === poi;
-    const changed = activePoi !== poi || activePoiPinned !== isPinned;
+    const changed = activePoi !== poi || activePoiPinned !== isPinned || activeSource !== source;
     activePoi = poi;
     activePoiPinned = isPinned;
-    if (changed) onPoiChange(poi, { pinned: isPinned });
+    activeSource = source;
+    if (changed) onPoiChange(poi, { pinned: isPinned, source, progress });
   }
 
-  function update(progress, selectedPoi = null, pin = false, snap = true) {
+  function update(progress, selectedPoi = null, pin = false, snap = true, source = 'elevation') {
     const nearest = selectedPoi ?? (snap ? profile.pois.reduce((best, poi) => {
       const distance = Math.abs(poi.point.distanceKm - progress * profile.track.totalDistanceKm);
       return distance <= profile.track.totalDistanceKm * 0.025 && (!best || distance < best.distance)
@@ -242,32 +245,32 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     slider.setAttribute('aria-valuenow', String(Math.round(sample.progress * 100)));
     slider.setAttribute('aria-valuetext', text);
     setLivePosition(sample);
-    showPoi(poi);
+    showPoi(poi, source, sample.progress);
   }
 
-  function updateFromX(clientX, target, pin = false) {
+  function updateFromX(clientX, target, pin = false, source = 'elevation') {
     const bounds = svg.getBoundingClientRect();
     const button = target.closest('[data-elevation-poi]');
     const poi = button ? profile.pois[Number(button.dataset.elevationPoi)] : null;
-    if (poi) update(poi.point.distanceKm / profile.track.totalDistanceKm, poi, pin);
-    else if (bounds.width) update(((clientX - bounds.left) / bounds.width * WIDTH - LEFT) / (RIGHT - LEFT), null, pin);
+    if (poi) update(poi.point.distanceKm / profile.track.totalDistanceKm, poi, pin, true, source);
+    else if (bounds.width) update(((clientX - bounds.left) / bounds.width * WIDTH - LEFT) / (RIGHT - LEFT), null, pin, true, source);
   }
 
-  function reset(force = false) {
+  function reset(force = false, source = 'elevation') {
     if (pinnedPoi && !force) return;
     pinnedPoi = null;
     guide.setAttribute('visibility', 'hidden');
     badge.hidden = true;
     setLivePosition(null);
-    showPoi(null);
+    showPoi(null, source, null, true);
   }
 
-  function selectPoi(poi) {
-    update(poi.point.distanceKm / profile.track.totalDistanceKm, poi, true);
+  function selectPoi(poi, source = 'elevation') {
+    update(poi.point.distanceKm / profile.track.totalDistanceKm, poi, true, true, source);
   }
 
-  function clearSelection() {
-    reset(true);
+  function clearSelection(source = 'elevation') {
+    reset(true, source);
   }
 
   toggle.addEventListener('click', () => {
@@ -276,9 +279,9 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     content.hidden = expanded;
     saveCollapsedState(expanded);
     if (expanded) reset(true);
-    else if (activePoi) showPoi(activePoi);
+    else if (activePoi) showPoi(activePoi, activeSource, activePoi.point.distanceKm / profile.track.totalDistanceKm);
   });
-  closeButton.addEventListener('click', clearSelection);
+  closeButton.addEventListener('click', () => clearSelection());
 
   chart.addEventListener('pointermove', (event) => updateFromX(event.clientX, event.target));
   chart.addEventListener('pointerdown', (event) => {
@@ -289,7 +292,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
     if (!card.contains(event.target)) updateFromX(event.clientX, event.target, true);
   });
   container.addEventListener('pointerleave', (event) => { if (event.pointerType === 'mouse') reset(); });
-  chart.addEventListener('pointercancel', reset);
+  chart.addEventListener('pointercancel', () => reset(true));
   chart.addEventListener('touchmove', (event) => {
     if (window.matchMedia('(max-width: 768px)').matches) return;
     if (event.touches[0]) {
@@ -297,7 +300,7 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
       updateFromX(event.touches[0].clientX, chart);
     }
   }, { passive: false });
-  chart.addEventListener('touchcancel', reset);
+  chart.addEventListener('touchcancel', () => reset(true));
   container.addEventListener('click', (event) => {
     const button = event.target.closest('[data-elevation-poi]');
     if (!button) return;
@@ -327,8 +330,8 @@ export function bindElevationProfile(container, profile, setLivePosition, setHig
   });
 
   return {
-    preview(progress, poi = null, snap = true) {
-      update(progress, poi, false, snap);
+    preview(progress, poi = null, snap = true, source = 'elevation') {
+      update(progress, poi, false, snap, source);
     },
     selectPoi,
     clearSelection,

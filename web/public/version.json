@@ -1,6 +1,11 @@
 {
-  "version": "v2.52",
+  "version": "v2.53",
   "history": [
+    {
+      "version": "v2.53",
+      "date": "2026-11-24",
+      "message": "Automatisierte Test-Pflicht fuer alle kuenftigen Aenderungen eingerichtet"
+    },
     {
       "version": "v2.52",
       "date": "2026-11-24",
