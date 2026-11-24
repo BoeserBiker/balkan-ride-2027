@@ -69,7 +69,7 @@ class AskModelTests(unittest.TestCase):
         )
         self.assertEqual(
             [call.kwargs["max_tokens"] for call in self.create.call_args_list],
-            [4096, 8192],
+            [16000, 32000],
         )
 
     def test_incomplete_implementation_after_retry_fails_without_partial_text(self):
@@ -78,7 +78,7 @@ class AskModelTests(unittest.TestCase):
             agent_runner.ask_model("implement", {}, "Regeln")
         self.assertEqual(
             [call.kwargs["max_tokens"] for call in self.create.call_args_list],
-            [4096, 8192],
+            [16000, 32000],
         )
 
 

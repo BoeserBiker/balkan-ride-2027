@@ -165,3 +165,26 @@ jobs:
           MODE: report
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/agent_runner.py
+
+  plan-report:
+    needs: [plan-stage]
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Fehlschlag melden
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                'Die Planerstellung ist fehlgeschlagen; es wurde kein Umsetzungsplan erzeugt.',
+                '',
+                '[Details im GitHub-Actions-Lauf](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})',
+              ].join('\n'),
+            });

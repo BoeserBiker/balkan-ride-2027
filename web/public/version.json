@@ -1,6 +1,11 @@
 {
-  "version": "v2.62",
+  "version": "v2.63",
   "history": [
+    {
+      "version": "v2.63",
+      "date": "2026-11-25",
+      "message": "Plan-Format-Normalisierung fuer Haiku in agent_runner.py ergaenzt"
+    },
     {
       "version": "v2.62",
       "date": "2026-11-25",
