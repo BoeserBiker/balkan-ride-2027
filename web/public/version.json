@@ -1,7 +1,17 @@
 {
-  "version": "v2.101",
-  "serviceWorkerCache": "v114",
+  "version": "v2.103",
+  "serviceWorkerCache": "v116",
   "serviceWorkerHistory": [
+    {
+      "version": "v116",
+      "date": "2026-11-25",
+      "message": "V5-Planungsunterlagen und Freigabe-Checkliste hinzugefuegt"
+    },
+    {
+      "version": "v115",
+      "date": "2026-11-25",
+      "message": "V5-Planungsunterlagen und Freigabe-Checkliste hinzugefuegt"
+    },
     {
       "version": "v114",
       "date": "2026-11-25",
@@ -124,6 +134,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.103",
+      "date": "2026-11-25",
+      "message": "V5-Planungsunterlagen und Freigabe-Checkliste hinzugefuegt"
+    },
+    {
+      "version": "v2.102",
+      "date": "2026-11-25",
+      "message": "V5-Planungsunterlagen und Freigabe-Checkliste hinzugefuegt"
+    },
     {
       "version": "v2.101",
       "date": "2026-11-25",
