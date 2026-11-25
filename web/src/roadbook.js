@@ -84,10 +84,13 @@ function externalLink(url, label) {
 
 function lightboxAttributes(photo, url, index) {
   const caption = photo.beschreibung || photo.caption || photo.title || photo.titel || photo.alt || 'Etappenfoto';
-  const credit = photo.urheber && photo.lizenz
-    ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
-    : '';
-  return `data-lightbox-index="${index}" data-lightbox-type="image" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText([caption, credit].filter(Boolean).join(' · '))}"`;
+  const captionParts = [
+    ...String(caption).split(/\s+·\s+/),
+    ...(photo.urheber && photo.lizenz ? [photo.urheber, photo.lizenz] : []),
+  ].map((part) => part.trim())
+    .filter((part) => part && !/^auf maximal 1400 px breite skaliert$/i.test(part));
+  const uniqueCaptionParts = [...new Set(captionParts)];
+  return `data-lightbox-index="${index}" data-lightbox-type="image" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText(uniqueCaptionParts.join(' · '))}"`;
 }
 
 function keywords(text) {
@@ -123,9 +126,9 @@ function renderPhoto(photo, urls, index) {
     `;
   }
 
-  const caption = photo.beschreibung || 'Etappenfoto';
+  const caption = photo.beschreibung || photo.caption || photo.titel || 'Etappenfoto';
   const credit = photo.urheber && photo.lizenz
-    ? `${photo.urheber} · ${photo.lizenz}${photo.bearbeitung ? ` · ${photo.bearbeitung}` : ''}`
+    ? `${photo.urheber} · ${photo.lizenz}`
     : '';
   return `
     <figure class="photo-card">
@@ -133,7 +136,7 @@ function renderPhoto(photo, urls, index) {
         <img src="${escapeHtml(url)}" alt="${escapeDisplayText(caption)}" loading="lazy">
         <span class="photo-caption">${escapeDisplayText(caption)}</span>
       </button>
-      ${credit ? `<figcaption class="photo-credit">${externalLink(photo.quelle, photo.urheber)} · ${externalLink(photo.lizenz_url, photo.lizenz)}${photo.bearbeitung ? ` · ${escapeDisplayText(photo.bearbeitung)}` : ''}</figcaption>` : ''}
+      ${credit ? `<figcaption class="photo-credit">${externalLink(photo.quelle, photo.urheber)} · ${externalLink(photo.lizenz_url, photo.lizenz)}</figcaption>` : ''}
     </figure>
   `;
 }
@@ -162,12 +165,17 @@ function youtubeVideoId(source) {
   return /^[\w-]{11}$/.test(videoId) ? videoId : null;
 }
 
+function youtubeThumbnail(video, videoId, urls) {
+  const url = urls[video.poster] || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  return `<img src="${escapeHtml(url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`;
+}
+
 function renderVideo(video, urls) {
   const title = escapeDisplayText(video.titel || 'Etappenvideo');
   if (video.typ === 'youtube') {
     const videoId = youtubeVideoId(video.quelle);
     return videoId
-      ? `<div class="video-item"><button class="video-open-button" type="button" data-lightbox-index="${video.index}" data-lightbox-type="youtube" data-lightbox-src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" data-lightbox-alt="${title}" data-lightbox-caption="${title}" aria-label="Video ${title} in Galerie öffnen"><span aria-hidden="true">▶</span> In Galerie ansehen</button><div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" title="${title}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><a class="video-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen</a></div>`
+      ? `<div class="video-item"><button class="video-open-button" type="button" data-lightbox-index="${video.index}" data-lightbox-type="youtube" data-lightbox-src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&amp;playsinline=1" data-lightbox-alt="${title}" data-lightbox-caption="${title}" aria-label="Video ${title} in Galerie öffnen"><span aria-hidden="true">▶</span> In Galerie ansehen</button><div class="video-frame"><button class="youtube-preview" type="button" data-youtube-embed="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&amp;rel=0&amp;playsinline=1" data-youtube-title="${title}" aria-label="Video ${title} laden und abspielen">${youtubeThumbnail(video, videoId, urls)}<span class="youtube-preview-play" aria-hidden="true">▶</span><span class="youtube-preview-note">2-Klick-Vorschau: Mit Klick wird das Video von YouTube (youtube-nocookie.com) geladen.</span></button></div><a class="video-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen</a></div>`
       : `<div class="media-placeholder"><small>VIDEO-QUELLE UNGÜLTIG</small><p>${title}</p></div>`;
   }
 
@@ -192,12 +200,14 @@ function renderGalleryVideo(video, urls, index) {
   const title = escapeDisplayText(video.titel || 'Etappenvideo');
   let type = 'video';
   let source = urls[video.quelle];
+  let thumbnail = '';
   if (video.typ === 'youtube') {
     const videoId = youtubeVideoId(video.quelle);
     if (!videoId) {
       return `<div class="media-placeholder"><small>VIDEO-QUELLE UNGÜLTIG</small><p>${title}</p></div>`;
     }
     type = 'youtube';
+    thumbnail = youtubeThumbnail(video, videoId, urls);
     source = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&playsinline=1`;
   }
   if (!source) {
@@ -205,15 +215,14 @@ function renderGalleryVideo(video, urls, index) {
   }
 
   const poster = urls[video.poster];
+  const preview = thumbnail || (poster ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy">` : '');
   return `
     <button class="media-gallery-video" type="button" data-lightbox-index="${index}"
       data-lightbox-type="${type}" data-lightbox-src="${escapeHtml(source)}"
       data-lightbox-alt="${title}" data-lightbox-caption="${title}"
       aria-label="Video ${title} in Vollbild ansehen">
-      ${poster
-    ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy">`
-    : '<span class="media-gallery-video-placeholder" aria-hidden="true">▶</span>'}
-      <span class="media-gallery-video-overlay"><strong>${title}</strong><span>▶ Video ansehen</span></span>
+      ${preview}
+      <span class="media-gallery-video-play" aria-hidden="true">▶</span>
     </button>
   `;
 }

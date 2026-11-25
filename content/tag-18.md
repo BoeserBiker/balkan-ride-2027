@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:A2_Motorway,_Greece_-_Section_Paramythia-Igoumenitsa_-_16.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-18/commons-02.jpg
     beschreibung: Igoumenitsa city
     urheber: Evmeos
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Igoumenitsa_city.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-18/commons-03.jpg
     beschreibung: IgoumenitsaAnsichtVomMeer
     urheber: Joergsam
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:IgoumenitsaAnsichtVomMeer.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-18/commons-04.jpg
     beschreibung: Ladohori Igoumenitsa New Port
     urheber: Evmeos
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Ladohori_Igoumenitsa_New_Port.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/IHbgaYTq2fA

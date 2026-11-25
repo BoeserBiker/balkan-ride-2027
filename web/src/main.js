@@ -309,6 +309,7 @@ function renderShell() {
       <div class="lightbox-media">
         <img alt="" hidden>
         <video controls playsinline hidden></video>
+        <button class="youtube-preview lightbox-youtube-preview" type="button" hidden aria-label="Video laden und abspielen"><span class="youtube-preview-play" aria-hidden="true">▶</span><span class="youtube-preview-note">2-Klick-Vorschau: Mit Klick wird das Video von YouTube (youtube-nocookie.com) geladen.</span></button>
         <iframe title="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen hidden></iframe>
       </div>
       <p class="lightbox-caption"></p>
@@ -358,6 +359,8 @@ function renderShell() {
       <details id="version-history" class="settings-version">
         <summary>Versionsverlauf <span id="version-current">lädt …</span></summary>
         <ol class="version-history-list"></ol>
+        <p class="version-history-section-title">Service-Worker- / Cache-Verlauf <span id="service-worker-current">lädt …</span></p>
+        <ol class="version-history-list service-worker-history-list"></ol>
       </details>
       <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
       <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
@@ -369,6 +372,8 @@ async function loadVersionHistory() {
   const details = document.querySelector('#version-history');
   const current = details.querySelector('#version-current');
   const list = details.querySelector('.version-history-list');
+  const serviceWorkerCurrent = details.querySelector('#service-worker-current');
+  const serviceWorkerList = details.querySelector('.service-worker-history-list');
 
   try {
     const response = await fetch(`${import.meta.env.BASE_URL}version.json`);
@@ -378,6 +383,9 @@ async function loadVersionHistory() {
     const data = await response.json();
     if (typeof data.version !== 'string' || !Array.isArray(data.history)
       || !data.history.every((entry) => entry && typeof entry.version === 'string'
+        && typeof entry.date === 'string' && typeof entry.message === 'string')
+      || typeof data.serviceWorkerCache !== 'string' || !Array.isArray(data.serviceWorkerHistory)
+      || !data.serviceWorkerHistory.every((entry) => entry && typeof entry.version === 'string'
         && typeof entry.date === 'string' && typeof entry.message === 'string')) {
       throw new Error('Ungültiges Format der Versionsdatei.');
     }
@@ -386,9 +394,15 @@ async function loadVersionHistory() {
       <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>
         <p>${escapeDisplayText(entry.message)}</p></li>
     `).join('');
+    serviceWorkerCurrent.textContent = data.serviceWorkerCache;
+    serviceWorkerList.innerHTML = data.serviceWorkerHistory.map((entry) => `
+      <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>
+        <p>${escapeDisplayText(entry.message)}</p></li>
+    `).join('');
   } catch (error) {
     console.error('Der Versionsverlauf konnte nicht geladen werden.', error);
     current.textContent = 'nicht verfügbar';
+    serviceWorkerCurrent.textContent = 'nicht verfügbar';
   }
 }
 
@@ -449,6 +463,8 @@ function renderApp() {
   const lightboxImage = lightbox.querySelector('img');
   const lightboxVideo = lightbox.querySelector('video');
   const lightboxFrame = lightbox.querySelector('iframe');
+  const lightboxYoutubePreview = lightbox.querySelector('.lightbox-youtube-preview');
+  let lightboxYoutubeSrc = '';
   const lightboxCaption = lightbox.querySelector('.lightbox-caption');
   const lightboxPrevious = lightbox.querySelector('.lightbox-previous');
   const lightboxNext = lightbox.querySelector('.lightbox-next');
@@ -478,7 +494,11 @@ function renderApp() {
     lightboxImage.removeAttribute('src');
     lightboxImage.hidden = item.type !== 'image';
     lightboxVideo.hidden = item.type !== 'video';
-    lightboxFrame.hidden = item.type !== 'youtube';
+    lightboxFrame.hidden = true;
+    lightboxYoutubePreview.hidden = item.type !== 'youtube';
+    const youtubeId = item.type === 'youtube' ? /embed\/([\w-]{11})/.exec(item.src)?.[1] : null;
+    lightboxYoutubePreview.style.backgroundImage = youtubeId ? `url("https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg")` : '';
+    lightboxYoutubeSrc = '';
 
     if (item.type === 'image') {
       lightboxImage.src = item.src;
@@ -487,10 +507,13 @@ function renderApp() {
       lightboxVideo.src = item.src;
       lightboxVideo.load();
     } else {
-      lightboxFrame.src = item.src;
+      lightboxYoutubeSrc = item.src.includes('autoplay=1') ? item.src : `${item.src}&autoplay=1`;
       lightboxFrame.title = item.alt;
     }
-    lightboxCaption.textContent = item.caption;
+    lightboxCaption.textContent = [...new Set((item.caption || '')
+      .split(/\s+·\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part && !/^auf maximal 1400 px breite skaliert$/i.test(part)))].join(' · ');
     lightboxPrevious.disabled = index === 0;
     lightboxNext.disabled = index === lightboxItems.length - 1;
   }
@@ -708,6 +731,32 @@ function renderApp() {
   });
   filterMediaGallery();
 
+  lightboxYoutubePreview.addEventListener('click', () => {
+    if (!navigator.onLine) {
+      lightboxYoutubePreview.querySelector('.youtube-preview-note').textContent = 'Offline: Das Video kann nur mit Internetverbindung geladen werden.';
+      return;
+    }
+    lightboxFrame.src = lightboxYoutubeSrc;
+    lightboxFrame.hidden = false;
+    lightboxYoutubePreview.hidden = true;
+  });
+  document.addEventListener('click', (event) => {
+    const preview = event.target.closest('.video-frame > .youtube-preview[data-youtube-embed]');
+    if (!preview) {
+      return;
+    }
+    if (!navigator.onLine) {
+      preview.querySelector('.youtube-preview-note').textContent = 'Offline: Das Video kann nur mit Internetverbindung geladen werden.';
+      return;
+    }
+    const frame = document.createElement('iframe');
+    frame.src = preview.dataset.youtubeEmbed;
+    frame.title = preview.dataset.youtubeTitle || 'Etappenvideo';
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.allowFullscreen = true;
+    preview.replaceWith(frame);
+  });
   lightboxPrevious.addEventListener('click', () => showLightboxItem(lightboxIndex - 1));
   lightboxNext.addEventListener('click', () => showLightboxItem(lightboxIndex + 1));
   lightbox.addEventListener('touchstart', (event) => {

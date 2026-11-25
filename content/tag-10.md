@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 3.0
     lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
     quelle: https://commons.wikimedia.org/wiki/File:Perast_Kotor_Bay_2006.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-10/commons-02.jpg
     beschreibung: Kotor and Boka kotorska - view from city wall
     urheber: Pudelek (Marcin Szala)
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Kotor_and_Boka_kotorska_-_view_from_city_wall.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-10/commons-03.jpg
     beschreibung: Bay of Kotor from Perast
     urheber: Gertjan R.
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Bay_of_Kotor_from_Perast.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-10/commons-04.jpg
     beschreibung: 20090719 Crkva Gospa od Zdravlja Kotor Bay Montenegro
     urheber: User:Ggia
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:20090719_Crkva_Gospa_od_Zdravlja_Kotor_Bay_Montenegro.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/P2BV9uiEwNk

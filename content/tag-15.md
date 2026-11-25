@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY 2.0
     lizenz_url: https://creativecommons.org/licenses/by/2.0
     quelle: https://commons.wikimedia.org/wiki/File:Llogara_pass.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-15/commons-02.jpg
     beschreibung: Badhër, Himarë, Albania 2019 01 – Hill
     urheber: Pasztilla aka Attila Terbócs
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Badh%C3%ABr,_Himar%C3%AB,_Albania_2019_01_%E2%80%93_Hill.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-15/commons-03.jpg
     beschreibung: Llogara viewing platform
     urheber: Albinfo
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Llogara_viewing_platform.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-15/commons-04.jpg
     beschreibung: Badhër, Himarë, Albania 2019 02 – Ruins
     urheber: Pasztilla aka Attila Terbócs
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Badh%C3%ABr,_Himar%C3%AB,_Albania_2019_02_%E2%80%93_Ruins.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/0kPNA7FyAls

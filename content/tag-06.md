@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 3.0
     lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
     quelle: https://commons.wikimedia.org/wiki/File:Primosten_peninsula.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-06/commons-02.jpg
     beschreibung: Omis, an der Cetina-Mündung, rechtes Ufer IMG 8230
     urheber: Hedwig Storch
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Omis,_an_der_Cetina-M%C3%BCndung,_rechtes_Ufer_IMG_8230.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-06/commons-03.jpg
     beschreibung: Kroatien Primosten südlich Sibenik
     urheber: I, Nikater
     lizenz: CC BY-SA 3.0
     lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
     quelle: https://commons.wikimedia.org/wiki/File:Kroatien_Primosten_s%C3%BCdlich_Sibenik.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-06/commons-04.jpg
     beschreibung: Cetina, am linken Ufer, nahe bei Omis IMG 8215
     urheber: Hedwig Storch
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Cetina,_am_linken_Ufer,_nahe_bei_Omis_IMG_8215.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/o3cOs7qokGU

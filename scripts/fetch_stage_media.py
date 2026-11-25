@@ -226,7 +226,6 @@ def add_images(path, text, stage):
                     "datei": relative.as_posix(), "beschreibung": caption,
                     "urheber": image["author"], "lizenz": image["license"],
                     "lizenz_url": image["license_url"], "quelle": image["source"],
-                    "bearbeitung": "Auf maximal 1400 px Breite skaliert",
                 })
                 seen.add(image["source"])
                 print(f"{path.name}: {caption} ({image['license']})", flush=True)

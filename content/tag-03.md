@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Road_to_Vr%C5%A1i%C4%8D_pass.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-03/commons-02.jpg
     beschreibung: Village in Soca River Valley
     urheber: Akampfer
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Village_in_Soca_River_Valley.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-03/commons-03.jpg
     beschreibung: Vrsic-Pass 16
     urheber: Zairon
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Vrsic-Pass_16.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-03/commons-04.jpg
     beschreibung: Soča spring
     urheber: Herzi Pinki
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:So%C4%8Da_spring.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/Ybnmd8mglMY

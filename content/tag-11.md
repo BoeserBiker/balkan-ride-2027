@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Theth_Radohima_MajaArapit.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-11/commons-02.jpg
     beschreibung: Tamarë
     urheber: Shkodraunit
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Tamar%C3%AB.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-11/commons-03.jpg
     beschreibung: Theth, Albania - panoramio
     urheber: Petrit Gjeçaj
     lizenz: CC BY 3.0
     lizenz_url: https://creativecommons.org/licenses/by/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Theth,_Albania_-_panoramio.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-11/commons-04.jpg
     beschreibung: Tamarë në maj
     urheber: Planeti
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Tamar%C3%AB_n%C3%AB_maj.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/59-xN6i8AUI

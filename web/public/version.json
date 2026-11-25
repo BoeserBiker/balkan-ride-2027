@@ -1,6 +1,29 @@
 {
-  "version": "v2.86",
+  "version": "v2.88",
+  "serviceWorkerCache": "v92",
+  "serviceWorkerHistory": [
+    {
+      "version": "v92",
+      "date": "2026-11-25",
+      "message": "Desktop-Fotogalerie repariert; Cache-Verlauf ergänzt"
+    },
+    {
+      "version": "v91",
+      "date": "2026-11-25",
+      "message": "Medienansicht und Lightbox zentriert; Lightbox-Credits bereinigt"
+    }
+  ],
   "history": [
+    {
+      "version": "v2.88",
+      "date": "2026-11-25",
+      "message": "GitHub Actions auf Node-24-kompatible Versionen aktualisiert"
+    },
+    {
+      "version": "v2.87",
+      "date": "2026-11-25",
+      "message": "Desktop: Medienansicht und Lightbox zentriert; Lightbox-Credits bereinigt"
+    },
     {
       "version": "v2.86",
       "date": "2026-11-25",

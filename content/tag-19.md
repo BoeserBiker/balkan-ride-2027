@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY 3.0
     lizenz_url: https://creativecommons.org/licenses/by/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Adriatic_Sea_from_ferry.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-19/commons-02.jpg
     beschreibung: Adriatic Sea with Coast of Albania
     urheber: Kroll Markus
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Adriatic_Sea_with_Coast_of_Albania.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-19/commons-03.jpg
     beschreibung: Adriatic Jet
     urheber: Norbert Nagel, Mörfelden-Walldorf, Germany
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Adriatic_Jet.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-19/commons-04.jpg
     beschreibung: 20130604 on the Adriatic sea between Split and Brač 20
     urheber: Mark Ahsmann
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:20130604_on_the_Adriatic_sea_between_Split_and_Bra%C4%8D_20.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/nEseNqhK-As

@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY 3.0
     lizenz_url: https://creativecommons.org/licenses/by/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Kru%C5%A1evljani_Nevesinje_-_panoramio.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-08/commons-02.jpg
     beschreibung: Foča – Panorama
     urheber: Julian Nyča
     lizenz: CC BY-SA 3.0
     lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
     quelle: https://commons.wikimedia.org/wiki/File:Fo%C4%8Da_%E2%80%93_Panorama.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-08/commons-03.jpg
     beschreibung: Nevesinje PartizanskoSpomenGroblje15
     urheber: Knoken ( [1] )
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Nevesinje_PartizanskoSpomenGroblje15.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-08/commons-04.jpg
     beschreibung: Foča, řeka Ćehotina II
     urheber: I would appreciate being notified if you use my work outside Wikimedia. More of my work can be found in my personal gallery .
     lizenz: CC BY 3.0
     lizenz_url: https://creativecommons.org/licenses/by/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Fo%C4%8Da,_%C5%99eka_%C4%86ehotina_II.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/waAFjju_wTs

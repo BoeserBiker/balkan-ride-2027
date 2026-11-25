@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 import {
   cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderMediaGallery,
@@ -13,6 +13,13 @@ const [indexHtml, mainSource, styleSource, elevationSource, serviceWorkerSource,
   readFile(new URL('../src/elevation-profile.js', import.meta.url), 'utf8'),
   readFile(new URL('../public/sw.js', import.meta.url), 'utf8'),
   readFile(new URL('../../.github/workflows/deploy-pages.yml', import.meta.url), 'utf8'),
+]);
+const stageFiles = (await readdir(new URL('../../content/', import.meta.url)))
+  .filter((name) => /^tag-\d+\.md$/.test(name));
+const [stageSources, mediaImporterSource, versionData] = await Promise.all([
+  Promise.all(stageFiles.map((name) => readFile(new URL(`../../content/${name}`, import.meta.url), 'utf8'))),
+  readFile(new URL('../../scripts/fetch_stage_media.py', import.meta.url), 'utf8'),
+  readFile(new URL('../public/version.json', import.meta.url), 'utf8').then(JSON.parse),
 ]);
 
 test('cleans POI export prefixes and hides technical descriptions', () => {
@@ -143,6 +150,8 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /:root\[data-theme="bvb"\][\s\S]*--bg: #09090b;[\s\S]*--accent: #fde000;/);
   assert.match(mainSource, /<input id="font-size-range"[^>]*type="range" min="1" max="4" step="1"/);
   assert.match(mainSource, /<details id="version-history" class="settings-version">/);
+  assert.match(mainSource, /Service-Worker- \/ Cache-Verlauf <span id="service-worker-current"/);
+  assert.match(mainSource, /class="version-history-list service-worker-history-list"/);
   assert.doesNotMatch(mainSource, /version-badge|mobile-stage-route|route-connector|bindRouteScrubber/);
   assert.match(mainSource, /Etappe \$\{String\(day\.frontmatter\.tag\)/);
   assert.match(mainSource, /SETTINGS_KEYS = \{[\s\S]*theme: 'balkan-ride-theme'[\s\S]*fontSize: 'balkan-ride-font-size'/);
@@ -191,6 +200,17 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.site-nav a \{[^}]*white-space: nowrap;/);
   assert.match(styleSource, /\.site-nav a:hover, \.site-nav a:focus-visible, \.site-nav a\[aria-current="page"\], \.site-nav a\.active/);
   assert.match(mainSource, /id="media" class="media-page"/);
+  assert.match(styleSource, /\.photo-button \{ display: flex; flex-direction: column;/);
+  assert.match(styleSource, /\.photo-button img \{[^}]*flex: none;[^}]*height: auto;[^}]*aspect-ratio: 4 \/ 3;[^}]*object-fit: cover;/);
+  assert.doesNotMatch(styleSource, /\.photo-button img \{[^}]*height: 100%/);
+  assert.match(styleSource, /\.leaflet-marker-icon\.day-map-pin\.is-active \{ z-index: 900 !important; \}/);
+  assert.match(styleSource, /\.photo-button \.photo-caption \{ flex: 1 0 auto; min-height: calc\(2\.8em \+ 16px\); \}/);
+  assert.match(styleSource, /\.photo-credit \{[^}]*min-height: 2\.8em;/);
+  assert.match(styleSource, /\.media-gallery-grid \{[^}]*grid-auto-rows: auto;[^}]*align-items: stretch;/);
+  assert.match(styleSource, /\.media-gallery-entry \.photo-card \{[^}]*height: auto;[^}]*overflow: visible;/);
+  assert.match(styleSource, /\.media-gallery-entry \.photo-button \{ flex: none;[^}]*height: auto;/);
+  assert.match(styleSource, /\.media-page \{[^}]*max-width: 1440px; margin-inline: auto;/);
+  assert.match(styleSource, /\.lightbox \{ position: fixed; inset: 50% auto auto 50%;[^}]*margin: 0;[^}]*transform: translate\(-50%, -50%\);/);
   assert.match(mainSource, /viewSections\.forEach\(\(section\) => \{ section\.hidden = section\.id !== active; \}\)/);
   assert.match(mainSource, /\['roadbook', 'media', 'logistics'\]/);
   assert.match(mainSource, /setAttribute\('aria-current', 'page'\)/);
@@ -199,6 +219,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(mainSource, /addEventListener\('hashchange'/);
   assert.match(mainSource, /addEventListener\('popstate'/);
   assert.match(mainSource, /map\.resize\(\)/);
+  assert.match(mainSource, /new Set\(\(item\.caption \|\| ''\)[\s\S]*auf maximal 1400 px breite skaliert/i);
   assert.match(styleSource, /\.roadbook-layout\[hidden\], \.media-page\[hidden\], \.logistics-section\[hidden\] \{ display: none !important; \}/);
   assert.match(mainSource, /id="media-type-filter"/);
   assert.match(mainSource, /id="media-stage-filter"/);
@@ -212,6 +233,11 @@ test('defines a numeric service-worker cache version and runs tests before the P
   assert.ok(cache, 'service worker cache name must use a numeric version');
   assert.equal(cache[1], 'balkan-ride-shell-');
   assert.ok(Number.isSafeInteger(Number(cache[2])) && Number(cache[2]) > 0);
+  const serviceWorkerVersion = `v${cache[2]}`;
+  assert.equal(versionData.serviceWorkerCache, serviceWorkerVersion);
+  assert.equal(versionData.serviceWorkerHistory[0].version, serviceWorkerVersion);
+  assert.ok(Array.isArray(versionData.serviceWorkerHistory));
+  assert.equal(versionData.version, 'v2.87');
 
   const testCommand = deployWorkflow.indexOf('node --test web/tests/*.test.js');
   const buildCommand = deployWorkflow.indexOf('npm run build --prefix web');
@@ -220,4 +246,13 @@ test('defines a numeric service-worker cache version and runs tests before the P
   assert.match(deployWorkflow, /pull_request:[\s\S]*branches: \[main\]/);
   assert.match(deployWorkflow, /if: github\.event_name != 'pull_request'/);
   assert.match(deployWorkflow, /needs: build/);
+});
+
+test('stage media sources no longer contain image processing attribution', () => {
+  assert.equal(stageFiles.length, 22);
+  for (const source of stageSources) {
+    assert.doesNotMatch(source, /bearbeitung\s*:|1400\s*px|skaliert/i);
+  }
+  assert.doesNotMatch(mediaImporterSource, /["']bearbeitung["']\s*:/i);
+  assert.doesNotMatch(mediaImporterSource, /Auf maximal 1400 px Breite skaliert/i);
 });

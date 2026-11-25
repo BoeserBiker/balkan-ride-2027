@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Tarvisio_Cinque_Punte_Blick_von_Rosstratte_13022015_9789.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-20/commons-02.jpg
     beschreibung: Villach Wernberg II Sankt Ulrich Filialkirche hl. Ulrich 30012011 222
     urheber: Johann Jaritz
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Villach_Wernberg_II_Sankt_Ulrich_Filialkirche_hl._Ulrich_30012011_222.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-20/commons-03.jpg
     beschreibung: Tarvisio Stazione e Chiesa dei SS Pietro e Paolo Apostoli 26062015 5455
     urheber: Johann Jaritz
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Tarvisio_Stazione_e_Chiesa_dei_SS_Pietro_e_Paolo_Apostoli_26062015_5455.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-20/commons-04.jpg
     beschreibung: Villach Innenstadt Bahnhofstraße Draubrücke St. Nikolai 03082015 6389
     urheber: Johann Jaritz / CC BY-SA 4.0
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Villach_Innenstadt_Bahnhofstra%C3%9Fe_Draubr%C3%BCcke_St._Nikolai_03082015_6389.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/xwJ3KFl2ipY

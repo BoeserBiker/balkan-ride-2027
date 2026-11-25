@@ -42,12 +42,42 @@ test('gallery renders attribution links and nocookie video', () => {
     assetUrls: { '../../assets/media/tag-03/test.jpg': '/assets/test.jpg' },
   });
   assert.match(html, /A &amp; B/);
+  assert.doesNotMatch(html, /Skaliert/);
+  assert.match(html, /<span class="photo-caption">Blick<\/span>[\s\S]*<figcaption class="photo-credit">/);
+  assert.match(html, /data-lightbox-caption="Blick · A &amp; B · CC BY 4\.0"/);
+  assert.doesNotMatch(html, /data-lightbox-caption="[^"]*Skaliert/);
   assert.match(html, /https:\/\/commons\.wikimedia\.org\/wiki\/File:Test/);
   assert.match(html, /https:\/\/creativecommons\.org\/licenses\/by\/4\.0\//);
   assert.match(html, /https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?rel=0&amp;playsinline=1/);
-  assert.match(html, /referrerpolicy="strict-origin-when-cross-origin"/);
-  assert.match(html, /allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen/);
+  assert.doesNotMatch(html, /<iframe/);
+  assert.match(html, /<img src="https:\/\/i\.ytimg\.com\/vi\/abcdefghijk\/hqdefault\.jpg" alt="" loading="lazy" referrerpolicy="no-referrer">/);
+  assert.doesNotMatch(html, /youtube-preview-title|media-gallery-video-overlay/);
+  assert.match(html, /<button class="youtube-preview" type="button" data-youtube-embed="https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?autoplay=1&amp;rel=0&amp;playsinline=1"/);
+  assert.match(html, /2-Klick-Vorschau: Mit Klick wird das Video von YouTube \(youtube-nocookie\.com\) geladen\./);
   assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=abcdefghijk" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen/);
+});
+
+test('lightbox photo caption deduplicates credit and omits image processing text', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
+      kilometer: 10, fahrzeit: '1 h', hoehenmeter: 10, highlights: [],
+      bilder: [{
+        datei: 'assets/media/tag-03/test.jpg',
+        beschreibung: 'Blick · A & B · CC BY 4.0 · CC BY 4.0 · Auf maximal 1400 px Breite skaliert',
+        urheber: 'A & B', lizenz: 'CC BY 4.0',
+      }],
+      videos: [],
+    },
+    body: '',
+  };
+  const html = renderDayContent(day, {
+    marked: { parse: (text) => text },
+    DOMPurify: { sanitize: (text) => text },
+    assetUrls: { '../../assets/media/tag-03/test.jpg': '/assets/test.jpg' },
+  });
+  assert.match(html, /data-lightbox-caption="Blick · A &amp; B · CC BY 4\.0"/);
+  assert.doesNotMatch(html, /data-lightbox-caption="[^"]*skaliert/i);
 });
 
 test('day media receives stable indices and video gallery launch controls', () => {

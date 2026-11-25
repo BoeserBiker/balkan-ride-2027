@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 2.5
     lizenz_url: https://creativecommons.org/licenses/by-sa/2.5
     quelle: https://commons.wikimedia.org/wiki/File:Waterfalls_Kravica_1,_Bosnia_and_Herzegovina.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-07/commons-02.jpg
     beschreibung: Mostar, Stari Most at night
     urheber: BáthoryPéter ( talk )
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Mostar,_Stari_Most_at_night.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-07/commons-03.jpg
     beschreibung: Waterfalls Kravica 5, Bosnia and Herzegovina
     urheber: Matěj Baťha
     lizenz: CC BY-SA 2.5
     lizenz_url: https://creativecommons.org/licenses/by-sa/2.5
     quelle: https://commons.wikimedia.org/wiki/File:Waterfalls_Kravica_5,_Bosnia_and_Herzegovina.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-07/commons-04.jpg
     beschreibung: Mostar and Neretva - view from Stari Most
     urheber: Pudelek (Marcin Szala)
     lizenz: CC BY-SA 3.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/3.0
     quelle: https://commons.wikimedia.org/wiki/File:Mostar_and_Neretva_-_view_from_Stari_Most.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/zX3ZDawiSwQ

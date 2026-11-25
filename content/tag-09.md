@@ -20,28 +20,24 @@ bilder:
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Piva_Canyon.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-09/commons-02.jpg
     beschreibung: Durmitor mountains, Montenegro
     urheber: Pudelek
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Durmitor_mountains,_Montenegro.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-09/commons-03.jpg
     beschreibung: Durmitor Sedlo Pass - 1
     urheber: Ingo Mehling
     lizenz: CC BY-SA 4.0
     lizenz_url: https://creativecommons.org/licenses/by-sa/4.0
     quelle: https://commons.wikimedia.org/wiki/File:Durmitor_Sedlo_Pass_-_1.jpg
-    bearbeitung: Auf maximal 1400 px Breite skaliert
   - datei: assets/media/tag-09/commons-04.jpg
     beschreibung: Montenegro Tara bridge
     urheber: Cornelius Bechtler
     lizenz: CC BY-SA 3.0
     lizenz_url: http://creativecommons.org/licenses/by-sa/3.0/
     quelle: https://commons.wikimedia.org/wiki/File:Montenegro_Tara_bridge.JPG
-    bearbeitung: Auf maximal 1400 px Breite skaliert
 videos:
   - typ: youtube
     quelle: https://www.youtube-nocookie.com/embed/B5Ttq36CTqw
