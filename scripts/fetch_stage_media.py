@@ -127,7 +127,7 @@ def commons_images(query):
     response = request_json(COMMONS_API, {
         "action": "query", "generator": "search", "gsrsearch": query,
         "gsrnamespace": 6, "gsrlimit": 30, "prop": "imageinfo",
-        "iiprop": "url|size|mime|extmetadata", "iiurlwidth": 1400,
+        "iiprop": "url|size|mime|extmetadata", "iiurlwidth": 1600,
         "format": "json", "formatversion": 2, "maxlag": 5,
     })
     for page in response.get("query", {}).get("pages", []):
@@ -191,7 +191,7 @@ def download_image(image, destination):
             resized = ImageOps.exif_transpose(original)
             if resized.width <= resized.height:
                 raise ValueError(f"Bild ist nach Ausrichtung kein Querformat: {url}")
-            resized.thumbnail((1400, resized.height), Image.Resampling.LANCZOS)
+            resized.thumbnail((1600, resized.height), Image.Resampling.LANCZOS)
             resized.save(destination, format="JPEG" if image["mime"] == "image/jpeg" else "PNG")
 
 

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gpxDownload } from '../src/gpx-download.js';
 import { formatDayMapLabel } from '../src/map.js';
-import { renderDayContent } from '../src/roadbook.js';
+import { renderDayContent, renderMediaGallery } from '../src/roadbook.js';
 
 test('map label matches the selected stage text', () => {
   assert.equal(formatDayMapLabel({
@@ -30,7 +30,6 @@ test('gallery renders attribution links and nocookie video', () => {
         urheber: 'A & B', lizenz: 'CC BY 4.0',
         quelle: 'https://commons.wikimedia.org/wiki/File:Test',
         lizenz_url: 'https://creativecommons.org/licenses/by/4.0/',
-        bearbeitung: 'Skaliert',
       }],
       videos: [{ typ: 'youtube', quelle: 'https://www.youtube-nocookie.com/embed/abcdefghijk', titel: 'Tour' }],
     },
@@ -42,10 +41,8 @@ test('gallery renders attribution links and nocookie video', () => {
     assetUrls: { '../../assets/media/tag-03/test.jpg': '/assets/test.jpg' },
   });
   assert.match(html, /A &amp; B/);
-  assert.doesNotMatch(html, /Skaliert/);
   assert.match(html, /<span class="photo-caption">Blick<\/span>[\s\S]*<figcaption class="photo-credit">/);
   assert.match(html, /data-lightbox-caption="Blick · A &amp; B · CC BY 4\.0"/);
-  assert.doesNotMatch(html, /data-lightbox-caption="[^"]*Skaliert/);
   assert.match(html, /https:\/\/commons\.wikimedia\.org\/wiki\/File:Test/);
   assert.match(html, /https:\/\/creativecommons\.org\/licenses\/by\/4\.0\//);
   assert.match(html, /https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?rel=0&amp;playsinline=1/);
@@ -57,14 +54,45 @@ test('gallery renders attribution links and nocookie video', () => {
   assert.match(html, /href="https:\/\/www\.youtube\.com\/watch\?v=abcdefghijk" target="_blank" rel="noopener noreferrer">Direkt in YouTube öffnen/);
 });
 
-test('lightbox photo caption deduplicates credit and omits image processing text', () => {
+test('photo views keep title and credits but omit image processing metadata', () => {
+  const day = {
+    frontmatter: {
+      tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
+      kilometer: 10, fahrzeit: '1 h', hoehenmeter: 10, highlights: [],
+      bilder: [{
+        datei: 'assets/media/tag-03/test.jpg', titel: 'Blick auf die Küste',
+        bearbeitung: 'Interne Bildnotiz', urheber: 'A & B', lizenz: 'CC BY 4.0',
+        quelle: 'https://commons.wikimedia.org/wiki/File:Test',
+        lizenz_url: 'https://creativecommons.org/licenses/by/4.0/',
+      }],
+      videos: [],
+    },
+    body: '',
+  };
+  const assetUrls = { '../../assets/media/tag-03/test.jpg': '/assets/test.jpg' };
+  const detailHtml = renderDayContent(day, {
+    marked: { parse: (text) => text },
+    DOMPurify: { sanitize: (text) => text },
+    assetUrls,
+  });
+  const galleryHtml = renderMediaGallery([day], { assetUrls });
+
+  for (const html of [detailHtml, galleryHtml]) {
+    assert.match(html, /Blick auf die Küste/);
+    assert.match(html, /A &amp; B/);
+    assert.match(html, /CC BY 4\.0/);
+    assert.doesNotMatch(html, /Interne Bildnotiz|bearbeitung|skaliert/i);
+  }
+});
+
+test('lightbox photo caption deduplicates repeated credit', () => {
   const day = {
     frontmatter: {
       tag: 3, datum: '2027-09-10', titel: 'Test', start: 'A', ziel: 'B',
       kilometer: 10, fahrzeit: '1 h', hoehenmeter: 10, highlights: [],
       bilder: [{
         datei: 'assets/media/tag-03/test.jpg',
-        beschreibung: 'Blick · A & B · CC BY 4.0 · CC BY 4.0 · Auf maximal 1400 px Breite skaliert',
+        beschreibung: 'Blick · A & B · CC BY 4.0 · CC BY 4.0',
         urheber: 'A & B', lizenz: 'CC BY 4.0',
       }],
       videos: [],
@@ -77,7 +105,6 @@ test('lightbox photo caption deduplicates credit and omits image processing text
     assetUrls: { '../../assets/media/tag-03/test.jpg': '/assets/test.jpg' },
   });
   assert.match(html, /data-lightbox-caption="Blick · A &amp; B · CC BY 4\.0"/);
-  assert.doesNotMatch(html, /data-lightbox-caption="[^"]*skaliert/i);
 });
 
 test('day media receives stable indices and video gallery launch controls', () => {

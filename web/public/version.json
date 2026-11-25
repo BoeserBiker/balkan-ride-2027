@@ -1,7 +1,27 @@
 {
-  "version": "v2.88",
-  "serviceWorkerCache": "v92",
+  "version": "v2.90",
+  "serviceWorkerCache": "v96",
   "serviceWorkerHistory": [
+    {
+      "version": "v96",
+      "date": "2026-11-25",
+      "message": "Medien-Lightbox scrollbar gemacht; Medienimport auf 1600 px ausgerichtet"
+    },
+    {
+      "version": "v95",
+      "date": "2026-11-25",
+      "message": "Versionspflege verbindlich festgelegt und per Test abgesichert"
+    },
+    {
+      "version": "v94",
+      "date": "2026-11-25",
+      "message": "Desktop-Fotogalerie ohne abgeschnittene Credits; Cache-Verlauf scrollbar"
+    },
+    {
+      "version": "v93",
+      "date": "2026-11-25",
+      "message": "Cache-Version aktualisiert"
+    },
     {
       "version": "v92",
       "date": "2026-11-25",
@@ -14,6 +34,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.90",
+      "date": "2026-11-25",
+      "message": "fix: Desktop-Fotogalerie repariert, 1400px-Hinweis aus Quellen entfernt und SW-Versionshistorie ergaenzt"
+    },
+    {
+      "version": "v2.89",
+      "date": "2026-11-25",
+      "message": "Medien-Lightbox hält lange Inhalte scrollbar im Viewport"
+    },
     {
       "version": "v2.88",
       "date": "2026-11-25",

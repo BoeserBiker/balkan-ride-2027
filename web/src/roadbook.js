@@ -87,8 +87,7 @@ function lightboxAttributes(photo, url, index) {
   const captionParts = [
     ...String(caption).split(/\s+·\s+/),
     ...(photo.urheber && photo.lizenz ? [photo.urheber, photo.lizenz] : []),
-  ].map((part) => part.trim())
-    .filter((part) => part && !/^auf maximal 1400 px breite skaliert$/i.test(part));
+  ].map((part) => part.trim()).filter(Boolean);
   const uniqueCaptionParts = [...new Set(captionParts)];
   return `data-lightbox-index="${index}" data-lightbox-type="image" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${escapeDisplayText(caption)}" data-lightbox-caption="${escapeDisplayText(uniqueCaptionParts.join(' · '))}"`;
 }

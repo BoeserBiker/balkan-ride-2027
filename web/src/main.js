@@ -513,7 +513,7 @@ function renderApp() {
     lightboxCaption.textContent = [...new Set((item.caption || '')
       .split(/\s+·\s+/)
       .map((part) => part.trim())
-      .filter((part) => part && !/^auf maximal 1400 px breite skaliert$/i.test(part)))].join(' · ');
+      .filter(Boolean))].join(' · ');
     lightboxPrevious.disabled = index === 0;
     lightboxNext.disabled = index === lightboxItems.length - 1;
   }

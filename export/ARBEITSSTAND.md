@@ -1,12 +1,40 @@
 ## Arbeitsstand – Balkan-Ride 2027
 
-**Stand:** 2026-11-22
+**Stand:** 2026-11-25
 
 **Workspace:** `Balkan-Ride-2027`  
 **Leitdokument:** [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md)
 
 ## Aktueller Stand
 
+- Web-Stand 2026-11-25: App-Version `v2.89`, Service-Worker-Cache `v96`;
+  beide Verläufe in `web/public/version.json` sind synchron. Die Bildunterschrift
+  behält Titel, Urheber und Lizenz, zeigt aber keine Bearbeitungsnotiz. Der
+  Medienimport nutzt nun die 1600-px-Grenze des Pflichtenhefts V4. Die
+  Lightbox bleibt zentriert und kann bei langen Inhalten scrollen; Fotogrid-
+  Zeilen und Credits bleiben automatisch hoch. 16 Node-Tests, der Vite-
+  Produktionsbuild und die Python-Syntaxprüfung waren erfolgreich. Eine
+  visuelle Browser-/Geräteprüfung wurde nicht durchgeführt.
+- Das konsolidierte [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md)
+  ergänzt V4 um eine vorgeschaltete Tourübersicht, eindeutige Reisezeiträume,
+  Daten-/GPX-Prüfung, Logistikmatrix, UI-/PWA-Offline- und Medienanforderungen.
+  Als Soll-Anforderung umfasst der `/plan-item`- und `/implement-item`-
+  Workflow nun geplante Änderungen an der gesamten Roadbook-App; die Umsetzung
+  bleibt auf die genehmigte Dateiliste begrenzt und verlangt passende Tests
+  sowie Build. Die bestehende Agentenimplementierung wurde nicht angepasst und
+  bietet diese erweiterte Fähigkeit noch nicht nachweislich.
+  Es wurden keine Etappen-, Routen-, Buchungs- oder App-Dateien geändert.
+- Der Abgleich des Review V4 mit V5 hat weitere Spezifikationslücken
+  identifiziert: ein Budget-/Kostenüberblick, ausdrückliche Reserve-/Puffertage
+  und ein Schutz vor dem öffentlichen Build privater Planungsdokumente sind
+  nicht festgelegt. Konkrete D01-/D14-Höhenbefunde und die Abgrenzung zwischen
+  Teilnehmerprofil und echter Filterfunktion sind nur teilweise abgebildet.
+  V5 wurde bei diesem Abgleich nicht geändert.
+- Die [V5-Dokumente](../docs/V5/) enthalten nun zusätzlich einen Masterplan
+  und priorisierten To-do-Plan. Beide sind Freigabeentwürfe auf Basis des
+  Pflichtenhefts V5; sie führen unter anderem Agenten-Erweiterung, Daten- und
+  Review-Prüffälle, Budget, Puffer, Recruiting sowie Datenschutz als konkrete
+  Arbeitspakete. V4 bleibt bis zur ausdrücklichen Freigabe maßgeblich.
 - Workspace-Check am 2026-11-22: 19 Python- und vier Frontend-Tests sowie
   der Produktionsbuild erfolgreich. Alle 22 Etappen besitzen jeweils vier
   lokal lesbare Querformatbilder und einen strukturell gültigen
@@ -54,9 +82,10 @@
   [`web/public/favicon.svg`](../web/public/favicon.svg); die drei PNG-Icons
   liegen daneben. Header, HTML und Manifest verwenden dasselbe Motiv.
   Das Motorrad zeigt nach links und trägt blaue und weiße Akzente.
-  Service-Worker-Cache und Icon-URLs sind auf Version 3 gesetzt. Die
-  tatsächliche Aktualisierung bereits installierter Homescreen-Icons auf
-  iOS und Android muss auf Geräten geprüft werden.
+  Beim damaligen Icon-Update wurden Service-Worker-Cache und Icon-URLs auf
+  Version 3 gesetzt; der aktuelle Cache-Stand ist `v96` (siehe den Eintrag
+  vom 2026-11-25). Die tatsächliche Aktualisierung bereits installierter
+  Homescreen-Icons auf iOS und Android muss auf Geräten geprüft werden.
 - Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
@@ -115,6 +144,97 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – Medienansicht und Versionspflege abgeschlossen
+
+- Die Suche in `content/`, `scripts/` und `web/src/` fand keine verbliebenen
+  `1400`-/`1440`- oder „skaliert“-Texte in Etappendaten oder UI. Die beiden
+  technischen 1400-Pixel-Grenzen im Medienimport wurden auf 1600 Pixel
+  angehoben, passend zur Vorgabe im Pflichtenheft V4; bestehende Bilder und
+  Etappendateien wurden nicht verändert.
+- Ein Regressionstest prüft in Etappen- und Gesamt-Medienansicht, dass der
+  Bildtitel, Urheber und Lizenz erhalten bleiben und interne
+  Bearbeitungsmetadaten nicht angezeigt werden. Das Fotogrid nutzt weiter
+  automatische Zeilenhöhen und sichtbaren Overflow; die zentrierte Lightbox
+  erhielt Scroll-Overflow-Schutz. Die Einstellungs-Verläufe waren bereits
+  einzeln scrollbar und bleiben durch Tests abgesichert.
+- Service-Worker-Cache `v96` und App-Version `v2.89` wurden in
+  `web/public/version.json` mit jeweils neuem obersten Historieneintrag
+  dokumentiert. Die Versionskonsistenz und Deployment-Testreihenfolge sind
+  automatisiert geprüft.
+- Verifikation: `node --test web/tests/*.test.js` (16/16), `npm run build
+  --prefix web`, Python-AST-Syntaxprüfung und gezielte Suche in den relevanten
+  Quellordnern erfolgreich. Kein Browser-/Gerätetest. Es wurden keine
+  persönlichen Chat- oder Falldaten in die Übergabe übernommen.
+- Relevante Dateien: `scripts/fetch_stage_media.py`,
+  `web/src/roadbook.js`, `web/src/style.css`, `web/src/main.js`,
+  `web/public/sw.js`, `web/public/version.json`,
+  `web/tests/roadbook.test.js`, `web/tests/features.test.js`.
+
+### 2026-11-24 – Pflichtenheft V5 erstellt
+
+- Das V5-Pflichtenheft wurde auf Grundlage von V4, Review V4, V5-Agent-Prompt,
+  Master-Ablaufplan, To-do-Plan, Logistik-Checkliste und Riderrix-Vorgaben
+  konsolidiert.
+- Verbindlich ergänzt: 22 Kalendertage Gesamtreise gegenüber 18 Kalendertagen
+  Kern-Motorradtour; Landingpage vor den Tages-Steps; getrennte Netto-
+  Modellfahrzeit und Brutto-Tagesdauer; Daten-/Höhen-/GPX-Abgleich;
+  etappenbezogene Logistikmatrix; Kartenpin- und Layoutanforderungen;
+  PWA-Offline-Grenzen; Medien-Duplikat- und Lizenzregeln.
+- Das zweistufige `/plan-item`-/`/implement-item`-Verfahren darf nun die
+  gesamte Roadbook-App umfassen, einschließlich `web/`, Tests, Inhalte,
+  Assets sowie direkt betroffener Build-/CI- und Projektdokumentation. Die
+  Umsetzungsstufe bleibt strikt auf die zuvor genehmigte Dateiliste begrenzt;
+  Tests und Build sind vor dem PR vorgeschrieben. Secrets, private Exports
+  und GitHub-Settings sind ausgeschlossen.
+- Dies ist das in V5 festgelegte Soll-Verhalten, nicht die Bestätigung einer
+  bereits erweiterten Runner-Fähigkeit. Befehlsdateien, Runner und gegebenenfalls
+  Workflows müssen in einem separaten, freigegebenen PR angepasst und geprüft
+  werden; auch die Agentenreferenz auf V4 muss nach Projektfreigabe aktualisiert
+  werden.
+- Gegen die gelesenen Quellvorgaben geprüft. Keine Code-, Etappen-, GPX-,
+  Buchungs- oder Medienänderungen vorgenommen; als Dokumentationsänderung
+  wurden keine Tests oder Produktionsbuild ausgeführt.
+- Offen bleiben die im V5-Dokument markierten Routen-, Kennzahlen-,
+  Buchungs-, Rechts-/Logistik-, Medien- und Geräteprüfungen. V5 ändert diese
+  Tatsachen nicht und ersetzt keine einzeln geplanten Umsetzungs-PRs. Die
+  app-weite Agentenfähigkeit und die Umstellung der Agentenvorgaben auf V5
+  benötigen noch separate Implementierung und Freigabe.
+
+### 2026-11-24 – Review V4 mit Pflichtenheft V5 abgeglichen
+
+- Die Anforderungen zu Reisezeiträumen, Landingpage, Modell-/Bruttofahrzeit,
+  GPX-/Höhenkonsistenz, Logistik, Kartenpins, UI-Überläufen, PWA-Offlinegrenzen
+  sowie Medien-Duplikaten und Attribution sind in V5 grundsätzlich enthalten.
+- Nicht ausdrücklich spezifiziert sind ein Kosten-/Budgetüberblick und
+  geplante Reserve-/Puffertage. Der Review-Befund zur direkten Einbindung von
+  `docs/motorrad_checkliste_logistik.md` wird nicht als Schutzanforderung für
+  private Planungsdokumente aufgegriffen; dieser Punkt ist bedingt relevant,
+  falls `docs/` privat bleiben soll.
+- Teilweise abgebildet: die Höhenkonsistenz wird als allgemeine Anforderung
+  festgelegt, aber die konkreten D01-Werte 2.550/3.750 hm und D14 mit 0 hm
+  werden nicht als konkrete Prüffälle aufgeführt. Das Mitfahrerprofil steht
+  auf der Landingpage; ob bestehende Checkboxen nur informativ oder eine echte
+  Filterfunktion sein sollen, wird nicht festgelegt.
+- Nur Dokumentenvergleich; Pflichtenheft V5 und App-Dateien wurden nicht
+  geändert. Budget, Puffertage, Datenschutz-/Build-Grenze und konkrete
+  Prüffälle bleiben als Klärungs-/Ergänzungspunkte offen.
+
+### 2026-11-24 – Masterplan und To-do V5 erstellt
+
+- [Master-Ablaufplan V5](../docs/V5/master_ablauf_prompt_plan_v5.md) und
+  [To-do-Plan V5](../docs/V5/todo_plan_v5.md) wurden als Entwürfe auf Basis
+  des Pflichtenhefts V5 sowie der V4-Quellen erstellt.
+- Die Pläne enthalten die app-weite, pfadgebundene Erweiterung von
+  `/plan-item` und `/implement-item`, Daten-/GPX-Prüfungen, Landingpage,
+  Logistik-/Kostenmatrix, Puffer- und Fähr-Ausweichplanung, Datenschutz,
+  Recruiting-Entscheidung, Medien, PWA und Tests/Build-Abnahme.
+- V5 bleibt bis zur ausdrücklichen Freigabe ein Entwurf; V4 ist bis dahin
+  maßgeblich. Die Agentenimplementierung und die App wurden nicht geändert.
+- Dokumentlinks und Aufgaben wurden redaktionell geprüft. Als
+  Dokumentationsänderung wurden keine Code-Tests oder Produktionsbuild
+  ausgeführt. Nächste Schritte: V5 freigeben, Privacy-/Recruiting-Entscheidung
+  treffen und die offenen Arbeiten über einzelne Issues/PRs planen.
 
 ### 2026-11-23 – Kartendarstellung aus Issue #9
 
@@ -705,7 +825,9 @@
    klären.
 7. **GPX und Medien prüfen:** Nach Buchung echte Routen-/GPX-Tracks erstellen
    und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl und
-   vorhandene Videos sichten sowie die iOS-/Android-PWA-Prüfung durchführen.
+   vorhandene Videos sichten. Die Desktop-Galerie, Lightbox und der
+   Service-Worker-Verlauf wurden per Tests, nicht visuell im Browser geprüft;
+   anschließend die iOS-/Android-PWA-Prüfung durchführen.
 
 ## Relevante Quellen
 

@@ -31,6 +31,25 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   indizieren und den Indexstatus prüfen. Künftige Dateien unter
   `daten/chat_verlauf/` sind durch ihre `.gitignore` bewusst sowohl vom
   Git-Upload als auch von der Codebase-Memory-Indexierung ausgeschlossen.
+- Bei jeder Änderung unter `web/` Cache-Version in `web/public/sw.js` um 1
+  erhöhen, `serviceWorkerCache` und `serviceWorkerHistory` in
+  `web/public/version.json` synchron halten und passende Node-Tests ergänzen.
+  Sichtbare oder fachliche App-Änderungen erhalten zusätzlich eine neue
+  App-Version und einen Eintrag in `history`; rein technische Änderungen
+  erhöhen nur den Service-Worker-Stand.
+
+## Aktueller Web-Stand – 2026-11-25
+
+- App-Version `v2.89`; Service-Worker-Cache `v96`. Die beiden Versionen und
+  Verläufe sind in `../web/public/version.json` synchron dokumentiert.
+- Die Fotokarten zeigen Bildtitel sowie Urheber und Lizenz ohne
+  Bearbeitungsnotiz. Die Medienimport-Grenze beträgt 1600 px gemäß
+  Pflichtenheft V4. Die Lightbox ist zentriert und bei langen Inhalten
+  scrollbar; die Service-Worker-Historie im Einstellungsdialog ist ebenfalls
+  scrollbar.
+- Prüfung: 16 Node-Tests, Vite-Produktionsbuild und Python-Syntaxprüfung
+  erfolgreich. Ein visueller Browser-/Gerätetest steht noch aus. Details,
+  offene Punkte und nächste Schritte stehen in [ARBEITSSTAND.md](./ARBEITSSTAND.md).
 
 ## Dateien
 
@@ -64,9 +83,10 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   mit `npm run build --prefix web` prüfen.
 - Medien können mit `python3 -m pip install -r scripts/requirements.txt`
   vorbereitet werden. `python3 scripts/fetch_stage_media.py --images-only`
-  ergänzt bis auf vier Commons-JPEGs mit CC-Lizenz und Quellenangaben pro Tag;
-  bestehende Medien werden nicht überschrieben. Die Treffer sind fachlich zu
-  prüfen. `--youtube-only` sucht separat nach Videos mit einer geprüften Länge
+  ergänzt bis auf vier Commons-JPEGs mit CC-Lizenz und Quellenangaben pro Tag
+  und begrenzt die Bildbreite auf 1600 px; bestehende Medien werden nicht
+  überschrieben. Die Treffer sind fachlich zu prüfen. `--youtube-only` sucht
+  separat nach Videos mit einer geprüften Länge
   von 5 bis 120 Sekunden und benötigt `YOUTUBE_API_KEY` aus der Umgebung oder
   der ignorierten `.env`. Bereits vorhandene Videoeinträge bleiben unverändert
   und werden nicht erneut geprüft oder ersetzt. Ohne Flag
@@ -77,6 +97,13 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   OSRM-PKW-Routen und müssen vor der Tour geprüft werden.
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – fachliche und
   technische Projektvorgaben.
+- [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md) –
+  konsolidierte Fortschreibung mit Landingpage-, Datenqualitäts-, Logistik-,
+  Offline-, Medien- und App-weiten Agentenanforderungen.
+- [Master-Ablaufplan V5](../docs/V5/master_ablauf_prompt_plan_v5.md) –
+  phasenweiser Umsetzungs-, Agenten- und Abnahmeplan.
+- [To-do-Plan V5](../docs/V5/todo_plan_v5.md) – priorisierte Aufgaben,
+  Abhängigkeiten und Abnahmekriterien für V5.
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md) – Agenten-
   und Automatisierungsplan.
 - [To-do-Plan V4](../docs/todo_plan_v4.md) – Projektphasen und offene

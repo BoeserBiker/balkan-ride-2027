@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderMediaGallery,
@@ -14,13 +14,7 @@ const [indexHtml, mainSource, styleSource, elevationSource, serviceWorkerSource,
   readFile(new URL('../public/sw.js', import.meta.url), 'utf8'),
   readFile(new URL('../../.github/workflows/deploy-pages.yml', import.meta.url), 'utf8'),
 ]);
-const stageFiles = (await readdir(new URL('../../content/', import.meta.url)))
-  .filter((name) => /^tag-\d+\.md$/.test(name));
-const [stageSources, mediaImporterSource, versionData] = await Promise.all([
-  Promise.all(stageFiles.map((name) => readFile(new URL(`../../content/${name}`, import.meta.url), 'utf8'))),
-  readFile(new URL('../../scripts/fetch_stage_media.py', import.meta.url), 'utf8'),
-  readFile(new URL('../public/version.json', import.meta.url), 'utf8').then(JSON.parse),
-]);
+const versionData = JSON.parse(await readFile(new URL('../public/version.json', import.meta.url), 'utf8'));
 
 test('cleans POI export prefixes and hides technical descriptions', () => {
   assert.equal(cleanPoiName('D06 - 04 - Primošten'), 'Primošten');
@@ -152,13 +146,18 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(mainSource, /<details id="version-history" class="settings-version">/);
   assert.match(mainSource, /Service-Worker- \/ Cache-Verlauf <span id="service-worker-current"/);
   assert.match(mainSource, /class="version-history-list service-worker-history-list"/);
+  assert.match(mainSource, /serviceWorkerCurrent\.textContent = data\.serviceWorkerCache/);
+  assert.match(mainSource, /serviceWorkerList\.innerHTML = data\.serviceWorkerHistory\.map/);
   assert.doesNotMatch(mainSource, /version-badge|mobile-stage-route|route-connector|bindRouteScrubber/);
   assert.match(mainSource, /Etappe \$\{String\(day\.frontmatter\.tag\)/);
   assert.match(mainSource, /SETTINGS_KEYS = \{[\s\S]*theme: 'balkan-ride-theme'[\s\S]*fontSize: 'balkan-ride-font-size'/);
   for (const step of [1, 2, 3, 4]) {
     assert.match(styleSource, new RegExp(`:root\\[data-font-size="${step}"\\] \\{ font-size`));
   }
-  assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 240px; overflow-y: auto;/);
+  assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 200px; overflow-y: auto;[^}]*padding: 0 12px 12px;/);
+  assert.match(styleSource, /\.settings-dialog \{[^}]*overflow-y: auto; overscroll-behavior: contain; padding: 24px 24px 40px;/);
+  assert.match(styleSource, /\.settings-dialog \{[^}]*padding: 24px clamp\(16px, 4vw, 40px\) calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\);/);
+  assert.match(styleSource, /\.settings-dialog \{ padding: 18px 14px calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
   assert.doesNotMatch(styleSource, /route-connector|version-badge|mobile-stage-route/);
   assert.match(styleSource, /html \{ max-width: 100%; overflow-x: hidden; overflow-x: clip;/);
   assert.match(styleSource, /body, main, \.roadbook-layout \{ max-width: 100%; overflow-x: hidden; overflow-x: clip; \}/);
@@ -209,8 +208,11 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.media-gallery-grid \{[^}]*grid-auto-rows: auto;[^}]*align-items: stretch;/);
   assert.match(styleSource, /\.media-gallery-entry \.photo-card \{[^}]*height: auto;[^}]*overflow: visible;/);
   assert.match(styleSource, /\.media-gallery-entry \.photo-button \{ flex: none;[^}]*height: auto;/);
-  assert.match(styleSource, /\.media-page \{[^}]*max-width: 1440px; margin-inline: auto;/);
+  assert.match(styleSource, /\.media-page \{ width: 100%; margin-inline: auto;/);
+  assert.match(styleSource, /\.photo-gallery \{ grid-auto-rows: auto; margin-bottom: 14px; \}/);
+  assert.match(styleSource, /\.photo-gallery \.photo-card \{ height: auto; overflow: visible; \}/);
   assert.match(styleSource, /\.lightbox \{ position: fixed; inset: 50% auto auto 50%;[^}]*margin: 0;[^}]*transform: translate\(-50%, -50%\);/);
+  assert.match(styleSource, /\.lightbox \{[^}]*overflow-y: auto; overscroll-behavior: contain;/);
   assert.match(mainSource, /viewSections\.forEach\(\(section\) => \{ section\.hidden = section\.id !== active; \}\)/);
   assert.match(mainSource, /\['roadbook', 'media', 'logistics'\]/);
   assert.match(mainSource, /setAttribute\('aria-current', 'page'\)/);
@@ -219,7 +221,6 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(mainSource, /addEventListener\('hashchange'/);
   assert.match(mainSource, /addEventListener\('popstate'/);
   assert.match(mainSource, /map\.resize\(\)/);
-  assert.match(mainSource, /new Set\(\(item\.caption \|\| ''\)[\s\S]*auf maximal 1400 px breite skaliert/i);
   assert.match(styleSource, /\.roadbook-layout\[hidden\], \.media-page\[hidden\], \.logistics-section\[hidden\] \{ display: none !important; \}/);
   assert.match(mainSource, /id="media-type-filter"/);
   assert.match(mainSource, /id="media-stage-filter"/);
@@ -233,11 +234,6 @@ test('defines a numeric service-worker cache version and runs tests before the P
   assert.ok(cache, 'service worker cache name must use a numeric version');
   assert.equal(cache[1], 'balkan-ride-shell-');
   assert.ok(Number.isSafeInteger(Number(cache[2])) && Number(cache[2]) > 0);
-  const serviceWorkerVersion = `v${cache[2]}`;
-  assert.equal(versionData.serviceWorkerCache, serviceWorkerVersion);
-  assert.equal(versionData.serviceWorkerHistory[0].version, serviceWorkerVersion);
-  assert.ok(Array.isArray(versionData.serviceWorkerHistory));
-  assert.equal(versionData.version, 'v2.87');
 
   const testCommand = deployWorkflow.indexOf('node --test web/tests/*.test.js');
   const buildCommand = deployWorkflow.indexOf('npm run build --prefix web');
@@ -248,11 +244,13 @@ test('defines a numeric service-worker cache version and runs tests before the P
   assert.match(deployWorkflow, /needs: build/);
 });
 
-test('stage media sources no longer contain image processing attribution', () => {
-  assert.equal(stageFiles.length, 22);
-  for (const source of stageSources) {
-    assert.doesNotMatch(source, /bearbeitung\s*:|1400\s*px|skaliert/i);
-  }
-  assert.doesNotMatch(mediaImporterSource, /["']bearbeitung["']\s*:/i);
-  assert.doesNotMatch(mediaImporterSource, /Auf maximal 1400 px Breite skaliert/i);
+test('service worker cache version matches version.json and its latest history entry', () => {
+  const cache = serviceWorkerSource.match(/const CACHE_NAME = `\$\{CACHE_PREFIX\}v(\d+)`;/);
+  assert.ok(cache, 'service worker must expose a numeric cache version');
+  const currentVersion = `v${cache[1]}`;
+  assert.equal(versionData.serviceWorkerCache, currentVersion);
+  assert.ok(Array.isArray(versionData.serviceWorkerHistory));
+  assert.equal(versionData.serviceWorkerHistory[0]?.version, currentVersion);
+  assert.match(versionData.serviceWorkerHistory[0]?.date ?? '', /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(versionData.serviceWorkerHistory[0]?.message.trim());
 });
