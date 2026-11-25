@@ -1,7 +1,12 @@
 {
-  "version": "v2.109",
-  "serviceWorkerCache": "v122",
+  "version": "v2.110",
+  "serviceWorkerCache": "v123",
   "serviceWorkerHistory": [
+    {
+      "version": "v123",
+      "date": "2026-11-25",
+      "message": "F02: docs/ aus oeffentlichem Git-Tracking entfernt (bleibt lokal)"
+    },
     {
       "version": "v122",
       "date": "2026-11-25",
@@ -164,6 +169,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.110",
+      "date": "2026-11-25",
+      "message": "F02: docs/ aus oeffentlichem Git-Tracking entfernt (bleibt lokal)"
+    },
     {
       "version": "v2.109",
       "date": "2026-11-25",

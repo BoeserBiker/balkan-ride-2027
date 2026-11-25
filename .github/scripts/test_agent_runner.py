@@ -1,3 +1,4 @@
+import copy
 import importlib.util
 import json
 import os
@@ -111,6 +112,70 @@ def plan_with(*lines):
     )
 
 
+COMPLETE_LINES = (
+    "- `web/src/main.js` – Änderung",
+    "- `web/tests/main.test.js` – neu",
+    "- `web/public/sw.js` – Cache-Version",
+    "- `web/public/version.json` – Versionsverlauf",
+)
+
+
+def complete_plan_text(level="sichtbar", lines=COMPLETE_LINES):
+    """Vollständiger Plan nach A02: Pflichtdateien und Versionsstufe sind vorhanden."""
+    plan = plan_with(*lines)
+    return plan.replace(
+        "**Geplante Änderungen:**\n", f"**Geplante Änderungen:**\nVersionsstufe: {level}\n"
+    )
+
+
+def sw_text(number):
+    return (
+        "const CACHE_PREFIX = 'balkan-ride-shell-';\n"
+        f"const CACHE_NAME = `${{CACHE_PREFIX}}v{number}`;\n"
+    )
+
+
+OLD_VERSION = {
+    "version": "v2.5",
+    "serviceWorkerCache": "v10",
+    "serviceWorkerHistory": [{"version": "v10", "date": "2026-11-24", "message": "Alt"}],
+    "history": [{"version": "v2.5", "date": "2026-11-24", "message": "Alt"}],
+}
+OLD_VERSION_TEXT = json.dumps(OLD_VERSION, indent=2) + "\n"
+
+
+def version_text(*, app=True, cache=11, tweak=None):
+    """version.json nach einem regulären Versionsschritt (Basis: OLD_VERSION, Cache v10)."""
+    data = copy.deepcopy(OLD_VERSION)
+    data["serviceWorkerCache"] = f"v{cache}"
+    data["serviceWorkerHistory"].insert(
+        0, {"version": f"v{cache}", "date": "2026-11-25", "message": "Neu"}
+    )
+    if app:
+        data["version"] = "v2.6"
+        data["history"].insert(0, {"version": "v2.6", "date": "2026-11-25", "message": "Neu"})
+    if tweak:
+        tweak(data)
+    return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+
+
+def valid_changes(**overrides):
+    changes = {
+        "web/src/main.js": "new\n",
+        "web/tests/main.test.js": "test\n",
+        "web/public/sw.js": sw_text(11),
+        "web/public/version.json": version_text(),
+    }
+    changes.update(overrides)
+    return changes
+
+
+BASE_VERSION_FILES = {
+    "web/public/sw.js": sw_text(10),
+    "web/public/version.json": OLD_VERSION_TEXT,
+}
+
+
 class TemporaryRoot(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
@@ -204,6 +269,206 @@ class PlannedPathsTests(unittest.TestCase):
         lines = [f"- `web/src/module{index}.js`" for index in range(agent_runner.MAX_PLANNED_FILES + 1)]
         with self.assertRaises(ValueError):
             agent_runner.planned_paths(plan_with(*lines))
+
+
+class PlanRequirementsTests(unittest.TestCase):
+    def test_path_classification(self):
+        for path in ("web/index.html", "web/src/main.js", "web/public/sw.js", "web/public/manifest.json"):
+            with self.subTest(path=path):
+                self.assertTrue(agent_runner.is_app_web_path(path))
+        for path in ("web/tests/features.test.js", "content/tag-06.md", "config/settings.json"):
+            with self.subTest(path=path):
+                self.assertFalse(agent_runner.is_app_web_path(path))
+        self.assertTrue(agent_runner.requires_version({"content/tag-06.md"}))
+        self.assertFalse(agent_runner.requires_version({"web/tests/features.test.js"}))
+
+    def test_web_path_requires_versions_and_a_webtest(self):
+        self.assertEqual(
+            agent_runner.missing_plan_paths({"web/src/main.js"}),
+            ["web/public/sw.js", "web/public/version.json", "web/tests/<name>.test.js"],
+        )
+        self.assertEqual(
+            agent_runner.missing_plan_paths({"web/src/main.js", "web/tests/features.test.js"}),
+            ["web/public/sw.js", "web/public/version.json"],
+        )
+        self.assertEqual(agent_runner.missing_plan_paths({
+            "web/src/main.js", "web/tests/features.test.js",
+            "web/public/sw.js", "web/public/version.json",
+        }), [])
+
+    def test_tests_only_plan_is_complete(self):
+        self.assertEqual(agent_runner.missing_plan_paths({"web/tests/features.test.js"}), [])
+
+    def test_content_only_plan_needs_versions_but_no_webtest(self):
+        self.assertEqual(
+            agent_runner.missing_plan_paths({"content/tag-06.md"}),
+            ["web/public/sw.js", "web/public/version.json"],
+        )
+        self.assertEqual(agent_runner.missing_plan_paths(
+            {"content/tag-06.md", "web/public/sw.js", "web/public/version.json"}), [])
+
+    def test_version_files_alone_still_need_a_webtest(self):
+        self.assertEqual(
+            agent_runner.missing_plan_paths({"web/public/sw.js", "web/public/version.json"}),
+            ["web/tests/<name>.test.js"],
+        )
+
+    def test_version_level_must_be_stated_once_and_unambiguously(self):
+        self.assertEqual(agent_runner.plan_version_level("Versionsstufe: sichtbar"), "sichtbar")
+        self.assertEqual(agent_runner.plan_version_level("- **Versionsstufe:** technisch"), "technisch")
+        self.assertIsNone(agent_runner.plan_version_level("Keine Angabe"))
+        self.assertIsNone(agent_runner.plan_version_level(
+            "Versionsstufe: sichtbar\nVersionsstufe: technisch"))
+        paths = {"web/src/main.js", "web/tests/a.test.js", "web/public/sw.js", "web/public/version.json"}
+        self.assertEqual(agent_runner.plan_gaps("Plan", paths), ["Versionsstufe: sichtbar|technisch"])
+        self.assertEqual(agent_runner.plan_gaps("Versionsstufe: technisch", paths), [])
+
+    def test_complete_plan_adds_only_version_files_visibly_before_the_footer(self):
+        plan = complete_plan_text(lines=COMPLETE_LINES[:2]).rstrip() + "\n\n" + agent_runner.PLAN_FOOTER
+        completed = agent_runner.complete_plan(plan)
+        self.assertEqual(agent_runner.planned_paths(completed), {
+            "web/src/main.js", "web/tests/main.test.js", "web/public/sw.js", "web/public/version.json",
+        })
+        for path in agent_runner.VERSION_FILES:
+            self.assertIn(f"- `{path}` – Pflichtdatei (vom Runner ergänzt)", completed)
+        self.assertTrue(completed.endswith(agent_runner.PLAN_FOOTER))
+        self.assertEqual(completed.count("Pflichtdatei (vom Runner ergänzt)"), 2)
+        self.assertLess(
+            completed.index("`web/public/version.json`"), completed.index("**Geplante Änderungen:**"))
+
+    def test_complete_plan_leaves_complete_plans_untouched(self):
+        plan = complete_plan_text()
+        self.assertEqual(agent_runner.complete_plan(plan), plan)
+
+    def test_missing_webtest_or_level_rejects_instead_of_adding(self):
+        no_test = complete_plan_text(lines=(COMPLETE_LINES[0], *COMPLETE_LINES[2:]))
+        with self.assertRaises(agent_runner.PlanIncomplete) as caught:
+            agent_runner.complete_plan(no_test)
+        self.assertIn("web/tests/<name>.test.js", str(caught.exception.args[0]))
+        no_level = plan_with(*COMPLETE_LINES)
+        with self.assertRaises(agent_runner.PlanIncomplete) as caught:
+            agent_runner.complete_plan(no_level)
+        self.assertIn("Versionsstufe", str(caught.exception.args[0]))
+
+
+class VersionStepTests(unittest.TestCase):
+    def check(self, new_worker=None, new_json=None, level=None):
+        agent_runner.check_version_step(
+            sw_text(10), OLD_VERSION_TEXT,
+            new_worker if new_worker is not None else sw_text(11),
+            new_json if new_json is not None else version_text(), level,
+        )
+
+    def test_regular_visible_and_technical_steps_pass(self):
+        self.check()
+        self.check(level="sichtbar")
+        self.check(new_json=version_text(app=False), level="technisch")
+        self.check(new_json=version_text(app=False))
+
+    def test_cache_must_increase_by_exactly_one(self):
+        for number in (10, 12):
+            with self.subTest(number=number), self.assertRaisesRegex(ValueError, "Cache"):
+                self.check(new_worker=sw_text(number), new_json=version_text(cache=number))
+
+    def test_worker_and_json_must_agree(self):
+        def mismatch(data):
+            data["serviceWorkerCache"] = "v99"
+        with self.assertRaisesRegex(ValueError, "passt nicht zu sw.js"):
+            self.check(new_json=version_text(tweak=mismatch))
+
+    def test_histories_must_be_advanced_and_keep_older_entries(self):
+        def not_advanced(data):
+            data["serviceWorkerHistory"] = copy.deepcopy(OLD_VERSION["serviceWorkerHistory"])
+        def rewritten(data):
+            data["serviceWorkerHistory"][1]["message"] = "umgeschrieben"
+        def app_without_entry(data):
+            data["history"] = copy.deepcopy(OLD_VERSION["history"])
+        def app_history_rewritten(data):
+            data["history"][1]["message"] = "umgeschrieben"
+        for tweak in (not_advanced, rewritten, app_without_entry, app_history_rewritten):
+            with self.subTest(tweak=tweak.__name__), self.assertRaises(ValueError):
+                self.check(new_json=version_text(tweak=tweak))
+
+    def test_entries_need_a_valid_date_and_a_message(self):
+        for bad in ("25.11.2026", "2026-13-40", ""):
+            def tweak(data, bad=bad):
+                data["serviceWorkerHistory"][0]["date"] = bad
+            with self.subTest(date=bad), self.assertRaises(ValueError):
+                self.check(new_json=version_text(tweak=tweak))
+        def empty_message(data):
+            data["serviceWorkerHistory"][0]["message"] = "  "
+        with self.assertRaises(ValueError):
+            self.check(new_json=version_text(tweak=empty_message))
+
+    def test_app_version_step_and_level_are_enforced(self):
+        def skipped(data):
+            data["version"] = "v2.8"
+            data["history"][0]["version"] = "v2.8"
+        with self.assertRaisesRegex(ValueError, "v2.6 erwartet"):
+            self.check(new_json=version_text(tweak=skipped))
+        with self.assertRaisesRegex(ValueError, "technisch"):
+            self.check(level="technisch")
+        with self.assertRaisesRegex(ValueError, "sichtbar"):
+            self.check(new_json=version_text(app=False), level="sichtbar")
+
+    def test_unreadable_inputs_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "nicht eindeutig"):
+            self.check(new_worker="const x = 1;\n")
+        with self.assertRaisesRegex(ValueError, "JSON"):
+            self.check(new_json="{kaputt")
+
+
+class ChangesetPolicyTests(unittest.TestCase):
+    PLAN = complete_plan_text()
+
+    def enforce(self, updated, plan=None):
+        agent_runner.enforce_changeset_policy(updated, BASE_VERSION_FILES, plan or self.PLAN)
+
+    def test_complete_web_change_passes(self):
+        self.enforce(valid_changes())
+
+    def test_web_change_needs_both_version_files(self):
+        for missing in agent_runner.VERSION_FILES:
+            changes = valid_changes()
+            del changes[missing]
+            with self.subTest(missing=missing), self.assertRaisesRegex(ValueError, "Versionsdateien"):
+                self.enforce(changes)
+
+    def test_app_change_needs_a_changed_webtest(self):
+        changes = valid_changes()
+        del changes["web/tests/main.test.js"]
+        with self.assertRaisesRegex(ValueError, "Webtest"):
+            self.enforce(changes)
+
+    def test_test_only_change_needs_no_version_step(self):
+        self.enforce({"web/tests/main.test.js": "test\n"})
+
+    def test_stage_change_needs_versions_but_no_new_webtest(self):
+        changes = {
+            "content/tag-06.md": STAGE,
+            "web/public/sw.js": sw_text(11),
+            "web/public/version.json": version_text(),
+        }
+        self.enforce(changes)
+        del changes["web/public/version.json"]
+        with self.assertRaisesRegex(ValueError, "Versionsdateien"):
+            self.enforce(changes)
+
+    def test_wrong_version_step_is_rejected_before_any_commit(self):
+        with self.assertRaisesRegex(ValueError, "Cache v12 statt v11"):
+            self.enforce(valid_changes(**{
+                "web/public/sw.js": sw_text(12), "web/public/version.json": version_text(cache=12),
+            }))
+
+    def test_planned_version_level_is_enforced(self):
+        with self.assertRaisesRegex(ValueError, "technisch"):
+            self.enforce(valid_changes(), complete_plan_text(level="technisch"))
+        self.enforce(valid_changes(**{"web/public/version.json": version_text(app=False)}),
+                     complete_plan_text(level="technisch"))
+
+    def test_missing_base_files_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "Basisstand"):
+            agent_runner.enforce_changeset_policy(valid_changes(), {}, self.PLAN)
 
 
 class FileAccessTests(TemporaryRoot):
@@ -473,13 +738,15 @@ class RunnerFlowTests(TemporaryRoot):
     }
     issue = {"number": 3, "title": "App", "body": "Text", "state": "open", "user": {"login": "boss"}}
 
-    def run_main(self, mode, plan=None):
+    def run_main(self, mode, plan=None, comment_body="/implement-item"):
         self.write("web/src/main.js", "old\n")
         self.write("web/tests/existing.test.js")
+        for path, text in BASE_VERSION_FILES.items():
+            self.write(path, text)
         event = self.root / "event.json"
         event.write_text(json.dumps({
             "action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
-            "comment": {"id": 20, "user": {"login": "boss"}, "body": "/implement-item"},
+            "comment": {"id": 20, "user": {"login": "boss"}, "body": comment_body},
         }), encoding="utf-8")
         marker = agent_runner.plan_marker(self.issue)
         comments = [
@@ -521,33 +788,79 @@ class RunnerFlowTests(TemporaryRoot):
 
     def test_generation_sends_only_approved_files_and_commits_validated_changes(self):
         self.write("web/src/style.css", "private-looking but unapproved")
-        plan = plan_with("- `web/src/main.js` – Änderung", "- `web/tests/main.test.js` – neu")
-        raw = json.dumps({"web/src/main.js": "new", "web/tests/main.test.js": "test"})
+        plan = complete_plan_text()
+        raw = json.dumps(valid_changes(**{"web/src/main.js": "new", "web/tests/main.test.js": "test"}))
         with patch.object(agent_runner, "ask_model", return_value=raw) as ask, \
                 patch.object(agent_runner, "commit_branch") as commit:
             posted, error = self.run_main("implement", plan)
         self.assertIsNone(error)
         context = ask.call_args.args[1]
-        self.assertEqual(context["allowed_paths"], ["web/src/main.js", "web/tests/main.test.js"])
-        self.assertEqual(context["files"], {"web/src/main.js": "old\n"})
+        self.assertEqual(context["allowed_paths"], sorted(
+            ["web/src/main.js", "web/tests/main.test.js", *BASE_VERSION_FILES]))
+        self.assertEqual(
+            context["files"], {"web/src/main.js": "old\n", **BASE_VERSION_FILES})
         self.assertEqual(context["reference_test_files"], ["web/tests/existing.test.js"])
         self.assertNotIn("reference_tests", context)
         self.assertNotIn("web/tests/existing.test.js", context["allowed_paths"])
-        self.assertEqual(commit.call_args.args[1], {"web/src/main.js": "new\n", "web/tests/main.test.js": "test\n"})
+        self.assertEqual(commit.call_args.args[1], valid_changes())
         self.assertEqual(posted, [])
 
     def test_generation_rejects_changes_outside_the_approved_plan(self):
-        plan = plan_with("- `web/src/main.js`")
-        raw = json.dumps({"web/src/main.js": "new", "web/src/style.css": "x"})
+        plan = complete_plan_text()
+        raw = json.dumps({**valid_changes(), "web/src/style.css": "x"})
         with patch.object(agent_runner, "ask_model", return_value=raw), \
                 patch.object(agent_runner, "commit_branch") as commit:
             posted, error = self.run_main("implement", plan)
         self.assertIsInstance(error, ValueError)
+        self.assertIn("ausschließlich freigegebenen Pfaden", str(error))
         commit.assert_not_called()
 
-    def test_publish_opens_the_pull_request_only_after_the_diff_matches_the_plan(self):
+    def test_generation_rejects_a_wrong_version_step_before_any_commit(self):
+        raw = json.dumps(valid_changes(**{
+            "web/public/sw.js": sw_text(12), "web/public/version.json": version_text(cache=12),
+        }))
+        with patch.object(agent_runner, "ask_model", return_value=raw), \
+                patch.object(agent_runner, "commit_branch") as commit:
+            posted, error = self.run_main("implement", complete_plan_text())
+        self.assertIsInstance(error, ValueError)
+        self.assertIn("Cache v12 statt v11", str(error))
+        commit.assert_not_called()
+        self.assertIn("Cache v12 statt v11", posted[0][1]["body"])
+
+    def test_generation_without_version_files_in_the_changeset_is_rejected(self):
+        changes = valid_changes()
+        del changes["web/public/version.json"]
+        with patch.object(agent_runner, "ask_model", return_value=json.dumps(changes)), \
+                patch.object(agent_runner, "commit_branch") as commit:
+            posted, error = self.run_main("implement", complete_plan_text())
+        self.assertIsInstance(error, ValueError)
+        commit.assert_not_called()
+
+    def test_approved_incomplete_plan_stops_before_model_call(self):
         plan = plan_with("- `web/src/main.js`")
-        with patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
+        for mode in ("implement", "publish"):
+            with self.subTest(mode=mode), patch.object(agent_runner, "ask_model") as ask, \
+                    patch.object(agent_runner, "commit_branch") as commit:
+                posted, error = self.run_main(mode, plan)
+            self.assertIsInstance(error, agent_runner.PlanIncomplete)
+            ask.assert_not_called()
+            commit.assert_not_called()
+            body = posted[0][1]["body"]
+            for expected in ("unvollständig", "web/public/sw.js", "web/public/version.json",
+                             "web/tests/<name>.test.js", "Versionsstufe", "/plan-item"):
+                self.assertIn(expected, body)
+            self.assertFalse(posted[0][0].endswith("/pulls"))
+
+    def test_publish_opens_the_pull_request_only_after_the_diff_matches_the_plan(self):
+        plan = complete_plan_text()
+        changed = set(valid_changes())
+        heads = {path: text for path, text in valid_changes().items() if path.startswith("web/public/")}
+
+        def show(ref, path):
+            return (heads if ref.startswith("origin/feature/") else BASE_VERSION_FILES).get(path)
+
+        with patch.object(agent_runner, "git_paths", return_value=changed), \
+                patch.object(agent_runner, "git_show", side_effect=show):
             posted, error = self.run_main("publish", plan)
         self.assertIsNone(error)
         pr = posted[0][1]
@@ -555,10 +868,68 @@ class RunnerFlowTests(TemporaryRoot):
                          (True, "feature/issue-3", "main"))
         self.assertIn("web/src/main.js", pr["body"])
         self.assertIn("Closes #3", pr["body"])
-        with patch.object(agent_runner, "git_paths", return_value={"web/src/main.js", "docs/x.md"}):
+        with patch.object(agent_runner, "git_paths", return_value={*changed, "docs/x.md"}), \
+                patch.object(agent_runner, "git_show", side_effect=show):
             posted, error = self.run_main("publish", plan)
         self.assertIsInstance(error, ValueError)
         self.assertFalse(posted[0][0].endswith("/pulls"))
+
+    def test_publish_rejects_a_version_step_that_no_longer_fits_main(self):
+        changed = set(valid_changes())
+        heads = {path: text for path, text in valid_changes().items() if path.startswith("web/public/")}
+        moved_main = {
+            "web/public/sw.js": sw_text(11),
+            "web/public/version.json": version_text(),
+        }
+
+        def show(ref, path):
+            return (heads if ref.startswith("origin/feature/") else moved_main).get(path)
+
+        with patch.object(agent_runner, "git_paths", return_value=changed), \
+                patch.object(agent_runner, "git_show", side_effect=show):
+            posted, error = self.run_main("publish", complete_plan_text())
+        self.assertIsInstance(error, ValueError)
+        self.assertIn("Basis veraltet", str(error))
+        self.assertIn("Cache v11 statt v12", str(error))
+        self.assertFalse(posted[0][0].endswith("/pulls"))
+
+    def test_publish_requires_the_version_files_in_the_branch_diff(self):
+        changed = {"web/src/main.js", "web/tests/main.test.js"}
+        with patch.object(agent_runner, "git_paths", return_value=changed), \
+                patch.object(agent_runner, "git_show", return_value="x"):
+            posted, error = self.run_main("publish", complete_plan_text())
+        self.assertIsInstance(error, ValueError)
+        self.assertIn("ohne Versionsdateien", str(error))
+
+    def test_plan_failure_posts_a_specific_comment_with_the_run_marker(self):
+        incomplete = complete_plan_text(lines=COMPLETE_LINES[:1]).rstrip() + "\n\n" + agent_runner.PLAN_FOOTER
+        with patch.object(agent_runner, "ask_model", return_value=incomplete):
+            posted, error = self.run_main("plan", comment_body="/plan-item")
+        self.assertIsInstance(error, agent_runner.PlanIncomplete)
+        body = posted[0][1]["body"]
+        self.assertIn("Planerstellung ist fehlgeschlagen", body)
+        self.assertIn("web/tests/<name>.test.js", body)
+        self.assertIn("<!-- roadbook-run:9 -->", body)
+        self.assertEqual(len(posted), 1)
+
+    def test_failed_failure_comment_is_reported_with_the_original_reason(self):
+        with patch.object(agent_runner, "ask_model", side_effect=ValueError("Modell kaputt")), \
+                patch.object(agent_runner, "report_failure",
+                             wraps=agent_runner.report_failure) as report:
+            def failing(session, method, url, **kwargs):
+                if method == "POST":
+                    raise OSError("offline")
+                return Mock(json=Mock(return_value=self.issue))
+            env = {**self.environment, "MODE": "plan", "GITHUB_EVENT_PATH": str(self.root / "e.json")}
+            (self.root / "e.json").write_text(json.dumps({
+                "action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
+                "comment": {"id": 20, "user": {"login": "boss"}, "body": "/plan-item"},
+            }), encoding="utf-8")
+            self.write("web/src/main.js", "old\n")
+            with patch.dict(os.environ, env), patch.object(agent_runner, "api", failing):
+                with self.assertRaisesRegex(RuntimeError, "Modell kaputt.*offline"):
+                    agent_runner.main()
+        report.assert_called_once()
 
     def test_plan_with_forbidden_path_is_rejected_before_it_is_posted(self):
         self.write("content/tag-01.md", STAGE)
@@ -566,7 +937,7 @@ class RunnerFlowTests(TemporaryRoot):
         with patch.object(agent_runner, "ask_model", return_value=bad_plan):
             with self.assertRaises(ValueError):
                 agent_runner.plan_comment(self.issue)
-        good_plan = plan_with("- `web/src/main.js`").rstrip() + "\n" + agent_runner.PLAN_FOOTER
+        good_plan = complete_plan_text().rstrip() + "\n" + agent_runner.PLAN_FOOTER
         self.write("web/src/main.js", "old\n")
         with patch.object(agent_runner, "ask_model", return_value=good_plan) as ask:
             comment = agent_runner.plan_comment(self.issue)
@@ -580,16 +951,37 @@ class RunnerFlowTests(TemporaryRoot):
         self.write("content/tag-01.md", STAGE)
         self.write("web/src/main.js", "old\n")
         self.write("docs/motorrad_checkliste_logistik.md", "PRIVATE-DOCS-MARKER")
-        good_plan = plan_with("- `web/src/main.js`").rstrip() + "\n" + agent_runner.PLAN_FOOTER
+        good_plan = complete_plan_text().rstrip() + "\n" + agent_runner.PLAN_FOOTER
         with patch.object(agent_runner, "ask_model", return_value=good_plan) as ask:
             agent_runner.plan_comment(self.issue)
         context = ask.call_args.args[1]
         self.assertNotIn("PRIVATE-DOCS-MARKER", json.dumps(context))
         self.assertFalse(any(path.startswith("docs/") for path in context["file_list"]))
 
+    def test_plan_comment_makes_added_version_files_visible_before_approval(self):
+        self.write("web/src/main.js", "old\n")
+        plan = complete_plan_text(lines=COMPLETE_LINES[:2]).rstrip() + "\n\n" + agent_runner.PLAN_FOOTER
+        with patch.object(agent_runner, "ask_model", return_value=plan):
+            comment = agent_runner.plan_comment(self.issue)
+        self.assertIn("- `web/public/sw.js` – Pflichtdatei (vom Runner ergänzt)", comment)
+        self.assertEqual(agent_runner.planned_paths(comment), {
+            "web/src/main.js", "web/tests/main.test.js", *agent_runner.VERSION_FILES,
+        })
+        self.assertTrue(comment.endswith(agent_runner.PLAN_FOOTER))
+        self.assertIn(agent_runner.plan_marker(self.issue), comment)
+
+    def test_plan_prompt_mentions_required_files_level_and_omitted_files(self):
+        self.write("web/src/main.js", "old\n")
+        good_plan = complete_plan_text().rstrip() + "\n" + agent_runner.PLAN_FOOTER
+        with patch.object(agent_runner, "ask_model", return_value=good_plan) as ask:
+            agent_runner.plan_comment(self.issue)
+        rules = ask.call_args.args[2]
+        for expected in ("required_files", "test_candidates", "Versionsstufe", "omitted_files"):
+            self.assertIn(expected, rules)
+
     def test_plan_with_intro_text_and_altered_footer_is_normalized(self):
         self.write("web/src/main.js", "old\n")
-        body = plan_with("- `web/src/main.js`").rstrip()
+        body = complete_plan_text().rstrip()
         for answer in (
             "Gerne, hier der Plan:\n\n" + body + "\n" + agent_runner.PLAN_FOOTER,
             "Hier der Plan:\n" + body + "\n\n*Freigabe erteilen: kommentiere /implement-item.*",
@@ -648,6 +1040,33 @@ class CollectContextTests(TemporaryRoot):
             context = agent_runner.collect_context(self.issue("CSS Layout der Karte"))
         self.assertLessEqual(sum(len(text) for text in context["files"].values()), 150)
         self.assertEqual(agent_runner.PLAN_CONTEXT_BYTES, 45000)
+
+    def test_omitted_files_are_reported_when_the_budget_is_exhausted(self):
+        with patch.object(agent_runner, "PLAN_CONTEXT_BYTES", 150):
+            context = agent_runner.collect_context(self.issue("CSS Layout der Karte"))
+        self.assertEqual(sorted(context["files"]), ["web/src/main.js", "web/tests/features.test.js"])
+        self.assertEqual(context["omitted_files"], ["web/src/style.css"])
+        context = agent_runner.collect_context(self.issue("Danke", "Alles gut"))
+        self.assertEqual(context["omitted_files"], [])
+
+    def test_test_candidates_follow_the_hint_table_for_ui_issues_only(self):
+        self.write("web/src/roadbook.js", "r")
+        self.write("web/tests/roadbook.test.js", "t")
+        context = agent_runner.collect_context(self.issue("Neuer Button in der Karte"))
+        self.assertEqual(context["test_candidates"], {
+            "web/tests/features.test.js": ["web/src/main.js", "web/src/style.css"],
+            "web/tests/roadbook.test.js": ["web/src/roadbook.js"],
+        })
+        self.assertEqual(agent_runner.collect_context(self.issue("Tag 6 überarbeiten"))["test_candidates"], {})
+
+    def test_version_files_are_required_but_never_loaded_into_the_plan_context(self):
+        self.write("web/public/sw.js", "const CACHE_NAME = 1;")
+        self.write("web/public/version.json", "{}")
+        context = agent_runner.collect_context(self.issue("Neuer Button in der Karte"))
+        self.assertEqual(context["required_files"], ["web/public/sw.js", "web/public/version.json"])
+        self.assertNotIn("web/public/sw.js", context["files"])
+        self.assertNotIn("web/public/version.json", context["files"])
+        self.assertIn("web/public/sw.js", context["file_list"])
 
 
 if __name__ == "__main__":

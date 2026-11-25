@@ -5,14 +5,33 @@ import {
   cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderMediaGallery,
 } from '../src/roadbook.js';
 import { directionsUrl, setNavigationApp } from '../src/html.js';
+import {
+  extractTemplate, isBefore, lightboxEntries, normalizeCssValue, normalizeText, parseCss,
+  parseDocument, parseHtml,
+} from './helpers/dom.js';
 
-const [indexHtml, mainSource, styleSource, elevationSource, deployWorkflow] = await Promise.all([
+const [indexHtml, mainSource, styleSource, deployWorkflow] = await Promise.all([
   readFile(new URL('../index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/style.css', import.meta.url), 'utf8'),
-  readFile(new URL('../src/elevation-profile.js', import.meta.url), 'utf8'),
   readFile(new URL('../../.github/workflows/deploy-pages.yml', import.meta.url), 'utf8'),
 ]);
+
+// Struktur statt Quelltext: HTML als DOM, CSS als AST (unabhängig von Formatierung und Reihenfolge).
+const css = parseCss(styleSource);
+const indexDocument = parseDocument(indexHtml);
+const shellDocument = parseHtml(
+  extractTemplate(mainSource, /function renderShell\(\)\s*\{\s*app\.innerHTML\s*=\s*`/),
+);
+
+function assertCss(selector, expected, media = '') {
+  const actual = css.declarations(selector, media);
+  for (const [property, value] of Object.entries(expected)) {
+    assert.equal(
+      actual[property], normalizeCssValue(value), `${media} ${selector} { ${property} }`.trim(),
+    );
+  }
+}
 
 test('cleans POI export prefixes and hides technical descriptions', () => {
   assert.equal(cleanPoiName('D06 - 04 - Primošten'), 'Primošten');
@@ -46,11 +65,9 @@ test('shows at most one POI information card and keeps the elevation card overla
   assert.deepEqual(poiInfoVisibility('elevation', false), { elevation: false });
   assert.deepEqual(poiInfoVisibility('route-line', true), { elevation: false });
 
-  assert.match(elevationSource, /const visibility = poiInfoVisibility\(source, poi\)/);
-  assert.match(elevationSource, /const TOP = 36;/);
-  assert.match(styleSource, /\.elevation-chart \{ position: relative;/);
-  assert.match(styleSource, /\.elevation-poi-card \{ position: absolute; z-index: 20; top: 8px;/);
-  assert.doesNotMatch(styleSource, /\.elevation-chart\.has-poi/);
+  assertCss('.elevation-chart', { position: 'relative' });
+  assertCss('.elevation-poi-card', { position: 'absolute', 'z-index': '20', top: '8px' });
+  assert.equal(css.mentions('.elevation-chart.has-poi'), false);
 });
 
 test('builds navigation URLs for each supported app', () => {
@@ -120,46 +137,72 @@ test('renders a stage-labelled all-media gallery with lightbox entries and empty
   assert.match(html, /Dalmatien &amp; Küste/);
   assert.match(html, /data-media-type="photo"/);
   assert.match(html, /data-media-type="video"/);
-  assert.match(html, /data-lightbox-index="0" data-lightbox-type="image" data-lightbox-src="\/bucht\.webp"/);
-  assert.match(html, /data-lightbox-index="1"\s+data-lightbox-type="youtube"\s+data-lightbox-src="https:\/\/www\.youtube-nocookie\.com\/embed\/abcdefghijk\?rel=0&amp;playsinline=1/);
-  assert.match(html, /data-lightbox-index="2"\s+data-lightbox-type="video"\s+data-lightbox-src="\/kurven\.mp4"/);
+  const galleryDocument = parseHtml(html);
+  assert.deepEqual(
+    lightboxEntries(galleryDocument).map(({ index, type, src }) => ({ index, type, src })),
+    [
+      { index: '0', type: 'image', src: '/bucht.webp' },
+      { index: '1', type: 'youtube', src: 'https://www.youtube-nocookie.com/embed/abcdefghijk?rel=0&playsinline=1' },
+      { index: '2', type: 'video', src: '/kurven.mp4' },
+    ],
+  );
   assert.match(html, /data-select-day-index="0"/);
   assert.match(html, /ETAPPE 07[\s\S]*Für diese Etappe sind noch keine Medien hinterlegt\./);
 });
 
 test('keeps the settings, themes, glove mode, and ordered app navigation wired into the shell', () => {
-  assert.match(indexHtml, /<div id="app"><\/div>/);
-  assert.match(indexHtml, /src="\/src\/main\.js"/);
-  assert.match(mainSource, /id="settings-toggle"[^>]*aria-label="Einstellungen"/);
-  assert.ok(mainSource.includes('>⋮</button>'));
+  const mount = indexDocument.querySelector('#app');
+  assert.ok(mount, 'index.html must provide the #app mount point');
+  assert.equal(mount.children.length, 0);
+  assert.ok(
+    [...indexDocument.querySelectorAll('script[type="module"]')]
+      .some((script) => script.getAttribute('src') === '/src/main.js'),
+    'index.html must load /src/main.js as a module',
+  );
+  const settingsToggle = shellDocument.querySelector('#settings-toggle');
+  assert.equal(settingsToggle?.getAttribute('aria-label'), 'Einstellungen');
+  assert.equal(normalizeText(settingsToggle), '⋮');
   assert.match(mainSource, /dialog\.showModal\(\)/);
   for (const theme of ['default', 'schalke', 'bvb']) {
-    assert.ok(mainSource.includes(`data-theme-choice="${theme}"`));
+    assert.ok(shellDocument.querySelector(`[data-theme-choice="${theme}"]`), theme);
   }
-  assert.match(styleSource, /--bg: #101311;[\s\S]*--accent: #f0a94c;/);
-  assert.match(styleSource, /:root\[data-theme="schalke"\][\s\S]*--bg: #071426;[\s\S]*--accent: #3897f0;/);
-  assert.match(styleSource, /:root\[data-theme="bvb"\][\s\S]*--bg: #09090b;[\s\S]*--accent: #fde000;/);
-  assert.match(mainSource, /<input id="font-size-range"[^>]*type="range" min="1" max="5" step="1"/);
-  assert.match(mainSource, /<li data-font-step="4">4<\/li><li data-font-step="5">5<\/li>/);
-  assert.match(styleSource, /\.font-size-control \{ --font-range-thumb-size: 16px;/);
+  assertCss(':root', { '--bg': '#101311', '--accent': '#f0a94c' });
+  assertCss(':root[data-theme="schalke"]', { '--bg': '#071426', '--accent': '#3897f0' });
+  assertCss(':root[data-theme="bvb"]', { '--bg': '#09090b', '--accent': '#fde000' });
+  const fontRange = shellDocument.querySelector('input#font-size-range');
+  assert.deepEqual(
+    ['type', 'min', 'max', 'step'].map((name) => fontRange?.getAttribute(name)),
+    ['range', '1', '5', '1'],
+  );
+  assert.deepEqual(
+    [...shellDocument.querySelectorAll('li[data-font-step]')]
+      .map((item) => [item.getAttribute('data-font-step'), normalizeText(item)]),
+    [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']],
+  );
+  assertCss('.font-size-control', { '--font-range-thumb-size': '16px' });
   for (const [step, position] of [[1, '0'], [2, '25%'], [3, '50%'], [4, '75%'], [5, '100%']]) {
-    assert.match(styleSource, new RegExp(`\\.font-size-steps li:nth-child\\(${step}\\) \\{ left: ${position}; \\}`));
+    assertCss(`.font-size-steps li:nth-child(${step})`, { left: position });
   }
-  assert.doesNotMatch(mainSource, /version-badge|mobile-stage-route|route-connector|bindRouteScrubber/);
+  for (const token of ['version-badge', 'mobile-stage-route', 'route-connector', 'bindRouteScrubber']) {
+    assert.equal(mainSource.includes(token), false, `main.js must not mention ${token}`);
+  }
   assert.match(mainSource, /Etappe \$\{String\(day\.frontmatter\.tag\)/);
   assert.match(mainSource, /SETTINGS_KEYS = \{[\s\S]*theme: 'balkan-ride-theme'[\s\S]*fontSize: 'balkan-ride-font-size'/);
   for (const step of [1, 2, 3, 4, 5]) {
-    assert.match(styleSource, new RegExp(`:root\\[data-font-size="${step}"\\] \\{ font-size`));
+    assert.ok('font-size' in css.declarations(`:root[data-font-size="${step}"]`), `font-size step ${step}`);
   }
   assert.match(styleSource, /\.settings-dialog \{[^}]*overflow-y: auto; overscroll-behavior: contain; padding: 24px 24px 40px;/);
   assert.match(styleSource, /\.settings-dialog \{[^}]*padding: 24px clamp\(16px, 4vw, 40px\) calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\);/);
   assert.match(styleSource, /\.settings-dialog \{ padding: 18px 14px calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
-  assert.doesNotMatch(styleSource, /route-connector|version-badge|mobile-stage-route/);
+  assert.equal(
+    ['route-connector', 'version-badge', 'mobile-stage-route'].some((name) => css.mentions(name)),
+    false,
+  );
   assert.match(styleSource, /html \{ max-width: 100%; overflow-x: hidden; overflow-x: clip;/);
   assert.match(styleSource, /body, main, \.roadbook-layout \{ max-width: 100%; overflow-x: hidden; overflow-x: clip; \}/);
   assert.match(styleSource, /\[hidden\] \{ display: none !important; \}/);
   assert.match(styleSource, /\.gpx-downloads, \.gpx-downloads \.button,[\s\S]*?min-width: 0; max-width: 100%; box-sizing: border-box;/);
-  assert.doesNotMatch(styleSource, /--nav-shift|translateY\(var/);
+  assert.equal(css.mentions('--nav-shift') || css.mentions('translateY(var'), false);
   assert.match(styleSource, /\.brand \{ display: flex; align-items: flex-end;[^}]*\}\n\.brand > span \{ margin-bottom: 2\.5px; \}/);
   assert.match(styleSource, /\.header-navigation \{ --nav-pb: 1px; \}\n  \.brand > span \{ margin-bottom: 1px; \}/);
   assert.match(styleSource, /\.header-navigation \{ --nav-pb: 0px; \}/);
@@ -174,47 +217,67 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.settings-toggle \{ box-sizing: border-box; position: relative; display: grid;/);
   assert.match(styleSource, /\.header-navigation \.settings-toggle \{ margin: 0; \}/);
   assert.doesNotMatch(styleSource, /\.header-navigation \.settings-toggle \{ margin: -/);
-  assert.match(mainSource, /<\/nav>\s*<div class="header-tools">/);
-  assert.match(styleSource, /\.day-section h3, \.story-section h3 \{[^}]*font-size: 13px; font-weight: 650; letter-spacing: \.01em;/);
-  assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
-  assert.match(styleSource, /@media \(max-width: 520px\) \{\n  \.stats-grid > div \{ padding: 0 8px; \}[\s\S]*?white-space: normal;/);
-  assert.match(styleSource, /\.settings-dialog \{ box-sizing: border-box; width: min\(460px, calc\(100vw - 32px\)\); max-width: 460px;/);
-  assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.settings-dialog \{ width: 100vw; max-width: 100vw;/);
-  for (const app of ['google', 'apple', 'kurviger']) {
-    assert.ok(mainSource.includes(`<option value="${app}">`));
+  assert.ok(
+    shellDocument.querySelector('nav.site-nav')?.nextElementSibling?.classList.contains('header-tools'),
+    'the header tools follow the navigation',
+  );
+  for (const selector of ['.day-section h3', '.story-section h3']) {
+    assertCss(selector, { 'font-size': '13px', 'font-weight': '650', 'letter-spacing': '.01em' });
   }
-  assert.match(mainSource, /navigationSelect\.addEventListener\('change'/);
-  assert.match(mainSource, /updateNavigationLinks\(\)/);
+  assertCss('.elevation-title', {
+    'font-size': '13px', 'font-weight': '650', 'line-height': 'inherit', 'letter-spacing': '.01em',
+  });
+  assertCss('.stats-grid > div', { padding: '0 8px' }, '@media (max-width: 520px)');
+  assert.ok(
+    css.entries.some((entry) => entry.media === '@media (max-width: 520px)'
+      && entry.declarations['white-space'] === 'normal'),
+    'narrow screens allow stat labels to wrap',
+  );
+  assertCss('.settings-dialog', {
+    'box-sizing': 'border-box', width: 'min(460px, calc(100vw - 32px))', 'max-width': '460px',
+  });
+  assertCss('.settings-dialog', { width: '100vw', 'max-width': '100vw' }, '@media (max-width: 768px)');
+  for (const app of ['google', 'apple', 'kurviger']) {
+    assert.ok(shellDocument.querySelector(`option[value="${app}"]`), app);
+  }
 
-  const navigation = mainSource.match(/<nav class="site-nav"[\s\S]*?<\/nav>/)?.[0];
-  assert.ok(navigation, 'main.js must render the header navigation');
-  const links = [...navigation.matchAll(/<a href="#([^"]+)">([^<]+)<\/a>/g)]
-    .map(([, target, label]) => [target, label]);
+  const links = [...shellDocument.querySelectorAll('nav.site-nav a')]
+    .map((link) => [link.getAttribute('href').replace(/^#/, ''), normalizeText(link)]);
   assert.deepEqual(links, [
     ['roadbook', 'Etappen'],
     ['media', 'Galerie'],
     ['logistics', 'Logistik'],
   ]);
-  assert.match(styleSource, /\.site-nav \{ display: flex; flex-wrap: nowrap;/);
-  assert.match(styleSource, /\.site-nav a \{[^}]*white-space: nowrap;/);
-  assert.match(styleSource, /\.site-nav a:hover, \.site-nav a:focus-visible, \.site-nav a\[aria-current="page"\], \.site-nav a\.active/);
-  assert.match(mainSource, /id="media" class="media-page"/);
-  assert.match(mainSource, /<h2 id="media-title">Galerie der Tour\.<\/h2>/);
-  assert.match(mainSource, /<dialog id="lightbox" class="lightbox" aria-label="Galerieansicht">/);
-  assert.match(styleSource, /\.photo-button \{ display: flex; flex-direction: column;/);
-  assert.match(styleSource, /\.photo-button img \{[^}]*flex: none;[^}]*height: auto;[^}]*aspect-ratio: 4 \/ 3;[^}]*object-fit: cover;/);
-  assert.doesNotMatch(styleSource, /\.photo-button img \{[^}]*height: 100%/);
-  assert.match(styleSource, /\.leaflet-marker-icon\.day-map-pin\.is-active \{ z-index: 900 !important; \}/);
-  assert.match(styleSource, /\.photo-button \.photo-caption \{ flex: 1 0 auto; min-height: calc\(2\.8em \+ 16px\); \}/);
-  assert.match(styleSource, /\.photo-credit \{[^}]*min-height: 2\.8em;/);
-  assert.match(styleSource, /\.media-gallery-grid \{[^}]*grid-auto-rows: auto;[^}]*align-items: stretch;/);
-  assert.match(styleSource, /\.media-gallery-entry \.photo-card \{[^}]*height: auto;[^}]*overflow: visible;/);
-  assert.match(styleSource, /\.media-gallery-entry \.photo-button \{ flex: none;[^}]*height: auto;/);
-  assert.match(styleSource, /\.media-page \{ width: 100%; margin-inline: auto;/);
-  assert.match(styleSource, /\.photo-gallery \{ grid-auto-rows: auto; margin-bottom: 14px; \}/);
-  assert.match(styleSource, /\.photo-gallery \.photo-card \{ height: auto; overflow: visible; \}/);
-  assert.match(styleSource, /\.lightbox \{ position: fixed; inset: 50% auto auto 50%;[^}]*margin: 0;[^}]*transform: translate\(-50%, -50%\);/);
-  assert.match(styleSource, /\.lightbox \{[^}]*overflow-y: auto; overscroll-behavior: contain;/);
+  assertCss('.site-nav', { display: 'flex', 'flex-wrap': 'nowrap' });
+  assertCss('.site-nav a', { 'white-space': 'nowrap' });
+  for (const selector of [
+    '.site-nav a:hover', '.site-nav a:focus-visible', '.site-nav a[aria-current="page"]', '.site-nav a.active',
+  ]) {
+    assert.ok(css.has(selector), selector);
+  }
+  assert.ok(shellDocument.querySelector('#media.media-page'));
+  assert.equal(normalizeText(shellDocument.querySelector('h2#media-title')), 'Galerie der Tour.');
+  assert.equal(
+    shellDocument.querySelector('dialog#lightbox.lightbox')?.getAttribute('aria-label'), 'Galerieansicht',
+  );
+  assertCss('.photo-button', { display: 'flex', 'flex-direction': 'column' });
+  assertCss('.photo-button img', {
+    flex: 'none', height: 'auto', 'aspect-ratio': '4 / 3', 'object-fit': 'cover',
+  });
+  assert.notEqual(css.declarations('.photo-button img').height, '100%');
+  assertCss('.leaflet-marker-icon.day-map-pin.is-active', { 'z-index': '900 !important' });
+  assertCss('.photo-button .photo-caption', { flex: '1 0 auto', 'min-height': 'calc(2.8em + 16px)' });
+  assertCss('.photo-credit', { 'min-height': '2.8em' });
+  assertCss('.media-gallery-grid', { 'grid-auto-rows': 'auto', 'align-items': 'stretch' });
+  assertCss('.media-gallery-entry .photo-card', { height: 'auto', overflow: 'visible' });
+  assertCss('.media-gallery-entry .photo-button', { flex: 'none', height: 'auto' });
+  assertCss('.media-page', { width: '100%', 'margin-inline': 'auto' });
+  assertCss('.photo-gallery', { 'grid-auto-rows': 'auto', 'margin-bottom': '14px' });
+  assertCss('.photo-gallery .photo-card', { height: 'auto', overflow: 'visible' });
+  assertCss('.lightbox', {
+    position: 'fixed', inset: '50% auto auto 50%', margin: '0', transform: 'translate(-50%, -50%)',
+    'overflow-y': 'auto', 'overscroll-behavior': 'contain',
+  });
   assert.match(mainSource, /viewSections\.forEach\(\(section\) => \{ section\.hidden = section\.id !== active; \}\)/);
   assert.match(mainSource, /\['roadbook', 'media', 'logistics'\]/);
   assert.match(mainSource, /setAttribute\('aria-current', 'page'\)/);
@@ -223,16 +286,19 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(mainSource, /addEventListener\('hashchange'/);
   assert.match(mainSource, /addEventListener\('popstate'/);
   assert.match(mainSource, /map\.resize\(\)/);
-  assert.match(styleSource, /\.roadbook-layout\[hidden\], \.media-page\[hidden\], \.logistics-section\[hidden\] \{ display: none !important; \}/);
-  assert.match(mainSource, /id="media-type-filter"/);
-  assert.match(mainSource, /id="media-stage-filter"/);
-  assert.match(mainSource, /renderMediaGallery\(roadbookDays/);
+  for (const selector of ['.roadbook-layout[hidden]', '.media-page[hidden]', '.logistics-section[hidden]']) {
+    assertCss(selector, { display: 'none !important' });
+  }
+  assert.ok(shellDocument.querySelector('#media-type-filter'));
+  assert.ok(shellDocument.querySelector('#media-stage-filter'));
 });
 
 test('centers the settings dialog heading', () => {
-  assert.match(mainSource, /<h2 id="settings-title">Einstellungen<\/h2>/);
-  assert.match(styleSource, /\.settings-dialog h2 \{[^}]*margin: 0 0 20px;[^}]*text-align: center;/);
-  assert.doesNotMatch(styleSource, /\.settings-dialog h2 \{[^}]*margin: 0 38px 20px 0;/);
+  const heading = shellDocument.querySelector('#settings-dialog h2#settings-title');
+  assert.equal(normalizeText(heading), 'Einstellungen');
+  const declarations = css.declarations('.settings-dialog h2');
+  assert.equal(declarations['text-align'], 'center');
+  assert.equal(declarations.margin, '0 0 20px');
 });
 
 test('runs the Node tests before the Pages production build', () => {
@@ -246,37 +312,73 @@ test('runs the Node tests before the Pages production build', () => {
 });
 
 test('renders accessible version-card toggles below update button without separate history bars', () => {
-  const settingsMarkup = mainSource.match(/<dialog id="settings-dialog"[\s\S]*?<\/dialog>/)?.[0];
-  assert.ok(settingsMarkup, 'settings dialog must be rendered');
-  assert.match(settingsMarkup, /<section class="version-current-grid" aria-label="Aktueller Versionsstand">/);
-  assert.match(settingsMarkup, /<button id="app-version-toggle" class="version-current-card" type="button" aria-expanded="false" aria-controls="app-version-history"/);
-  assert.match(settingsMarkup, /<button id="service-worker-version-toggle" class="version-current-card" type="button" aria-expanded="false" aria-controls="service-worker-version-history"/);
-  assert.match(settingsMarkup, /<strong id="version-current">lädt …<\/strong>/);
-  assert.match(settingsMarkup, /<strong id="service-worker-current">lädt …<\/strong>/);
-  assert.match(settingsMarkup, /<span class="version-history-indicator" aria-hidden="true">▾<\/span>/);
-  assert.match(settingsMarkup, /<section id="app-version-history" class="settings-history"[^>]*hidden>/);
-  assert.match(settingsMarkup, /<section id="service-worker-version-history" class="settings-history"[^>]*hidden>/);
-  assert.doesNotMatch(settingsMarkup, /<details|<summary>|App-Versionsverlauf|Service-Worker- \/ Cache-Verlauf/);
-  assert.ok(settingsMarkup.indexOf('id="refresh-app"') < settingsMarkup.indexOf('class="version-current-grid"'),
+  const settings = shellDocument.querySelector('#settings-dialog');
+  assert.ok(settings, 'settings dialog must be rendered');
+  const versionGrid = settings.querySelector('section.version-current-grid');
+  assert.equal(versionGrid?.getAttribute('aria-label'), 'Aktueller Versionsstand');
+  for (const [toggleId, historyId] of [
+    ['app-version-toggle', 'app-version-history'],
+    ['service-worker-version-toggle', 'service-worker-version-history'],
+  ]) {
+    const toggle = settings.querySelector(`button#${toggleId}.version-current-card`);
+    assert.ok(toggle, toggleId);
+    assert.equal(toggle.getAttribute('type'), 'button');
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+    assert.equal(toggle.getAttribute('aria-controls'), historyId);
+    const indicator = toggle.querySelector('.version-history-indicator');
+    assert.equal(indicator?.getAttribute('aria-hidden'), 'true');
+    assert.equal(normalizeText(indicator), '▾');
+    const history = settings.querySelector(`section#${historyId}.settings-history`);
+    assert.ok(history?.hasAttribute('hidden'), `${historyId} starts collapsed`);
+  }
+  for (const id of ['version-current', 'service-worker-current']) {
+    assert.ok(normalizeText(settings.querySelector(`strong#${id}`)), `${id} shows a placeholder or value`);
+  }
+  assert.equal(settings.querySelector('details, summary'), null);
+  assert.doesNotMatch(
+    normalizeText(settings), /App-Versionsverlauf|Service-Worker- \/ Cache-Verlauf/,
+  );
+  assert.ok(isBefore(settings.querySelector('#refresh-app'), versionGrid),
     'version cards must follow the update button');
   assert.match(mainSource, /const historyToggles = \[\.\.\.dialog\.querySelectorAll\('\[data-version-history-toggle\]'\)\]/);
   assert.match(mainSource, /toggleButton\.setAttribute\('aria-expanded', String\(expanded\)\)/);
   assert.match(mainSource, /history\.hidden = !expanded/);
-  assert.match(settingsMarkup, /id="app-version-history-list" class="version-history-list"/);
-  assert.match(settingsMarkup, /id="service-worker-history-list" class="version-history-list"/);
+  assert.ok(settings.querySelector('#app-version-history-list.version-history-list'));
+  assert.ok(settings.querySelector('#service-worker-history-list.version-history-list'));
   assert.match(mainSource, /serviceWorkerCurrent\.textContent = data\.serviceWorkerCache/);
   assert.match(mainSource, /serviceWorkerList\.innerHTML = data\.serviceWorkerHistory\.map/);
 
-  assert.match(styleSource, /\.settings-dialog \{ box-sizing: border-box; width: min\(460px, calc\(100vw - 32px\)\);[^}]*overflow-x: hidden; overflow-y: auto;/);
-  assert.match(styleSource, /\.settings-dialog > \.settings-group,[\s\S]*?box-sizing: border-box;[\s\S]*?width: 100%;[\s\S]*?max-width: 100%;[\s\S]*?min-width: 0;/);
-  assert.match(styleSource, /\.version-current-grid \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
-  assert.match(styleSource, /\.version-current-card \{ box-sizing: border-box; display: grid; width: 100%; max-width: 100%; min-width: 0; min-height: 60px;/);
-  assert.match(styleSource, /\.version-current-card:hover \{ border-color: var\(--accent\);/);
-  assert.match(styleSource, /\.version-current-card:focus-visible \{ outline: 2px solid var\(--marker-highlight\);/);
-  assert.match(styleSource, /\.version-current-card:active \{ transform: translateY\(1px\); \}/);
-  assert.match(styleSource, /\.version-current-card\[aria-expanded="true"\] \.version-history-indicator \{ transform: rotate\(180deg\); \}/);
-  assert.match(styleSource, /\.settings-history \{ box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; margin: 8px 0 0;/);
-  assert.match(styleSource, /\.settings-history \.version-history-list \{ box-sizing: border-box; width: 100%; max-width: 100%;/);
-  assert.match(styleSource, /:root\[data-font-size="5"\] \.version-current-card/);
-  assert.doesNotMatch(styleSource, /settings-history \.version-history-list \{ max-height:/);
+  assertCss('.settings-dialog', {
+    'box-sizing': 'border-box', width: 'min(460px, calc(100vw - 32px))',
+    'overflow-x': 'hidden', 'overflow-y': 'auto',
+  });
+  assertCss('.settings-dialog > .settings-group', {
+    'box-sizing': 'border-box', width: '100%', 'max-width': '100%', 'min-width': '0',
+  });
+  assertCss('.version-current-grid', {
+    display: 'grid', 'grid-template-columns': 'repeat(2, minmax(0, 1fr))',
+  });
+  assertCss('.version-current-card', {
+    'box-sizing': 'border-box', display: 'grid', width: '100%', 'max-width': '100%',
+    'min-width': '0', 'min-height': '60px',
+  });
+  assertCss('.version-current-card:hover', { 'border-color': 'var(--accent)' });
+  assertCss('.version-current-card:focus-visible', { outline: '2px solid var(--marker-highlight)' });
+  assertCss('.version-current-card:active', { transform: 'translateY(1px)' });
+  assertCss('.version-current-card[aria-expanded="true"] .version-history-indicator', {
+    transform: 'rotate(180deg)',
+  });
+  assertCss('.settings-history', {
+    'box-sizing': 'border-box', width: '100%', 'max-width': '100%', 'min-width': '0', margin: '8px 0 0',
+  });
+  assertCss('.settings-history .version-history-list', {
+    'box-sizing': 'border-box', width: '100%', 'max-width': '100%',
+  });
+  assert.ok(css.has(':root[data-font-size="5"] .version-current-card'));
+  assert.equal(
+    css.entries.some((entry) => entry.selector === '.settings-history .version-history-list'
+      && 'max-height' in entry.declarations),
+    false,
+    'history lists must not get their own max-height',
+  );
 });

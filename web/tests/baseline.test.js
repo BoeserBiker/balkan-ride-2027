@@ -10,12 +10,12 @@ const baselineChecks = [
     name: 'synchronizes the service-worker cache and its history',
     run() {
       const cache = serviceWorkerSource.match(
-        /const CACHE_PREFIX = '([^']+)';\s*const CACHE_NAME = `\$\{CACHE_PREFIX\}v(\d+)`;/,
+        /const\s+CACHE_PREFIX\s*=\s*(['"])([^'"]+)\1\s*;\s*const\s+CACHE_NAME\s*=\s*`\$\{CACHE_PREFIX\}v(\d+)`\s*;/,
       );
       assert.ok(cache, 'service worker must expose a numeric cache version');
-      assert.equal(cache[1], 'balkan-ride-shell-');
-      assert.ok(Number.isSafeInteger(Number(cache[2])) && Number(cache[2]) > 0);
-      const currentVersion = `v${cache[2]}`;
+      assert.equal(cache[2], 'balkan-ride-shell-');
+      assert.ok(Number.isSafeInteger(Number(cache[3])) && Number(cache[3]) > 0);
+      const currentVersion = `v${cache[3]}`;
       assert.equal(versionData.serviceWorkerCache, currentVersion);
       assert.ok(Array.isArray(versionData.serviceWorkerHistory));
       assert.equal(versionData.serviceWorkerHistory[0]?.version, currentVersion);
@@ -23,7 +23,7 @@ const baselineChecks = [
       assert.ok(versionData.serviceWorkerHistory[0]?.message.trim());
       const previousVersion = versionData.serviceWorkerHistory[1]?.version;
       assert.match(previousVersion ?? '', /^v\d+$/);
-      assert.equal(Number(cache[2]), Number(previousVersion.slice(1)) + 1);
+      assert.equal(Number(cache[3]), Number(previousVersion.slice(1)) + 1);
     },
   },
   {
@@ -34,6 +34,16 @@ const baselineChecks = [
       assert.equal(versionData.history[0]?.version, versionData.version);
       assert.match(versionData.history[0]?.date ?? '', /^\d{4}-\d{2}-\d{2}$/);
       assert.ok(versionData.history[0]?.message.trim());
+    },
+  },
+  {
+    name: 'bundles app content from web/src instead of docs/',
+    async run() {
+      const mainSource = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+      assert.match(mainSource, /from\s+(['"])\.\/content\/logistik\.md\?raw\1/);
+      assert.doesNotMatch(mainSource, /docs\//);
+      const logistics = await readFile(new URL('../src/content/logistik.md', import.meta.url), 'utf8');
+      assert.ok(logistics.trim());
     },
   },
 ];

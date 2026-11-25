@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.107`, Service-Worker-Cache `v120`
+- Web-Stand 2026-11-25: App-Version `v2.109`, Service-Worker-Cache `v122`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -164,6 +164,67 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – A02-1 umgesetzt (Plan-Vollständigkeit, Versionsschritt, robuste Tests)
+
+- **Freigaben (BB) zum [Detailplan A02](../docs/V5/Detailplan_A02.md):**
+  D-1 = a (Etappenänderungen verlangen beide Versionsdateien, aber keinen neuen
+  Webtest), D-2 = B (Runner ergänzt fehlende Versionsdateien sichtbar mit
+  „Pflichtdatei (vom Runner ergänzt)“; fehlender Webtest oder fehlende
+  Versionsstufe lehnt den Plan ab), D-3 = V1 (`linkedom` und `postcss` als
+  direkte `devDependencies`), D-4 = S2, D-5 = a, D-6 = relaxed, D-7 = Bundle,
+  D-8 = zweistufig, D-9 = Offenlegung (`omitted_files`), D-10 = ja,
+  D-11 = A02-3, D-12 = nicht ändern, D-14 = ja. **D-13 ist nicht entschieden**
+  (Löschen des Alt-Branches `feature/issue-24`, Repository-Einstellung
+  „Branch nach Merge löschen“; Admin-Aktion von BB).
+- **Runner** (`.github/scripts/agent_runner.py`): Pflichtdatei- und
+  Versionsstufen-Prüfung vor dem Posten des Plans und vor jedem Modellaufruf
+  im Freigabezweig; `check_version_step` (Cache genau +1, synchrone Historien,
+  App-Version gemäß Versionsstufe) und `enforce_changeset_policy` vor dem
+  Commit; Versionsschritt gegen `origin/main` in `open_pull_request`;
+  `collect_context` liefert `required_files`, `test_candidates` und
+  `omitted_files` (Versionsdateien werden nicht als Inhalt geladen); Fehler im
+  Planmodus erzeugen einen konkreten Kommentar mit Lauf-Marker
+  `<!-- roadbook-run:<ID> -->` (der Marker steht auch in den
+  Umsetzungs-Fehlerkommentaren). Bis A02-2 erscheint zusätzlich der
+  allgemeine Kommentar des Jobs `plan-report`.
+- **Commands:** `plan-item.md` (Regeln 5 und 8: Web-Änderung, Pflichtdateien,
+  `Versionsstufe`, `test_candidates`, `omitted_files`) und `implement-item.md`
+  (Regel 4: Versionsschritt und Versionsstufe) angepasst.
+- **Tests:** neue Hilfe [`web/tests/helpers/dom.js`](../web/tests/helpers/dom.js)
+  (DOM über `linkedom`, CSS-AST über `postcss`); die in Tabelle 3.5 für A02-1
+  vorgesehenen Quelltext-/HTML-/CSS-Assertions in `features.test.js`,
+  `roadbook.test.js` und `baseline.test.js` wurden auf DOM-/AST-Prüfungen
+  umgestellt. Gemäß D-4 = S2 bleiben die Assertions bestehen, die erst das
+  Visual-Gate aus A02-2 abdeckt (u. a. Header-/Dialog-Geometrie-CSS,
+  `main.js`-Quelltextprüfungen, Workflow-Text-Test). Abweichungen vom Plan:
+  `dialog.showModal()`, `Etappe ${String(...)`, `SETTINGS_KEYS` und die
+  `main.js`-Quelltexte zu Router/Verlauf bleiben (Quelltext, aber
+  formatunabhängig bzw. PW-abgedeckt erst nach A02-2).
+- **Abhängigkeiten:** `linkedom` 0.18.15 (ISC; Pflegestand 2026-11-01) und
+  `postcss` 8.5.33 (MIT; bereits transitiv über Vite vorhanden);
+  `npm audit`: 0 Schwachstellen, `npm ci --dry-run` mit dem aktualisierten
+  Lockfile ohne Fehler.
+- **Verifikation (lokal, Tooling-Venv/Python 3.13):** Runner-Tests 85/85
+  (vorher 49), `node --test web/tests/*.test.js` 21/21,
+  `npm run build --prefix web` erfolgreich, `npm run test:visual --prefix web`
+  100/100 PASS in vier Viewports (375, 412, 768, 1280 px; 0 FAIL, 24
+  Screenshots, keine Laufzeit-/Konsolenfehler,
+  [Prüfbericht](../web/.visual-report/REPORT.md)). **Gegenproben**
+  (jeweils nachweislich rot, danach zurückgesetzt): (1) Theme-Farbe
+  `schalke --accent` `#3897f0` → `#3897f1` ließ `features.test.js` fehlschlagen;
+  (2) entferntes `aria-expanded` am Versionskarten-Button ließ den
+  Versionskarten-Test fehlschlagen; (3) auf „Cache ≥ Basis“ abgeschwächte
+  `check_version_step`-Prüfung ließ 5 Runner-Tests fehlschlagen. Positive
+  Gegenprobe: reines Umsortieren von Attributen und Deklarationen samt Leerraum
+  ließ alle 21 Node-Tests grün. Nicht geprüft: Python 3.10 der Workflows, ein
+  Live-Lauf in GitHub Actions, reale Geräte.
+- **Status:** Die Änderungen liegen nur lokal im Arbeitsbaum (kein Commit,
+  kein Push). Wirksam auf `main` werden sie erst nach dem von BB
+  autorisierten Maintainer-Commit; `.github/` und `config/commands/` darf der
+  Issue-Runner nicht selbst ändern. App-Code und UI blieben unverändert, daher
+  keine neue Versionsnummer in diesem Schritt (der lokale Pre-Commit-Hook
+  erhöht sie beim Commit trotzdem). Nächster Schritt: **A02-2**.
 
 ### 2026-11-25 – A02 als nächste Workflow-Härtung eingeplant
 
@@ -1257,23 +1318,32 @@ stehen in den beiden V5-Spezifikationen.
 
 - [x] **F01:** V5 durch BB am 2026-11-25 freigegeben (Pflichtenheft V5 und
   Lastenheft V5 verbindlich; V4 historisch).
-- [ ] **F02:** Entscheidung getroffen: `docs/` bleibt privat. `.gitignore` ist
-  vorbereitet, beide Kopplungen sind getrennt; offen ist `git rm -r --cached
-  docs/` im nächsten autorisierten Maintainer-Commit (siehe Chronologie).
+- [x] **F02:** `docs/` bleibt privat; per `git rm -r --cached docs/` aus dem
+  Git-Tracking entfernt (Commit `8258db0`, Dateien bleiben lokal). Frühere
+  Commits bleiben in der Git-Historie öffentlich einsehbar.
 - [x] **F03:** Festgelegt: max. 5 Motorräder, Solo-Fahrer ja, Kontakt
   `https://www.instagram.com/boeser_biker`; Selbstcheck-Checkboxen sind rein
   informativ (keine Filter-/Teilnahmebedingung).
 - [x] **A01:** App-weite Agentenfähigkeit umgesetzt; erfolgreicher Live-
   Durchlauf mit gemergtem [PR #23](https://github.com/BoeserBiker/balkan-ride-2027/pull/23).
-- [ ] **A02:** Als nächster unmittelbarer Umsetzungsschritt Workflow-Härtung
-  nach [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md):
-  Planvollständigkeit, SHA-gebundene isolierte Vorabprüfung, Git-/Deploy-
-  Schutz, robuste Tests, Versionsabgleich und Visual-Gate T01. Vor P01/P02,
-  U01 und D01–D08 über den Agentenworkflow; separat von BB autorisierter
-  Maintainer-PR erforderlich.
+- [ ] **A02:** Workflow-Härtung nach
+  [Detailplan_A02.md](../docs/V5/Detailplan_A02.md) und
+  [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md);
+  vor P01/P02, U01 und D01–D08 über den Agentenworkflow; jeweils als direkt
+  von BB autorisierter Maintainer-PR.
+  - [x] **A02-1** (Plan-Vollständigkeit, Versionsschritt, robuste Tests):
+    lokal umgesetzt und verifiziert (Runner 85/85, Node 21/21, Build, Visual
+    100/100); wirksam erst nach dem Maintainer-Commit (siehe Chronologie).
+  - [ ] **A02-2 – nächster unmittelbarer Schritt:** Commit-Bindung per Bundle,
+    isolierte Prüfung vor dem Push (`implement-generate` ohne Push und ohne
+    `contents: write`), Visual-Gate T01 in `implement-verify` und
+    `deploy-pages.yml` (zweistufig), Deploy-Guard auf `main`, Git-Integrations-
+    und Workflow-Richtlinientests, danach Entfernen der noch bewusst
+    behaltenen Quelltext-/CSS-Assertions (D-4 = S2).
+  - [ ] **A02-3** (Störungsbehandlung): SDK/Abhängigkeiten pinnen,
+    Retry-/Timeout-Budget, Token-Vorabschätzung (D-11).
 - **A03:** Zuvor gemeinsam mit A01–A03 als lokal geprüft aufgeführt
-  (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären. A02
-  bezeichnet nun ausdrücklich die offene Workflow-Härtung.
+  (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
   Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
 - [ ] **P01–P02:** Tourübersicht und Teilnahme-/Kontaktanforderungen nach

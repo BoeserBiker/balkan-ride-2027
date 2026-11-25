@@ -48,6 +48,47 @@ OPTIONAL_MEDIA_KEYS = {
 V4_FIELDS = TEXT_FIELDS | NUMBER_FIELDS | MEDIA_FIELDS.keys() | {
     "tag", "datum", "koordinaten_start", "koordinaten_ziel", "highlights",
 }
+VERSION_FILES = ("web/public/sw.js", "web/public/version.json")
+WEBTEST_PATH = re.compile(r"web/tests/[^/]+\.test\.js")
+WEBTEST_PLACEHOLDER = "web/tests/<name>.test.js"
+VERSION_LEVEL_PLACEHOLDER = "Versionsstufe: sichtbar|technisch"
+VERSION_LEVEL = re.compile(r"Versionsstufe[\s:*`]*\b(sichtbar|technisch)\b", re.IGNORECASE)
+APP_VERSION = re.compile(r"v(\d+)\.(\d+)")
+CACHE_LINE = re.compile(r"(?<=const CACHE_NAME = `\$\{CACHE_PREFIX\}v)\d+(?=`;)")
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# Nur Hinweise für die Planung: Quelle -> passende Testdatei. Keine Aussage über Vollständigkeit.
+TEST_HINTS = {
+    "web/index.html": "web/tests/features.test.js",
+    "web/src/main.js": "web/tests/features.test.js",
+    "web/src/style.css": "web/tests/features.test.js",
+    "web/src/elevation-profile.js": "web/tests/features.test.js",
+    "web/src/roadbook.js": "web/tests/roadbook.test.js",
+    "web/src/html.js": "web/tests/roadbook.test.js",
+    "web/src/map.js": "web/tests/roadbook.test.js",
+    "web/src/gpx-download.js": "web/tests/roadbook.test.js",
+    "web/src/logistics.js": "web/tests/roadbook.test.js",
+    "web/src/route-scrubber.js": "web/tests/roadbook.test.js",
+    "web/public/sw.js": "web/tests/baseline.test.js",
+    "web/public/version.json": "web/tests/baseline.test.js",
+}
+RUN_MARKER = "<!-- roadbook-run:{run_id} -->"
+PLAN_ITEM = re.compile(r"- `[^`\n]+`[^`\n]*")
+
+
+class PlanIncomplete(ValueError):
+    """Der Plan nennt nicht alle für die Änderung nötigen Dateien oder Angaben."""
+
+    def __init__(self, missing: list[str] | str):
+        if isinstance(missing, str):
+            self.missing: list[str] = []
+            message = missing
+        else:
+            self.missing = list(missing)
+            message = (
+                "Der Plan ist unvollständig (fehlend: " + ", ".join(self.missing) + "). "
+                "Er wurde nicht veröffentlicht; bitte `/plan-item` erneut auslösen."
+            )
+        super().__init__(message)
 
 
 def api(session: requests.Session, method: str, url: str, **kwargs):
@@ -371,8 +412,202 @@ def validated_changes(raw: str, paths: set[str], files: dict[str, str]) -> dict[
     return updated
 
 
+def is_app_web_path(path: str) -> bool:
+    return path in APP_FILES or path.startswith(("web/src/", "web/public/"))
+
+
+def requires_version(paths: set[str] | list[str]) -> bool:
+    """Web-Änderung im Sinn von A02: App-Webpfade oder Etappendateien (D-1)."""
+    return any(is_app_web_path(path) or STAGE_PATH.fullmatch(path) for path in paths)
+
+
+def needs_webtest(paths: set[str] | list[str]) -> bool:
+    """App-Webpfade verlangen einen Webtest; Versionsdateien allein ebenfalls, nicht aber mit Etappen (D-1)."""
+    paths = set(paths)
+    if any(is_app_web_path(path) and path not in VERSION_FILES for path in paths):
+        return True
+    return any(path in VERSION_FILES for path in paths) and not any(
+        STAGE_PATH.fullmatch(path) for path in paths
+    )
+
+
+def plan_version_level(plan: str) -> str | None:
+    """Liest die im Plan festgelegte Versionsstufe; mehrdeutige oder fehlende Angaben gelten als fehlend."""
+    levels = {match.casefold() for match in VERSION_LEVEL.findall(plan)}
+    return levels.pop() if len(levels) == 1 else None
+
+
+def plan_gaps(plan: str, paths: set[str]) -> list[str]:
+    """Nennt fehlende Pflichtangaben eines Plans (Dateien und Versionsstufe)."""
+    gaps = []
+    if requires_version(paths):
+        gaps.extend(path for path in VERSION_FILES if path not in paths)
+        if plan_version_level(plan) is None:
+            gaps.append(VERSION_LEVEL_PLACEHOLDER)
+    if needs_webtest(paths) and not any(WEBTEST_PATH.fullmatch(path) for path in paths):
+        gaps.append(WEBTEST_PLACEHOLDER)
+    return gaps
+
+
+def missing_plan_paths(paths: set[str] | list[str]) -> list[str]:
+    """Nur die fehlenden Dateien: Versionsdateien und ein Webtest-Platzhalter."""
+    paths = set(paths)
+    return [
+        gap for gap in plan_gaps("", paths)
+        if gap in VERSION_FILES or gap == WEBTEST_PLACEHOLDER
+    ]
+
+
+def add_required_paths(plan: str, extra: list[str]) -> str:
+    """Hängt mechanisch bestimmbare Pflichtdateien sichtbar an die Dateiliste des Plans an."""
+    section = re.search(
+        r"^\*\*Betroffene Datei\(en\):\*\*[ \t]*\n(.*?)(?=^\*\*|\Z)",
+        plan,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not section:
+        raise PlanIncomplete(["Abschnitt „Betroffene Datei(en)“"])
+    body = section[1]
+    lines = body.split("\n")
+    last = max((i for i, line in enumerate(lines) if PLAN_ITEM.fullmatch(line)), default=None)
+    if last is None:
+        raise PlanIncomplete(["Abschnitt „Betroffene Datei(en)“ mit Dateizeilen"])
+    lines[last + 1:last + 1] = [
+        f"- `{path}` – Pflichtdatei (vom Runner ergänzt)" for path in extra
+    ]
+    return plan[:section.start(1)] + "\n".join(lines) + plan[section.end(1):]
+
+
+def complete_plan(plan: str) -> str:
+    """Prüft den Plan vor dem Posten; ergänzt nur Versionsdateien sichtbar (D-2 = B)."""
+    paths = planned_paths(plan)
+    gaps = plan_gaps(plan, paths)
+    blocking = [gap for gap in gaps if gap not in VERSION_FILES]
+    if blocking:
+        raise PlanIncomplete(blocking)
+    mechanical = [gap for gap in gaps if gap in VERSION_FILES]
+    if not mechanical:
+        return plan
+    completed = add_required_paths(plan, mechanical)
+    planned_paths(completed)
+    return completed
+
+
+def _cache_number(worker: str, label: str) -> int:
+    found = CACHE_LINE.findall(worker)
+    if len(found) != 1:
+        raise ValueError(f"{label}: Service-Worker-Cacheversion nicht eindeutig gefunden.")
+    return int(found[0])
+
+
+def _version_data(text: str, label: str) -> dict:
+    try:
+        data = json.loads(text)
+    except ValueError as error:
+        raise ValueError(f"{label}: Kein gültiges JSON.") from error
+    if not isinstance(data, dict):
+        raise ValueError(f"{label}: JSON-Wurzel muss ein Objekt sein.")
+    return data
+
+
+def _history(data: dict, key: str, label: str) -> list:
+    history = data.get(key)
+    if not isinstance(history, list):
+        raise ValueError(f"{label}: {key} muss eine Liste sein.")
+    return history
+
+
+def _newest_entry(history: list, version: str, key: str) -> None:
+    entry = history[0] if history else None
+    if not isinstance(entry, dict) or entry.get("version") != version:
+        raise ValueError(f"{key}: Der neueste Eintrag muss {version} lauten.")
+    day = entry.get("date")
+    if not isinstance(day, str) or not ISO_DATE.fullmatch(day):
+        raise ValueError(f"{key}: Der neueste Eintrag braucht ein Datum im Format YYYY-MM-DD.")
+    try:
+        date.fromisoformat(day)
+    except ValueError as error:
+        raise ValueError(f"{key}: Ungültiges Datum {day}.") from error
+    if not nonempty_text(entry.get("message")):
+        raise ValueError(f"{key}: Der neueste Eintrag braucht eine Beschreibung.")
+
+
+def check_version_step(
+    old_worker: str, old_json: str, new_worker: str, new_json: str, level: str | None = None,
+) -> None:
+    """Prüft Cache +1, synchrone Historien und die App-Version gegen den Basisstand."""
+    old_cache = _cache_number(old_worker, "Basis sw.js")
+    new_cache = _cache_number(new_worker, "Neue sw.js")
+    if new_cache != old_cache + 1:
+        raise ValueError(
+            f"Service-Worker-Cache v{new_cache} statt v{old_cache + 1} erwartet "
+            f"(Basis v{old_cache} + 1)."
+        )
+    old = _version_data(old_json, "Basis version.json")
+    new = _version_data(new_json, "Neue version.json")
+    cache = f"v{new_cache}"
+    if new.get("serviceWorkerCache") != cache:
+        raise ValueError(
+            f"serviceWorkerCache ({new.get('serviceWorkerCache')!r}) passt nicht zu sw.js ({cache})."
+        )
+    new_worker_history = _history(new, "serviceWorkerHistory", "Neue version.json")
+    _newest_entry(new_worker_history, cache, "serviceWorkerHistory")
+    if new_worker_history[1:] != _history(old, "serviceWorkerHistory", "Basis version.json"):
+        raise ValueError("serviceWorkerHistory wurde verändert oder nicht fortgeschrieben.")
+
+    old_version, new_version = old.get("version"), new.get("version")
+    new_match = APP_VERSION.fullmatch(str(new_version))
+    old_match = APP_VERSION.fullmatch(str(old_version))
+    if not new_match or not old_match:
+        raise ValueError("Die App-Version muss dem Schema v<Zahl>.<Zahl> entsprechen.")
+    changed = new_version != old_version
+    if level == "technisch" and changed:
+        raise ValueError("Versionsstufe „technisch“: Die App-Version darf nicht geändert werden.")
+    if level == "sichtbar" and not changed:
+        raise ValueError("Versionsstufe „sichtbar“: Die App-Version muss erhöht werden.")
+    new_history = _history(new, "history", "Neue version.json")
+    old_history = _history(old, "history", "Basis version.json")
+    if not changed:
+        if new_history != old_history:
+            raise ValueError("history darf ohne App-Versionsänderung nicht verändert werden.")
+        return
+    if (new_match[1], int(new_match[2])) != (old_match[1], int(old_match[2]) + 1):
+        raise ValueError(
+            f"App-Version {new_version} statt v{old_match[1]}.{int(old_match[2]) + 1} erwartet."
+        )
+    _newest_entry(new_history, new_version, "history")
+    if new_history[1:] != old_history:
+        raise ValueError("history wurde verändert oder nicht fortgeschrieben.")
+
+
+def enforce_changeset_policy(updated: dict[str, str], files: dict[str, str], plan: str) -> None:
+    """Prüft den Änderungssatz vor jedem Commit auf Pflichtdateien und Versionsschritt."""
+    if not requires_version(updated):
+        return
+    missing = [path for path in VERSION_FILES if path not in updated]
+    if missing:
+        raise ValueError("Web-Änderung ohne Versionsdateien: " + ", ".join(missing))
+    if needs_webtest(updated) and not any(WEBTEST_PATH.fullmatch(path) for path in updated):
+        raise ValueError("Web-Änderung ohne geänderten Webtest unter web/tests/*.test.js.")
+    base = [files.get(path) for path in VERSION_FILES]
+    if None in base:
+        raise ValueError("Der Basisstand der Versionsdateien fehlt im Dateikontext.")
+    check_version_step(
+        base[0], base[1], updated[VERSION_FILES[0]], updated[VERSION_FILES[1]],
+        plan_version_level(plan),
+    )
+
+
 def git(*args: str) -> None:
     subprocess.run(["git", "--no-pager", *args], cwd=ROOT, check=True)
+
+
+def git_show(ref: str, path: str) -> str | None:
+    result = subprocess.run(
+        ["git", "--no-pager", "show", f"{ref}:{path}"],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    return result.stdout if result.returncode == 0 else None
 
 
 def git_paths(*args: str) -> set[str]:
@@ -464,11 +699,32 @@ def run_url() -> str:
     )
 
 
+def check_branch_version_step(issue: dict, changed: list[str], plan: str = "") -> None:
+    """Prüft den Versionsschritt des Feature-Branches gegen den aktuellen Stand von origin/main."""
+    if not requires_version(changed):
+        return
+    missing = [path for path in VERSION_FILES if path not in changed]
+    if missing:
+        raise ValueError("Web-Änderung ohne Versionsdateien im Branch: " + ", ".join(missing))
+    branch = f"origin/{branch_name(issue)}"
+    base = [git_show("origin/main", path) for path in VERSION_FILES]
+    head = [git_show(branch, path) for path in VERSION_FILES]
+    if None in base or None in head:
+        raise ValueError("Die Versionsdateien konnten nicht aus Git gelesen werden.")
+    try:
+        check_version_step(base[0], base[1], head[0], head[1], plan_version_level(plan))
+    except ValueError as error:
+        raise ValueError(
+            f"Versionsstand passt nicht zum aktuellen main (Basis veraltet?): {error}"
+        ) from error
+
+
 def open_pull_request(
-    session: requests.Session, repo_url: str, issue: dict, paths: set[str],
+    session: requests.Session, repo_url: str, issue: dict, paths: set[str], plan: str = "",
 ) -> str:
     number = issue["number"]
     changed = verify_branch_diff(issue, paths)
+    check_branch_version_step(issue, changed, plan)
     pr = api(session, "POST", f"{repo_url}/pulls", json={
         "title": f"Update (Issue #{number}): {issue['title']}"[:256],
         "head": branch_name(issue),
@@ -498,7 +754,9 @@ def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]
         "Die YAML-Felder kilometer (Zahl, Dezimalpunkt erlaubt) und hoehenmeter "
         "(Ganzzahl) müssen unquotierte, nichtnegative Zahlen ohne Einheit sein.",
     )
-    commit_branch(issue, validated_changes(raw, paths, files))
+    updated = validated_changes(raw, paths, files)
+    enforce_changeset_policy(updated, files, plan)
+    commit_branch(issue, updated)
 
 
 UI_KEYWORDS = (
@@ -539,28 +797,43 @@ def collect_context(issue: dict) -> dict:
     )
     app_paths = [
         path for path in paths
-        if path == "web/index.html" or path.startswith(("web/src/", "web/public/", "web/tests/"))
+        if (path == "web/index.html" or path.startswith(("web/src/", "web/public/", "web/tests/")))
+        and path not in VERSION_FILES
     ]
+    candidates: dict[str, list[str]] = {}
+    for source, test in TEST_HINTS.items():
+        if test in paths and source in paths:
+            candidates.setdefault(test, []).append(source)
     if ui_issue:
-        # Dateien, deren Name im Issue vorkommt, kommen zuerst; große Dateien zuletzt.
+        # Dateien, deren Name im Issue vorkommt, kommen zuerst, dann Testkandidaten;
+        # große Dateien zuletzt.
         app_paths.sort(key=lambda path: (
             PurePosixPath(path).stem.casefold().removesuffix(".test") not in haystack,
+            path not in candidates,
             safe_target(path).stat().st_size,
         ))
         selected.extend(app_paths)
+    else:
+        candidates = {}
     if "config" in haystack:
         selected.extend(path for path in paths if path.startswith("config/"))
 
     files = {}
+    omitted = []
     remaining = PLAN_CONTEXT_BYTES
-    for path in selected:
+    for path in dict.fromkeys(selected):
         size = safe_target(path).stat().st_size
         if size <= remaining:
             files.update(read_files([path]))
             remaining -= size
+        else:
+            omitted.append(path)
     return {
         "title": issue["title"], "body": issue.get("body"),
         "file_list": paths, "files": files,
+        "required_files": list(VERSION_FILES),
+        "test_candidates": candidates,
+        "omitted_files": omitted,
     }
 
 
@@ -587,14 +860,35 @@ def plan_comment(issue: dict) -> str:
         "Zeile der Form '- `web/src/main.js` – Grund' mit einem konkreten repository-relativen "
         "Pfad aus den Bereichen content/tag-01..22.md, web/index.html, web/src/, web/public/, "
         "web/tests/ oder config/ (ohne config/commands/ und config/skills/). Bei Änderungen "
-        "an web/ gehört auch die passende Testdatei unter web/tests/ dazu. Beginne die "
-        "weiteren Abschnitte mit '**'.",
+        "an web/ gehören die beiden Versionsdateien (required_files) und mindestens eine "
+        "passende Testdatei unter web/tests/ dazu (Hinweise in test_candidates); Änderungen "
+        "an content/tag-NN.md erfordern ebenfalls die Versionsdateien. Nenne unter "
+        "'**Geplante Änderungen:**' genau eine Zeile 'Versionsstufe: sichtbar' oder "
+        "'Versionsstufe: technisch'. Inhalte der Dateien aus omitted_files kennst du nicht; "
+        "nenne sie unter '**Offene Fragen / Hinweise:**'. Beginne die weiteren Abschnitte "
+        "mit '**'.",
     )
     plan = normalize_plan(plan)
     if not plan.startswith(f"{PLAN_HEADING}\n") or not plan.endswith(PLAN_FOOTER):
         raise ValueError("Der Plan hat nicht das vorgeschriebene Kommentarformat.")
-    planned_paths(plan)
+    plan = complete_plan(plan)
     return f"{plan[:-len(PLAN_FOOTER)].rstrip()}\n\n{plan_marker(issue)}\n\n{PLAN_FOOTER}"
+
+
+def report_failure(session: requests.Session, issue_url: str, label: str, error: Exception) -> None:
+    """Meldet einen Fehler als Issue-Kommentar mit Lauf-Marker; der Aufrufer wirft danach erneut."""
+    message = str(error)[:1000]
+    failure_body = (
+        f"{label}: {type(error).__name__}: {message}\n\n"
+        f"[Details im GitHub-Actions-Lauf]({run_url()})\n\n"
+        f"{RUN_MARKER.format(run_id=os.environ['GITHUB_RUN_ID'])}"
+    )
+    try:
+        api(session, "POST", f"{issue_url}/comments", json={"body": failure_body})
+    except Exception as comment_error:
+        raise RuntimeError(
+            f"{label}: {message}. Fehlerkommentar konnte nicht erstellt werden: {comment_error}"
+        ) from error
 
 
 def main() -> None:
@@ -617,7 +911,11 @@ def main() -> None:
             raise ValueError("Das Issue ist nicht mehr offen.")
         body = None
         if mode == "plan":
-            body = plan_comment(issue)
+            try:
+                body = plan_comment(issue)
+            except Exception as error:
+                report_failure(session, issue_url, "Die Planerstellung ist fehlgeschlagen", error)
+                raise
         elif mode == "report":
             body = (
                 "Tests oder Build für den Feature-Branch sind fehlgeschlagen; es wurde kein "
@@ -629,23 +927,18 @@ def main() -> None:
                 paths = planned_paths(plan)
                 if not paths:
                     raise ValueError("Der freigegebene Plan nennt keine zulässigen Dateipfade.")
+                gaps = plan_gaps(plan, paths)
+                if gaps:
+                    raise PlanIncomplete(
+                        "Der freigegebene Plan ist unvollständig (fehlend: " + ", ".join(gaps)
+                        + "). Bitte `/plan-item` erneut auslösen und den ergänzten Plan freigeben."
+                    )
                 if mode == "implement":
                     generate_changes(issue, plan, replies, paths)
                 else:
-                    body = open_pull_request(session, repo_url, issue, paths)
+                    body = open_pull_request(session, repo_url, issue, paths, plan)
             except Exception as error:
-                failure_body = (
-                    f"Die automatisierte Umsetzung ist fehlgeschlagen: "
-                    f"{type(error).__name__}: {error}\n\n"
-                    f"[Details im GitHub-Actions-Lauf]({run_url()})"
-                )
-                try:
-                    api(session, "POST", f"{issue_url}/comments", json={"body": failure_body})
-                except Exception as comment_error:
-                    raise RuntimeError(
-                        f"Umsetzung fehlgeschlagen: {error}. "
-                        f"Fehlerkommentar konnte nicht erstellt werden: {comment_error}"
-                    ) from error
+                report_failure(session, issue_url, "Die automatisierte Umsetzung ist fehlgeschlagen", error)
                 raise
         if body:
             api(session, "POST", f"{issue_url}/comments", json={"body": body})
