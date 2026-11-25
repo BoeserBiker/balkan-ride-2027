@@ -1,6 +1,16 @@
 {
-  "version": "v2.68",
+  "version": "v2.70",
   "history": [
+    {
+      "version": "v2.70",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff und iPhone Overflow-Fix abgeschlossen"
+    },
+    {
+      "version": "v2.69",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff und iPhone Overflow-Fix abgeschlossen"
+    },
     {
       "version": "v2.68",
       "date": "2026-11-25",
