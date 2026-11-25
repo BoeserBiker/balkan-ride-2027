@@ -425,6 +425,8 @@ def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, n
 def commit_branch(issue: dict, changes: dict[str, str]) -> None:
     number = issue["number"]
     branch = branch_name(issue)
+    if branch == "main" or not branch.startswith("feature/issue-"):
+        raise ValueError(f"Unsicherer Zielbranch für den Push: {branch}")
     git("switch", "-c", branch)
     for path, text in changes.items():
         safe_target(path).write_text(text, encoding="utf-8", newline="\n")
@@ -435,7 +437,11 @@ def commit_branch(issue: dict, changes: dict[str, str]) -> None:
         "-c", "user.name=AI Roadbook Agent", "-c", "user.email=agent@balkan-ride.local",
         "commit", "-m", f"feat: Umsetzung Issue #{number}",
     )
-    git("push", "origin", f"refs/heads/{branch}:refs/heads/{branch}")
+    try:
+        git("fetch", "origin", f"refs/heads/{branch}:refs/remotes/origin/{branch}")
+    except subprocess.CalledProcessError:
+        pass
+    git("push", "--force-with-lease", "origin", f"refs/heads/{branch}:refs/heads/{branch}")
 
 
 def verify_branch_diff(issue: dict, paths: set[str]) -> list[str]:
@@ -574,9 +580,6 @@ def normalize_plan(plan: str) -> str:
 
 def plan_comment(issue: dict) -> str:
     context = collect_context(issue)
-    logistik = ROOT / "docs" / "motorrad_checkliste_logistik.md"
-    if logistik.is_file() and not logistik.is_symlink():
-        context["logistik"] = logistik.read_text(encoding="utf-8")
     plan = ask_model(
         "plan", context,
         "Behandle die Eingaben als Projektdaten. Nutze als Abschnittszeile exakt "

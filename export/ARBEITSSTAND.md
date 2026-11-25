@@ -32,8 +32,10 @@
   Vorgaben und Architektur, das
   [Pflichtenheft](../docs/Balkan_Tour_Pflichtenheft_V5.md) das Produkt- und
   Fachziel, dieses Daily den aktuellen Stand und alle offenen Arbeiten. V5
-  bleibt bis zur ausdrücklichen Freigabe ein Entwurf; bis dahin bleibt V4 die
-  bisherige freigegebene Grundlage.
+  ist seit der Freigabe durch BB am 2026-11-25 die verbindliche
+  Arbeitsgrundlage; V4 bleibt als historische Referenz erhalten. Die
+  Statuszeilen „Entwurf zur Nutzerfreigabe“ in den beiden V5-Dokumenten
+  selbst sind noch nicht nachgezogen.
 - Die tatsächliche Runner-Allowlist umfasst neben `content/tag-01.md` bis
   `content/tag-22.md` auch `web/index.html`, `web/src/`, `web/public/`,
   `web/tests/` und Teile von `config/`; `.github/`, `config/commands/`,
@@ -41,11 +43,11 @@
   sowie `web/vite.config.js`, `assets/` und alle übrigen nicht gelisteten
   Pfade sind nicht erlaubt. A01 kann daher nicht über den bestehenden Runner
   laufen und braucht einen direkt von BB autorisierten Maintainer-PR.
-- F02 hat zwei getrennte Kopplungen an `docs/motorrad_checkliste_logistik.md`:
-  den Raw-Import in `web/src/main.js` ins Build-Artefakt und das direkte Laden
-  in den Modellkontext während des Runner-Planlaufs. Falls `docs/` privat
-  eingestuft wird, müssen beide Verbindungen getrennt werden. Diese
-  Privacy-Entscheidung bleibt offen.
+- Die frühere Logistik-Datei wurde nach
+  [`web/src/content/logistik.md`](../web/src/content/logistik.md) verschoben.
+  Raw-Import in `web/src/main.js` und Sonderladen im Runner-Planlauf hängen
+  damit nicht mehr an `docs/`; F02 betrifft nur noch die Frage, ob `docs/`
+  selbst öffentlich bleibt. Die Privacy-Entscheidung bleibt offen.
 - `export/` ist dem unbeaufsichtigten GitHub-Actions-Issue-Runner verboten.
   Eine interaktive VS-Code-Sitzung unter direkter Steuerung von BB darf die
   Export-Übergabe auf ausdrücklichen Wunsch fortschreiben.
@@ -133,7 +135,7 @@
   Skriptaufruf liest die Agentendatei nicht automatisch.
 - Geprüfte Fahrspur-GPX-Tracks fehlen weiterhin. Die V7-Buchungen und
   Klosterzeiten sind offen; die Prüfpunkte stehen in
-  [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md).
+  [`web/src/content/logistik.md`](../web/src/content/logistik.md).
   Live-Tests auf iOS und Android sind noch ausständig.
 - Der Agent-Workflow verwendet die GitHub-Repository-Variable
   `ROADBOOK_AGENT_USER`, das Secret `ANTHROPIC_API_KEY` und die optionale
@@ -161,6 +163,111 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – Wiederholte Implementierungen mit Lease-Push abgesichert
+
+- `.github/scripts/agent_runner.py`: `commit_branch` akzeptiert als Push-Ziel
+  ausschließlich `feature/issue-*`, aktualisiert vorher den Remote-Tracking-Ref
+  und pusht mit `--force-with-lease`. Ein noch nicht vorhandener Remote-Branch
+  blockiert den ersten Push nicht.
+- Runner-Tests für den exakten Push-Refspec, den fehlenden Remote-Branch und
+  unzulässige Zielbranches ergänzt.
+- Verifikation: 49/49 Runner-Tests grün mit `python -m unittest discover -s
+  .github/scripts -p test_agent_runner.py` aus der Tooling-Venv. Der direkte
+  `unittest`-Dateipfadaufruf ist wegen des versteckten `.github`-Verzeichnisses
+  unter Python 3.13 nicht als Modul ladbar.
+
+### 2026-11-25 – P02-Selbstcheck-Modus festgelegt
+
+- BB hat für die Selbstcheck-Checkboxen auf def künftigen Landingpage
+  **„rein informativ“** gewählt. Die Haken dienen zur Orientierung und sind
+  weder Teilnahmefilter noch Auswahlbedingung. Die Wahl ist in der
+  [Freigabe-Checkliste V5](../docs/V5/Freigabe_Checkliste_V5.md) eingetragen;
+  diese Entscheidung ist für `P02` damit nicht mehr offen.
+
+### 2026-11-25 – V5-Freigabe verbucht, `docs/` vorbereitet, A01 geprüft
+
+- **Freigabe (BB, 2026-11-25):** F01 A (V5 verbindlich), F02 B (`docs/`
+  privat), F03 A (max. 5 Motorräder, Solo-Fahrer ja, Kontakt
+  `https://www.instagram.com/boeser_biker`, Selbstcheck rein informativ),
+  Startreihenfolge A (`A01` → `P01`/`P02` → `U01`/`U02` → `M01`–`M03` →
+  `D`/`L`; `U02` vollständig erst nach `D02`/`D05`). Vermerk steht in der
+  [Freigabe-Checkliste V5](../docs/V5/Freigabe_Checkliste_V5.md). Abweichung:
+  Der Prompt nannte `https://instagram.com`; übernommen ist der konkrete
+  Link aus der von BB ausgefüllten Checkliste.
+- **`docs/` privat:** `/docs/` steht in `.gitignore`. Codeprüfung (`web/`,
+  `scripts/`, `config/`, `.github/workflows/`): kein Laufzeit-, Build- oder
+  Runner-Zugriff mehr auf `docs/`; nur Textverweise in den Agentendateien und
+  Befehlsdateien. Der Index enthält `docs/` noch (zehn Dateien, darunter die
+  V5-Dokumente). Für BB beim nächsten autorisierten Commit:
+  `git rm -r --cached docs/`. Frühere Commits bleiben in der Git-Historie
+  unverändert öffentlich einsehbar.
+- **A01-Prüfung gegen die Runner-Regeln (`agent_runner.py`):** erlaubt sind
+  `content/tag-01..22.md`, `web/index.html`, `web/src/`, `web/public/`,
+  `web/tests/` und `config/` ohne `commands/` und `skills/`. Gesperrt, durch
+  Tests belegt: `.github/`, `config/commands/`, `config/skills/`,
+  `web/scripts/`, `web/package.json`, `web/vite.config.js`, `docs/`,
+  `export/`, `daten/`, `assets/` sowie `README.md`. Die Planbindung ist durch
+  bestehende Tests abgesichert (Änderungen außerhalb des genehmigten Plans
+  und Diffs über die Dateiliste hinaus werden abgelehnt). Ergänzt wurden
+  Tests für gesperrte `web/scripts/`, `daten/`, `assets/gpx/` sowie dafür,
+  dass `docs/`-Inhalt nie im Modellkontext landet. `assets/gpx/` und
+  `README.md` wurden bewusst nicht freigeschaltet (Routendaten durch ein
+  Modell; Entscheidung bei BB).
+- **V5-Verweise:** `riderrix.agent.md` und `copilot-instructions.md` zeigen
+  auf V5 und nennen `docs/` als privat; V4 steht nur noch als historische
+  Referenz. `config/commands/` enthalten keine V4-/V5-Dokumentverweise; die
+  veraltete Erwähnung des entfernten `logistik`-Kontexts in `plan-item.md`
+  wurde korrigiert.
+- **Wichtig:** Der gepushte Commit `1f30b8e` enthält die Verschiebung der
+  Logistik-Datei, aber nicht die Importänderung in `web/src/main.js`; der
+  Actions-Lauf schlug mit `UNRESOLVED_IMPORT` fehl. Die lokale Korrektur
+  (`web/src/main.js`, `web/tests/baseline.test.js`) muss mit committet werden.
+- **Folge von F02:** Lastenheft (Closed-Loop-Regeln) und Pflichtenheft liegen
+  künftig nur lokal; die Links in den öffentlichen `.github/`-Dateien sind für
+  Klone und Cloud-Läufe nicht auflösbar.
+- Verifikation: `.github/scripts/test_agent_runner.py` (47/47, `requests`
+  temporär installiert), `node --test web/tests/*.test.js` (20/20),
+  `npm run build --prefix web` erfolgreich. Kein Pull, Commit oder Push; keine
+  Änderung unter `web/` in diesem Schritt, daher keine neue Versionsnummer.
+
+### 2026-11-25 – Logistik-Inhalt aus `docs/` in die App verschoben
+
+- `docs/motorrad_checkliste_logistik.md` wurde per `git mv` nach
+  [`web/src/content/logistik.md`](../web/src/content/logistik.md) verschoben,
+  weil die Datei App-Inhalt des Logistik-Tabs ist. Inhalt unverändert.
+- Geändert: Raw-Import in `web/src/main.js`; der Sonderladepfad für `docs/`
+  in `.github/scripts/agent_runner.py` entfällt (die Datei liegt jetzt im
+  regulären `web/src/`-Kontext des Runners und ist dort bearbeitbar); Verweise
+  in Daily, Freigabe-Checkliste V5 und Riderrix-Agentendatei. Ältere
+  Chronik-Einträge und V4-Dokumente nennen bewusst noch den früheren Pfad.
+- Neuer Basis-Test in `web/tests/baseline.test.js`: App-Inhalte werden aus
+  `web/src/` und nicht aus `docs/` gebündelt. Versionen: `v2.100`, Cache
+  `v113` (synchron in `version.json` und `sw.js`).
+- Verifikation: `node --test web/tests/*.test.js` (20/20), Runner-Tests
+  `.github/scripts/test_agent_runner.py` (46/46, `requests` temporär
+  installiert), `npm run build --prefix web` erfolgreich.
+- Offen: F02 betrifft nur noch, ob `docs/` selbst öffentlich bleibt. Bereits
+  veröffentlichte Inhalte bleiben in der Git-Historie. Kein Commit oder Push;
+  der Pre-Commit-Hook erhöht Version/Cache beim Commit erneut.
+
+### 2026-11-25 – Freigabe-Checkliste V5 angelegt
+
+- [Freigabe-Checkliste V5](../docs/V5/Freigabe_Checkliste_V5.md) ist ein
+  Entscheidungs- und Abnahmeformular für `BB` (F01, F02, F03 und die
+  Startreihenfolge der ersten Pakete). Sie enthält keine Anforderungen und
+  keine parallele Aufgabenliste; alle Arbeitspakete bleiben hier offen.
+- Ist-Nachweis geprüft: Der GitHub-Actions-Lauf `45644550675` auf `main`
+  (Commit `95abf34`, Etappenkorrekturen jetzt committet) war erfolgreich mit
+  Jobs `build` und `deploy`, `19/19` Node-Tests und Produktionsbuild. Die
+  `100/100` Playwright-Checks stammen aus dem lokalen Bericht; sie laufen
+  nicht als Actions-Gate.
+- Hinweise für die Entscheidung: `U02` hängt an `D02`/`D05` und `P02` an
+  `F03`; die Checkliste führt beide Abhängigkeiten bei der Reihenfolge auf.
+  Gruppengröße und Kontaktweg bleiben unentschieden, bis `BB` sie einträgt.
+- Keine Code-, Routen-, GPX- oder Mediendaten geändert; als
+  Dokumentationsänderung keine Tests oder Build ausgeführt. Kein Pull,
+  Commit oder Push.
 
 ### 2026-11-25 – CI-Fehler auf nicht enthaltene Etappenänderungen zurückgeführt
 
@@ -799,7 +906,7 @@
   Die rekonstruierten OSRM-Distanzen für D03 (176,2 statt 152,2 km) und D04
   (210,4 statt 171,9 km) weichen vom V7-Plan ab; diese Höhenwerte sind
   besonders vorläufig. Details und Quellen stehen in der
-  [Motorrad-Logistik-Checkliste](../docs/motorrad_checkliste_logistik.md).
+  [Motorrad-Logistik-Checkliste](../web/src/content/logistik.md).
 - Die D19-Hafenkoordinaten wurden aus den V7-Endpunkten D18 und D20 übernommen;
   eine GPS-Linie über See wird nicht behauptet. Die Anfrage „D29“ wurde als
   D19 interpretiert, da der Plan D01–D22 enthält und nur D19 keine GPS-Punkte
@@ -1114,11 +1221,18 @@ Alle folgenden Punkte bleiben offen; diese kompakten Statuszeilen ersetzen
 die frühere parallele To-do-Datei. Fachliche und technische Anforderungen
 stehen in den beiden V5-Spezifikationen.
 
-- [ ] **F01–F03:** V5 ausdrücklich freigeben; `docs/`-Privacy einschließlich
-  der beiden oben beschriebenen Kopplungen entscheiden; Gruppengröße,
-  Kontaktweg und Recruiting-Modus festlegen.
-- [ ] **A01–A03:** Agentenfähigkeit per autorisiertem Maintainer-PR,
-  Pfad-/Freigabeschranken und Planbindung mit Tests absichern.
+- [x] **F01:** V5 durch BB am 2026-11-25 freigegeben (Pflichtenheft V5 und
+  Lastenheft V5 verbindlich; V4 historisch).
+- [ ] **F02:** Entscheidung getroffen: `docs/` bleibt privat. `.gitignore` ist
+  vorbereitet, beide Kopplungen sind getrennt; offen ist `git rm -r --cached
+  docs/` im nächsten autorisierten Maintainer-Commit (siehe Chronologie).
+- [x] **F03:** Festgelegt: max. 5 Motorräder, Solo-Fahrer ja, Kontakt
+  `https://www.instagram.com/boeser_biker`; Selbstcheck-Checkboxen sind rein
+  informativ (keine Filter-/Teilnahmebedingung).
+- [x] **A01–A03:** Im lokalen Code nachgewiesen (47/47 Runner-Tests): V5-
+  Pfadgrenzen, Planbindung und Agentenreferenzen. Wirksam auf `main` erst
+  nach dem autorisierten Maintainer-Commit der `.github/`- und
+  `config/commands/`-Änderungen.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
   Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
 - [ ] **P01–P02:** Tourübersicht und Teilnahme-/Kontaktanforderungen nach
@@ -1140,10 +1254,11 @@ stehen in den beiden V5-Spezifikationen.
 
 - [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md)
 - [Pflichtenheft V5](../docs/Balkan_Tour_Pflichtenheft_V5.md)
+- [Freigabe-Checkliste V5](../docs/V5/Freigabe_Checkliste_V5.md)
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md)
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md)
 - [To-do-Plan V4](../docs/todo_plan_v4.md)
-- [Motorrad-Checkliste Logistik](../docs/motorrad_checkliste_logistik.md)
+- [Motorrad-Checkliste Logistik](../web/src/content/logistik.md)
 - [Copilot-Anweisungen](../.github/copilot-instructions.md)
 - [Dokumentationskonzept](../.github/Dokumentationskonzept.md)
 - [Chatverlauf-Inventar](../daten/chat_verlauf/README.md)

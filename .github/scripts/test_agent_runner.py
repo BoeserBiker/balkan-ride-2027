@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import types
@@ -145,6 +146,7 @@ class PathPolicyTests(unittest.TestCase):
             "web/src/secrets/key.js", "web/node_modules/leaflet/index.js", "web/dist/index.html",
             "web/package.json", "web/package-lock.json", "web/vite.config.js", "README.md",
             "content/tag-23.md", "content/tag-00.md", "content/notizen.md", "assets/x.md",
+            "assets/gpx/tag-01.gpx", "web/scripts/visual-check.mjs", "daten/chat_verlauf/x.md",
         ):
             with self.subTest(path=path), self.assertRaises(ValueError):
                 agent_runner.validate_repo_path(path)
@@ -210,6 +212,7 @@ class FileAccessTests(TemporaryRoot):
             "content/tag-01.md", "content/notizen.md", "web/src/a.js", "web/public/icon.png",
             "web/node_modules/x/y.js", "web/dist/z.js", "web/package.json",
             "config/ok.json", "config/commands/plan-item.md", "docs/secret.md",
+            "web/scripts/visual-check.mjs", "daten/notiz.md", "export/ARBEITSSTAND.md",
         ):
             self.write(path)
         (self.root / "web/src/link.js").symlink_to(self.root / "web/src/a.js")
@@ -399,11 +402,44 @@ class BranchTests(TemporaryRoot):
         calls = []
         with patch.object(agent_runner, "git", side_effect=lambda *args: calls.append(args)), \
                 patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
-            agent_runner.commit_branch({"number": 7}, {"web/src/main.js": "new\n"})
+            agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
         self.assertEqual((self.root / "web/src/main.js").read_text(encoding="utf-8"), "new\n")
-        self.assertEqual(calls[0], ("switch", "-c", "feature/issue-7"))
+        self.assertEqual(calls[0], ("switch", "-c", "feature/issue-22"))
         self.assertIn(("add", "--", "web/src/main.js"), calls)
-        self.assertEqual(calls[-1][:2], ("push", "origin"))
+        self.assertIn((
+            "fetch", "origin",
+            "refs/heads/feature/issue-22:refs/remotes/origin/feature/issue-22",
+        ), calls)
+        self.assertEqual(calls[-1], (
+            "push", "--force-with-lease", "origin",
+            "refs/heads/feature/issue-22:refs/heads/feature/issue-22",
+        ))
+
+    def test_missing_remote_branch_does_not_block_the_lease_push(self):
+        self.write("web/src/main.js", "old\n")
+        calls = []
+
+        def fake_git(*args):
+            calls.append(args)
+            if args[0] == "fetch":
+                raise subprocess.CalledProcessError(1, ["git", *args])
+
+        with patch.object(agent_runner, "git", side_effect=fake_git), \
+                patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
+            agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
+        self.assertEqual(calls[-1], (
+            "push", "--force-with-lease", "origin",
+            "refs/heads/feature/issue-22:refs/heads/feature/issue-22",
+        ))
+
+    def test_non_feature_branches_are_rejected_before_any_git_operation(self):
+        for branch in ("main", "release/1", "fix/issue-22"):
+            with self.subTest(branch=branch):
+                with patch.object(agent_runner, "branch_name", return_value=branch), \
+                        patch.object(agent_runner, "git") as git:
+                    with self.assertRaises(ValueError):
+                        agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
+                git.assert_not_called()
 
     def test_unexpected_staged_files_stop_before_commit_and_push(self):
         self.write("web/src/main.js", "old\n")
@@ -539,6 +575,17 @@ class RunnerFlowTests(TemporaryRoot):
         self.assertEqual(sorted(context["files"]), ["web/src/main.js"])
         self.assertEqual(context["file_list"], ["content/tag-01.md", "web/src/main.js"])
         self.assertNotIn("logistik", ask.call_args.args[1])
+
+    def test_private_docs_never_reach_the_model_context(self):
+        self.write("content/tag-01.md", STAGE)
+        self.write("web/src/main.js", "old\n")
+        self.write("docs/motorrad_checkliste_logistik.md", "PRIVATE-DOCS-MARKER")
+        good_plan = plan_with("- `web/src/main.js`").rstrip() + "\n" + agent_runner.PLAN_FOOTER
+        with patch.object(agent_runner, "ask_model", return_value=good_plan) as ask:
+            agent_runner.plan_comment(self.issue)
+        context = ask.call_args.args[1]
+        self.assertNotIn("PRIVATE-DOCS-MARKER", json.dumps(context))
+        self.assertFalse(any(path.startswith("docs/") for path in context["file_list"]))
 
     def test_plan_with_intro_text_and_altered_footer_is_normalized(self):
         self.write("web/src/main.js", "old\n")
