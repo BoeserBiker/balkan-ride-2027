@@ -1,6 +1,11 @@
 {
-  "version": "v2.65",
+  "version": "v2.66",
   "history": [
+    {
+      "version": "v2.66",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff: Etappe 01 weiter nach oben gezogen und mobile Karte vergroessert"
+    },
     {
       "version": "v2.65",
       "date": "2026-11-25",

@@ -151,6 +151,10 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   }
   assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 240px; overflow-y: auto;/);
   assert.doesNotMatch(styleSource, /route-connector|version-badge|mobile-stage-route/);
+  assert.match(styleSource, /html \{ max-width: 100%; overflow-x: hidden; overflow-x: clip;/);
+  assert.match(styleSource, /body, main, \.roadbook-layout \{ max-width: 100%; overflow-x: hidden; overflow-x: clip; \}/);
+  assert.match(styleSource, /\[hidden\] \{ display: none !important; \}/);
+  assert.match(styleSource, /\.gpx-downloads, \.gpx-downloads \.button,[\s\S]*?min-width: 0; max-width: 100%; box-sizing: border-box;/);
   assert.match(styleSource, /\.header-navigation \{ --nav-shift: 7px;[^}]*transform: translateY\(var\(--nav-shift\)\);/);
   assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 0 0 4px; \}/);
   assert.match(styleSource, /#map \{ height: auto; min-height: 330px; flex: 1; \}/);
@@ -163,7 +167,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
   assert.match(styleSource, /@media \(max-width: 520px\) \{\n  \.stats-grid > div \{ padding: 0 8px; \}[\s\S]*?white-space: normal;/);
   assert.match(styleSource, /\.settings-dialog \{ width: min\(460px, calc\(100vw - 32px\)\); max-width: 460px;/);
-  assert.match(styleSource, /@media \(max-width: 768px\) \{\n  \.settings-dialog \{ width: 100vw; max-width: 100vw;/);
+  assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.settings-dialog \{ width: 100vw; max-width: 100vw;/);
   for (const app of ['google', 'apple', 'kurviger']) {
     assert.ok(mainSource.includes(`<option value="${app}">`));
   }
