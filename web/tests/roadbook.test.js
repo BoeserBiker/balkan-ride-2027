@@ -96,11 +96,11 @@ test('model hours are displayed as rounded hours and minutes without changing th
     marked: { parse: (text) => text }, DOMPurify: { sanitize: (text) => text }, assetUrls: {},
   };
   for (const [input, expected] of [
-    ['2,88 Modell-h', 'ca. 2 Std. 53 Min.'],
-    ['5,09 Modell-h', 'ca. 5 Std. 05 Min.'],
+    ['2,88 Modell-h', '<span class="duration-desktop">ca. 2 Std. 53 Min.</span><span class="duration-mobile">ca. 2:53 h</span>'],
+    ['5,09 Modell-h', '<span class="duration-desktop">ca. 5 Std. 05 Min.</span><span class="duration-mobile">ca. 5:05 h</span>'],
     ['0,00 Modell-h', '0 Std.'],
-    ['0,06 Modell-h', 'ca. 0 Std. 04 Min.'],
-    ['1.999 Modell-h', 'ca. 2 Std. 00 Min.'],
+    ['0,06 Modell-h', '<span class="duration-desktop">ca. 0 Std. 04 Min.</span><span class="duration-mobile">ca. 0:04 h</span>'],
+    ['1.999 Modell-h', '<span class="duration-desktop">ca. 2 Std. 00 Min.</span><span class="duration-mobile">ca. 2:00 h</span>'],
     ['1 h & Pause', '1 h &amp; Pause'],
   ]) {
     day.frontmatter.fahrzeit = input;
@@ -126,7 +126,7 @@ test('formats model hours in roadbook text, highlights and media without changin
     assetUrls: { '../../photo.jpg': '/photo.jpg' },
   });
   assert.match(html, /Runde ca\. 1 Std\. 05 Min\./);
-  assert.match(html, /45,6 km \/ ca\. 1 Std\. 05 Min\.; Option 0 Std\./);
+  assert.match(html, /45,6 km \/ <span class="duration-desktop">ca\. 1 Std\. 05 Min\.<\/span><span class="duration-mobile">ca\. 1:05 h<\/span>; Option 0 Std\./);
   assert.match(html, /Abstecher ca\. 1 Std\. 30 Min\./);
   assert.match(html, /Blick ca\. 1 Std\. 05 Min\./);
   assert.doesNotMatch(html, /Modell-h/);

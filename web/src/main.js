@@ -6,10 +6,8 @@ import './style.css';
 import roadbookDays from 'virtual:roadbook-content';
 import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
 import { createRoadbookMap } from './map.js';
-import {
-  cleanPoiName, editorialPoiDescription, formatPoiSummary, poiInfoVisibility, renderDayContent, renderMediaGallery,
-} from './roadbook.js';
-import { bindRouteScrubber, buildRouteTrack } from './route-scrubber.js';
+import { renderDayContent, renderMediaGallery } from './roadbook.js';
+import { buildRouteTrack } from './route-scrubber.js';
 import {
   bindElevationProfile, buildElevationProfile, buildPoiPositions, renderElevationProfile,
 } from './elevation-profile.js';
@@ -25,7 +23,9 @@ const SETTINGS_KEYS = {
 };
 const APP_CACHE_PREFIX = 'balkan-ride-shell-';
 const THEMES = new Set(['default', 'schalke', 'bvb']);
-const FONT_SIZES = new Set(['normal', 'large']);
+const FONT_SIZES = new Set(['1', '2', '3', '4']);
+const LEGACY_FONT_SIZES = { normal: '2', large: '4' };
+const FONT_SIZE_LABELS = { 1: 'Klein', 2: 'Normal', 3: 'Groß', 4: 'Sehr groß' };
 const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg,png,webp,mp4,webm}', {
   eager: true,
   query: '?url',
@@ -43,6 +43,17 @@ function readSetting(key, allowedValues, fallback) {
     console.error(`Einstellung "${key}" konnte nicht gelesen werden.`, error);
     return fallback;
   }
+}
+
+function readFontSize() {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEYS.fontSize);
+    if (LEGACY_FONT_SIZES[saved]) return LEGACY_FONT_SIZES[saved];
+  } catch (error) {
+    console.error('Schriftgröße konnte nicht gelesen werden.', error);
+    return '2';
+  }
+  return readSetting(SETTINGS_KEYS.fontSize, FONT_SIZES, '2');
 }
 
 function saveSetting(key, value) {
@@ -70,7 +81,8 @@ function initializeSettings() {
   const dialog = document.querySelector('#settings-dialog');
   const toggle = document.querySelector('#settings-toggle');
   const themeButtons = [...dialog.querySelectorAll('[data-theme-choice]')];
-  const fontButtons = [...dialog.querySelectorAll('[data-font-size]')];
+  const fontSlider = dialog.querySelector('#font-size-range');
+  const fontValue = dialog.querySelector('#font-size-value');
   const navigationSelect = dialog.querySelector('#navigation-app');
   const refreshButton = dialog.querySelector('#refresh-app');
   const status = dialog.querySelector('#settings-status');
@@ -92,21 +104,24 @@ function initializeSettings() {
 
   function applyFontSize(size, persist = false) {
     root.dataset.fontSize = size;
-    fontButtons.forEach((button) => {
-      button.setAttribute('aria-pressed', String(button.dataset.fontSize === size));
+    fontSlider.value = size;
+    fontSlider.setAttribute('aria-valuetext', FONT_SIZE_LABELS[size]);
+    fontValue.textContent = `${size}/4 · ${FONT_SIZE_LABELS[size]}`;
+    dialog.querySelectorAll('[data-font-step]').forEach((step) => {
+      step.classList.toggle('is-active', step.dataset.fontStep === size);
     });
     if (persist) saveSetting(SETTINGS_KEYS.fontSize, size);
   }
 
   applyTheme(readSetting(SETTINGS_KEYS.theme, THEMES, 'default'));
-  applyFontSize(readSetting(SETTINGS_KEYS.fontSize, FONT_SIZES, 'normal'));
+  applyFontSize(readFontSize());
   navigationSelect.value = getNavigationApp();
 
   themeButtons.forEach((button) => {
     button.addEventListener('click', () => applyTheme(button.dataset.themeChoice, true));
   });
-  fontButtons.forEach((button) => {
-    button.addEventListener('click', () => applyFontSize(button.dataset.fontSize, true));
+  fontSlider.addEventListener('input', () => {
+    if (FONT_SIZES.has(fontSlider.value)) applyFontSize(fontSlider.value, true);
   });
   navigationSelect.addEventListener('change', () => {
     setNavigationApp(navigationSelect.value);
@@ -175,104 +190,6 @@ function initializeSettings() {
   };
 }
 
-function bindRoutePoiControl(line, control, profile) {
-  const markers = line.querySelector('[data-route-poi-markers]');
-  const popover = line.querySelector('[data-route-poi-popover]');
-  const closeButton = line.querySelector('[data-route-poi-close]');
-  const name = line.querySelector('[data-route-poi-name]');
-  const summary = line.querySelector('[data-route-poi-summary]');
-  const description = line.querySelector('[data-route-poi-description]');
-  const navigation = line.querySelector('[data-route-poi-navigation]');
-  const connector = line.querySelector('.route-connector-wrap');
-  let scrubber;
-  let pinnedPoi = null;
-
-  function progressFor(poi) {
-    return poi.point.distanceKm / profile.track.totalDistanceKm;
-  }
-
-  function show(poi, { pin = false, source = 'route-line', force = false } = {}) {
-    if (!poi) {
-      if (pinnedPoi && !force && source === 'route-line') return;
-      if (source !== 'route-line' || force) pinnedPoi = null;
-      markers.querySelectorAll('.route-poi-marker').forEach((marker) => marker.classList.remove('is-active'));
-      popover.hidden = true;
-      return;
-    }
-
-    if (source !== 'route-line') pinnedPoi = null;
-    else if (pin) pinnedPoi = poi;
-    else if (pinnedPoi && pinnedPoi !== poi) pinnedPoi = null;
-    const index = profile.pois.indexOf(poi);
-    const progress = progressFor(poi);
-    markers.querySelectorAll('.route-poi-marker').forEach((marker) => {
-      marker.classList.toggle('is-active', marker.dataset.poiIndex === String(index));
-    });
-    const { routeLine } = poiInfoVisibility(source, true);
-    popover.hidden = !routeLine;
-    if (!routeLine) return;
-
-    const positionInLine = (connector.offsetLeft + progress * control.clientWidth) / line.clientWidth;
-    const align = progress < 0.25 ? 'left' : progress > 0.75 ? 'right' : 'center';
-    popover.dataset.align = align;
-    name.textContent = cleanPoiName(poi.waypoint.name);
-    summary.textContent = formatPoiSummary(poi.waypoint, index, poi.point);
-    const editorialDescription = editorialPoiDescription(poi.waypoint);
-    description.hidden = !editorialDescription;
-    description.textContent = editorialDescription;
-    setNavigationTarget(navigation, poi.waypoint.latitude, poi.waypoint.longitude);
-    const popoverWidth = popover.offsetWidth;
-    const edgePadding = Math.min(12, Math.max(0, (line.clientWidth - popoverWidth) / 2));
-    const preferredLeft = positionInLine * line.clientWidth
-      - (align === 'center' ? popoverWidth / 2 : align === 'right' ? popoverWidth : 0);
-    const maximumLeft = Math.max(edgePadding, line.clientWidth - popoverWidth - edgePadding);
-    popover.style.left = `${Math.max(edgePadding, Math.min(maximumLeft, preferredLeft))}px`;
-  }
-
-  profile.pois.forEach((poi, index) => {
-    const marker = document.createElement('button');
-    marker.className = 'route-poi-marker';
-    marker.type = 'button';
-    marker.dataset.poiIndex = String(index);
-    marker.style.left = `${progressFor(poi) * 100}%`;
-    marker.setAttribute('aria-label', `${cleanPoiName(poi.waypoint.name)} · ${formatPoiSummary(poi.waypoint, index, poi.point)}`);
-    marker.innerHTML = '<span aria-hidden="true"></span>';
-    marker.addEventListener('pointerenter', () => {
-      if (!pinnedPoi) scrubber?.update(progressFor(poi), poi);
-    });
-    marker.addEventListener('focus', () => {
-      if (!pinnedPoi) scrubber?.update(progressFor(poi), poi);
-    });
-    marker.addEventListener('click', () => scrubber?.update(progressFor(poi), poi, true));
-    markers.append(marker);
-  });
-
-  closeButton.addEventListener('click', () => {
-    pinnedPoi = null;
-    show(null);
-    scrubber?.reset(true);
-  });
-
-  return {
-    findPoi(progress, width) {
-      const nearest = profile.pois.reduce((best, poi) => {
-        const distance = Math.abs(progressFor(poi) - progress) * width;
-        return distance <= 20 && (!best || distance < best.distance) ? { poi, distance } : best;
-      }, null);
-      return nearest ? { poi: nearest.poi, progress: progressFor(nearest.poi) } : null;
-    },
-    show,
-    isPinned: () => Boolean(pinnedPoi),
-    setScrubber(value) {
-      scrubber = value;
-    },
-    clear() {
-      pinnedPoi = null;
-      show(null, { force: true });
-    },
-  };
-}
-
 function renderShell() {
   app.innerHTML = `
     <header class="site-header flex items-center justify-between">
@@ -283,15 +200,14 @@ function renderShell() {
         </a>
       </div>
       <div class="header-navigation">
-        <div class="header-tools">
-          <button id="version-badge" class="version-badge" type="button" aria-haspopup="dialog" aria-controls="version-history" disabled>Version lädt</button>
-          <button id="settings-toggle" class="settings-toggle" type="button" aria-label="Einstellungen" aria-haspopup="dialog" aria-controls="settings-dialog" aria-expanded="false">⋮</button>
-        </div>
         <nav class="site-nav" aria-label="Hauptnavigation">
           <a href="#roadbook">Etappen</a>
           <a href="#media">Medien</a>
           <a href="#logistics">Logistik</a>
         </nav>
+        <div class="header-tools">
+          <button id="settings-toggle" class="settings-toggle" type="button" aria-label="Einstellungen" aria-haspopup="dialog" aria-controls="settings-dialog" aria-expanded="false">⋮</button>
+        </div>
       </div>
     </header>
 
@@ -299,11 +215,7 @@ function renderShell() {
       <section id="roadbook" class="roadbook-layout mx-auto max-w-[1680px]" aria-label="Tour-Roadbook">
         <section class="map-panel" aria-label="Etappenkarte">
           <div class="mobile-map-context" aria-live="polite">
-            <h2><span class="mobile-stage-label" id="mobile-stage-label"></span> · <span id="mobile-stage-title"></span></h2>
-            <div class="mobile-stage-route">
-              <span><small>START</small><strong id="mobile-stage-start"></strong></span>
-              <span><small>ZIEL</small><strong id="mobile-stage-finish"></strong></span>
-            </div>
+            <h2><span class="mobile-stage-label" id="mobile-stage-label"></span><span class="mobile-stage-title" id="mobile-stage-title"></span></h2>
           </div>
           <div class="map-topline">
             <span class="eyebrow">SLOWENIEN · BALKAN · GRIECHENLAND</span>
@@ -405,11 +317,6 @@ function renderShell() {
         <button class="lightbox-next" type="button" aria-label="Nächstes Medium">→</button>
       </nav>
     </dialog>
-    <dialog id="version-history" class="version-dialog" aria-labelledby="version-history-title">
-      <button class="version-close" type="button" aria-label="Versionsverlauf schließen">×</button>
-      <h2 id="version-history-title">Versionsverlauf</h2>
-      <ol class="version-history-list"></ol>
-    </dialog>
     <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
       <button class="settings-close" type="button" aria-label="Einstellungen schließen">×</button>
       <h2 id="settings-title">Einstellungen</h2>
@@ -440,11 +347,18 @@ function renderShell() {
       </label>
       <fieldset class="settings-group">
         <legend>Schriftgröße / Handschuh-Modus</legend>
-        <div class="settings-segment">
-          <button type="button" data-font-size="normal" aria-pressed="false">Normal</button>
-          <button type="button" data-font-size="large" aria-pressed="false">Groß</button>
+        <div class="font-size-control">
+          <input id="font-size-range" class="font-size-range" type="range" min="1" max="4" step="1" value="2" aria-label="Schriftgröße, Stufe 1 bis 4" list="font-size-steps">
+          <ol id="font-size-steps" class="font-size-steps" aria-hidden="true">
+            <li data-font-step="1">1</li><li data-font-step="2">2</li><li data-font-step="3">3</li><li data-font-step="4">4</li>
+          </ol>
+          <output id="font-size-value" class="font-size-value" for="font-size-range" aria-live="polite"></output>
         </div>
       </fieldset>
+      <details id="version-history" class="settings-version">
+        <summary>Versionsverlauf <span id="version-current">lädt …</span></summary>
+        <ol class="version-history-list"></ol>
+      </details>
       <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
       <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
     </dialog>
@@ -452,19 +366,9 @@ function renderShell() {
 }
 
 async function loadVersionHistory() {
-  const badge = document.querySelector('#version-badge');
-  const dialog = document.querySelector('#version-history');
-  const list = dialog.querySelector('.version-history-list');
-
-  dialog.querySelector('.version-close').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', (event) => {
-    const bounds = dialog.getBoundingClientRect();
-    if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right
-      || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
-      dialog.close();
-    }
-  });
-  badge.addEventListener('click', () => dialog.showModal());
+  const details = document.querySelector('#version-history');
+  const current = details.querySelector('#version-current');
+  const list = details.querySelector('.version-history-list');
 
   try {
     const response = await fetch(`${import.meta.env.BASE_URL}version.json`);
@@ -477,16 +381,14 @@ async function loadVersionHistory() {
         && typeof entry.date === 'string' && typeof entry.message === 'string')) {
       throw new Error('Ungültiges Format der Versionsdatei.');
     }
-    badge.textContent = data.version;
-    badge.setAttribute('aria-label', `Versionsverlauf öffnen, aktuelle Version ${data.version}`);
+    current.textContent = data.version;
     list.innerHTML = data.history.map((entry) => `
       <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>
         <p>${escapeDisplayText(entry.message)}</p></li>
     `).join('');
-    badge.disabled = false;
   } catch (error) {
     console.error('Der Versionsverlauf konnte nicht geladen werden.', error);
-    badge.textContent = 'Version nicht verfügbar';
+    current.textContent = 'nicht verfügbar';
   }
 }
 
@@ -537,8 +439,6 @@ function renderApp() {
   settings.setThemeChangeHandler(map.setTheme);
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
-  let poiInfoSource = null;
-  let activePoiControl = null;
   let activeProfileController = null;
   let activePoiData = null;
   let lightboxItems = [];
@@ -602,100 +502,38 @@ function renderApp() {
   mobileViewport.addEventListener('change', syncMobileViewport);
   syncMobileViewport();
 
-  function updateRouteScrubber(index) {
+  function updateElevationProfile(index) {
     if (index !== activeIndex) {
       return;
     }
-    const control = dayDetail.querySelector('[data-route-scrubber]');
-    if (!control || control.dataset.bound) {
+    const container = dayDetail.querySelector('[data-elevation-profile]');
+    if (!container || container.dataset.bound) {
       return;
     }
     const track = map.getTrackData(index);
-    if (track.state === 'loading') {
-      return;
-    }
-    if (track.state === 'error') {
-      control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: GPX konnte nicht geladen werden');
-      control.title = 'GPX konnte nicht geladen werden.';
+    if (track.state === 'loading' || track.state === 'error') {
       return;
     }
 
     const route = buildRouteTrack(track.profileSegments);
-    if (route) {
-      control.dataset.bound = 'true';
-      const poiPositions = buildPoiPositions(route, track.waypoints);
-      const poiData = { track: route, pois: poiPositions };
-      const routeLine = dayDetail.querySelector('[data-route-line]');
-      let profileController;
-      const poiControl = poiPositions.length
-        ? bindRoutePoiControl(routeLine, control, poiData)
-        : null;
-      activePoiData = poiData;
-      activePoiControl = poiControl;
-      activeProfileController = null;
-      const routeScrubber = bindRouteScrubber(control, route, map.setLivePosition, {
-        findPoi: poiControl?.findPoi,
-        isPinned: poiControl?.isPinned,
-        onProgress(sample, poi, {
-          selected = false, reset = false, source = 'route-line',
-        } = {}) {
-          poiInfoSource = source;
-          if (reset) {
-            if (source === 'route-line') poiControl?.clear();
-            else poiControl?.show(null, { source, force: true });
-            map.setHighlightedWaypoint(null);
-            if (source === 'route-line') profileController?.clearSelection('route-line');
-            return;
-          }
-          if (source !== 'route-line') {
-            poiControl?.show(poi, { source, force: true });
-            map.setHighlightedWaypoint(poi?.waypoint ?? null);
-            return;
-          }
-          if (poi) {
-            poiControl?.show(poi, { pin: selected, source });
-            map.setHighlightedWaypoint(poi.waypoint);
-            profileController?.preview(poi.point.distanceKm / route.totalDistanceKm, poi, false, source);
-          } else {
-            poiControl?.show(null, { source, force: true });
-            map.setHighlightedWaypoint(null);
-            if (sample) profileController?.preview(sample.progress, null, false, source);
-          }
-        },
-      });
-      poiControl?.setScrubber(routeScrubber);
-      const profile = buildElevationProfile(route, track.waypoints, poiPositions);
-      if (profile) {
-        const container = dayDetail.querySelector('[data-elevation-profile]');
-        container.innerHTML = renderElevationProfile(profile);
-        container.hidden = false;
-        profileController = bindElevationProfile(
-          container,
-          profile,
-          map.setLivePosition,
-          map.setHighlightedWaypoint,
-          (poi, {
-            pinned, source = poiInfoSource ?? 'elevation', progress,
-          } = {}) => {
-            poiInfoSource = source;
-            if (source === 'route-line') {
-              poiControl?.show(poi, { pin: pinned, source, force: true });
-              return;
-            }
-            poiControl?.show(poi, { source, force: true });
-            if (Number.isFinite(progress)) {
-              routeScrubber.update(progress, poi, false, source);
-            } else {
-              routeScrubber.reset(true, source);
-            }
-          },
-        );
-        activeProfileController = profileController;
-      }
-      activePoiData = poiData;
-    } else {
-      control.setAttribute('aria-label', 'Streckenfortschritt nicht verfügbar: kein Straßen-Track');
-      control.title = 'Kein Straßen-Track verfügbar.';
+    if (!route) {
+      return;
+    }
+    container.dataset.bound = 'true';
+    const poiPositions = buildPoiPositions(route, track.waypoints);
+    const poiData = { track: route, pois: poiPositions };
+    activePoiData = poiData;
+    activeProfileController = null;
+    const profile = buildElevationProfile(route, track.waypoints, poiPositions);
+    if (profile) {
+      container.innerHTML = renderElevationProfile(profile);
+      container.hidden = false;
+      activeProfileController = bindElevationProfile(
+        container,
+        profile,
+        map.setLivePosition,
+        map.setHighlightedWaypoint,
+      );
     }
   }
 
@@ -719,18 +557,14 @@ function renderApp() {
     }
 
     const changed = index !== activeIndex;
-    poiInfoSource = null;
-    activePoiControl = null;
     activeProfileController = null;
     activePoiData = null;
     map.setLivePosition(null);
     map.setHighlightedWaypoint(null);
     activeIndex = index;
     const day = roadbookDays[index];
-    document.querySelector('#mobile-stage-label').textContent = `ETAPPE ${String(day.frontmatter.tag).padStart(2, '0')}`;
+    document.querySelector('#mobile-stage-label').textContent = `Etappe ${String(day.frontmatter.tag).padStart(2, '0')}`;
     document.querySelector('#mobile-stage-title').textContent = day.frontmatter.titel;
-    document.querySelector('#mobile-stage-start').textContent = day.frontmatter.start;
-    document.querySelector('#mobile-stage-finish').textContent = day.frontmatter.ziel;
     setNavigationTarget(document.querySelector('#maps-navigation'), ...day.frontmatter.koordinaten_ziel);
     dayDetail.innerHTML = renderDayContent(day, {
       marked,
@@ -759,7 +593,7 @@ function renderApp() {
         window.scrollTo({ top: 0, behavior: scrollBehavior() });
       }
     }
-    updateRouteScrubber(index);
+    updateElevationProfile(index);
   }
 
   previousDayButton.addEventListener('click', () => {
@@ -903,12 +737,10 @@ function renderApp() {
   map.setPoiSelectHandler((waypoint) => {
     const poi = activePoiData?.pois.find((entry) => entry.waypoint === waypoint);
     if (poi) {
-      poiInfoSource = 'map';
-      activePoiControl?.show(poi, { source: 'map', force: true });
       activeProfileController?.selectPoi(poi, 'map');
     }
   });
-  map.setTrackLoadHandler(updateRouteScrubber);
+  map.setTrackLoadHandler(updateElevationProfile);
   selectDay(0, { moveMap: false, centerDay: false });
 }
 

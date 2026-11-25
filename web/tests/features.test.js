@@ -42,17 +42,12 @@ test('cleans POI export prefixes and hides technical descriptions', () => {
 });
 
 test('shows at most one POI information card and keeps the elevation card overlaid', () => {
-  for (const [source, routeLine, elevation] of [
-    ['route-line', true, false],
-    ['elevation', false, true],
-    ['map', false, true],
-  ]) {
-    assert.deepEqual(poiInfoVisibility(source, true), { routeLine, elevation });
-    assert.notEqual(routeLine, elevation, `POI cards must be exclusive for ${source}`);
+  for (const source of ['elevation', 'map']) {
+    assert.deepEqual(poiInfoVisibility(source, true), { elevation: true });
   }
-  assert.deepEqual(poiInfoVisibility('elevation', false), { routeLine: false, elevation: false });
+  assert.deepEqual(poiInfoVisibility('elevation', false), { elevation: false });
+  assert.deepEqual(poiInfoVisibility('route-line', true), { elevation: false });
 
-  assert.match(mainSource, /const \{ routeLine \} = poiInfoVisibility\(source, true\)/);
   assert.match(elevationSource, /const visibility = poiInfoVisibility\(source, poi\)/);
   assert.match(elevationSource, /const TOP = 36;/);
   assert.match(styleSource, /\.elevation-chart \{ position: relative;/);
@@ -122,7 +117,8 @@ test('renders a stage-labelled all-media gallery with lightbox entries and empty
     },
   });
 
-  assert.match(html, /ETAPPE 06/);
+  assert.match(html, /Etappe 06/);
+  assert.doesNotMatch(html, /route-line|route-connector|>START<|>ZIEL</);
   assert.match(html, /Dalmatien &amp; Küste/);
   assert.match(html, /data-media-type="photo"/);
   assert.match(html, /data-media-type="video"/);
@@ -145,9 +141,28 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /--bg: #101311;[\s\S]*--accent: #f0a94c;/);
   assert.match(styleSource, /:root\[data-theme="schalke"\][\s\S]*--bg: #071426;[\s\S]*--accent: #3897f0;/);
   assert.match(styleSource, /:root\[data-theme="bvb"\][\s\S]*--bg: #09090b;[\s\S]*--accent: #fde000;/);
-  assert.match(mainSource, /data-font-size="large"[^>]*>Groß/);
+  assert.match(mainSource, /<input id="font-size-range"[^>]*type="range" min="1" max="4" step="1"/);
+  assert.match(mainSource, /<details id="version-history" class="settings-version">/);
+  assert.doesNotMatch(mainSource, /version-badge|mobile-stage-route|route-connector|bindRouteScrubber/);
+  assert.match(mainSource, /Etappe \$\{String\(day\.frontmatter\.tag\)/);
   assert.match(mainSource, /SETTINGS_KEYS = \{[\s\S]*theme: 'balkan-ride-theme'[\s\S]*fontSize: 'balkan-ride-font-size'/);
-  assert.match(styleSource, /:root\[data-font-size="large"\]/);
+  for (const step of [1, 2, 3, 4]) {
+    assert.match(styleSource, new RegExp(`:root\\[data-font-size="${step}"\\] \\{ font-size`));
+  }
+  assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 240px; overflow-y: auto;/);
+  assert.doesNotMatch(styleSource, /route-connector|version-badge|mobile-stage-route/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-shift: 7px;[^}]*transform: translateY\(var\(--nav-shift\)\);/);
+  assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 6px 0; \}/);
+  assert.match(styleSource, /#map \{ height: auto; min-height: 300px; flex: 1; \}/);
+  assert.match(styleSource, /\.duration-mobile \{ display: none; \}/);
+  assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.duration-desktop \{ display: none; \}\n  \.duration-mobile \{ display: inline; \}/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-shift: 7px; display: flex; flex-direction: row; align-items: center;/);
+  assert.match(mainSource, /<\/nav>\s*<div class="header-tools">/);
+  assert.match(styleSource, /\.day-section h3, \.story-section h3 \{[^}]*font-size: 13px; font-weight: 650; letter-spacing: \.01em;/);
+  assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
+  assert.match(styleSource, /@media \(max-width: 520px\) \{\n  \.stats-grid > div \{ padding: 0 8px; \}[\s\S]*?white-space: normal;/);
+  assert.match(styleSource, /\.settings-dialog \{ width: min\(460px, calc\(100vw - 32px\)\); max-width: 460px;/);
+  assert.match(styleSource, /@media \(max-width: 768px\) \{\n  \.settings-dialog \{ width: 100vw; max-width: 100vw;/);
   for (const app of ['google', 'apple', 'kurviger']) {
     assert.ok(mainSource.includes(`<option value="${app}">`));
   }

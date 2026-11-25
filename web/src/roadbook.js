@@ -1,4 +1,6 @@
-import { escapeHtml, escapeDisplayText, formatDuration } from './html.js';
+import {
+  escapeHtml, escapeDisplayText, escapeResponsiveDuration, responsiveDuration,
+} from './html.js';
 
 const poiPrefix = /^D\d+\s*-\s*(\d+)\s*-\s*/i;
 const poiDistanceFormatter = new Intl.NumberFormat('de-DE', {
@@ -46,11 +48,7 @@ export function formatPoiSummary(waypoint, index, point) {
 }
 
 export function poiInfoVisibility(source, hasPoi) {
-  const active = Boolean(hasPoi);
-  return {
-    routeLine: active && source === 'route-line',
-    elevation: active && (source === 'elevation' || source === 'map'),
-  };
+  return { elevation: Boolean(hasPoi) && (source === 'elevation' || source === 'map') };
 }
 
 function formatDate(value) {
@@ -276,34 +274,17 @@ export function renderDayContent(day, { marked, DOMPurify, assetUrls }) {
       ...video, index: availablePhotos.length + index,
     }, urls)).join('')
     : '<div class="media-placeholder"><small>NOCH KEINE VIDEOS HINTERLEGT</small></div>';
-  const safeBody = DOMPurify.sanitize(marked.parse(formatDuration(body)));
+  const safeBody = DOMPurify.sanitize(marked.parse(responsiveDuration(body)));
 
   return `
     <div class="day-meta">
-      <span class="eyebrow">ETAPPE ${String(frontmatter.tag).padStart(2, '0')}</span>
+      <span class="eyebrow">Etappe ${String(frontmatter.tag).padStart(2, '0')}</span>
       <span>${formatDate(frontmatter.datum)}</span>
     </div>
     <h2 class="day-title">${escapeDisplayText(frontmatter.titel)}</h2>
-    <div class="route-line" data-route-line>
-      <div><span class="route-point start-point"></span><small>START</small><strong>${escapeDisplayText(frontmatter.start)}</strong></div>
-      <div class="route-connector-wrap">
-        <button class="route-connector" data-route-scrubber type="button" role="slider" aria-label="Streckenfortschritt: GPX wird geladen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" disabled>
-          <span class="route-connector-line" aria-hidden="true"><span class="route-connector-fill"></span><span class="route-connector-thumb"><span data-route-distance></span></span></span>
-        </button>
-        <div class="route-poi-markers" data-route-poi-markers aria-label="Etappen-POIs"></div>
-      </div>
-      <div class="route-poi-popover" data-route-poi-popover role="dialog" aria-live="polite" hidden>
-        <button class="route-poi-close" data-route-poi-close type="button" aria-label="POI-Information schließen">×</button>
-        <strong data-route-poi-name></strong>
-        <span data-route-poi-summary></span>
-        <span data-route-poi-description hidden></span>
-        <a class="poi-navigation" data-route-poi-navigation target="_blank" rel="noopener noreferrer">Dorthin navigieren</a>
-      </div>
-      <div><span class="route-point finish-point"></span><small>ZIEL</small><strong>${escapeDisplayText(frontmatter.ziel)}</strong></div>
-    </div>
     <dl class="stats-grid">
       <div><dt>STRECKE</dt><dd>${escapeDisplayText(frontmatter.kilometer)} <small>km</small></dd></div>
-      <div><dt>FAHRZEIT</dt><dd>${escapeDisplayText(frontmatter.fahrzeit)}</dd></div>
+      <div><dt>FAHRZEIT</dt><dd>${escapeResponsiveDuration(frontmatter.fahrzeit)}</dd></div>
       <div><dt>HÖHENMETER</dt><dd>${escapeDisplayText(frontmatter.hoehenmeter)} <small>hm</small></dd></div>
     </dl>
     <section class="elevation-section" data-elevation-profile aria-label="Höhenprofil der Etappe" hidden></section>

@@ -55,14 +55,44 @@ export function directionsUrl(latitude, longitude) {
   }
 }
 
+const MODEL_HOURS = /(\d+(?:[,.]\d+)?)\s*Modell-h/g;
+
+function durationMinutes(amount) {
+  return Math.round(Number(amount.replace(',', '.')) * 60);
+}
+
 export function formatDuration(value) {
-  return String(value ?? '').replace(/(\d+(?:[,.]\d+)?)\s*Modell-h/g, (_match, amount) => {
-    const minutes = Math.round(Number(amount.replace(',', '.')) * 60);
+  return String(value ?? '').replace(MODEL_HOURS, (_match, amount) => {
+    const minutes = durationMinutes(amount);
     if (minutes === 0) {
       return '0 Std.';
     }
     return `ca. ${Math.floor(minutes / 60)} Std. ${String(minutes % 60).padStart(2, '0')} Min.`;
   });
+}
+
+// Desktop: "ca. 2 Std. 43 Min.", mobil (CSS-Toggle bei <= 768 px): "ca. 2:43 h".
+export function responsiveDuration(value) {
+  return String(value ?? '').replace(MODEL_HOURS, (_match, amount) => {
+    const minutes = durationMinutes(amount);
+    if (minutes === 0) {
+      return '0 Std.';
+    }
+    const hours = Math.floor(minutes / 60);
+    const rest = String(minutes % 60).padStart(2, '0');
+    return `<span class="duration-desktop">ca. ${hours} Std. ${rest} Min.</span><span class="duration-mobile">ca. ${hours}:${rest} h</span>`;
+  });
+}
+
+export function escapeResponsiveDuration(value) {
+  const text = String(value ?? '');
+  let result = '';
+  let last = 0;
+  for (const match of text.matchAll(MODEL_HOURS)) {
+    result += escapeHtml(text.slice(last, match.index)) + responsiveDuration(match[0]);
+    last = match.index + match[0].length;
+  }
+  return result + escapeHtml(text.slice(last));
 }
 
 export function escapeDisplayText(value) {

@@ -1,6 +1,11 @@
 {
-  "version": "v2.63",
+  "version": "v2.64",
   "history": [
+    {
+      "version": "v2.64",
+      "date": "2026-11-25",
+      "message": "Plan-Fehlerkommentar ergaenzt und Reasoning-Puffer fuer Search/Replace erhoeht"
+    },
     {
       "version": "v2.63",
       "date": "2026-11-25",
