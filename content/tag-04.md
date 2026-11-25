@@ -49,7 +49,7 @@ videos:
 
 ## Vom Karst an die Adria
 
-Zu zweit auf der BMW 800 GS geht es über Postojna und Ilirska Bistrica Richtung Rijeka. Dort beginnt die Jadranska Magistrale (D8), die euch kurvig an der Küste nach Senj bringt. Wenn die Ankunft es hergibt, bleibt Zeit für einen Spaziergang zur Festung Nehaj und den ersten Sonnenuntergang am Meer.
+Mit dem Motorrad fahrt ihr über Postojna und Ilirska Bistrica Richtung Rijeka. Dort beginnt die Jadranska Magistrale (D8), die euch kurvig an der Küste nach Senj bringt. Wenn die Ankunft es hergibt, bleibt Zeit für einen Spaziergang zur Festung Nehaj und den ersten Sonnenuntergang am Meer.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Senj.  

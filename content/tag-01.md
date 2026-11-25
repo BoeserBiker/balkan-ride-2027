@@ -49,7 +49,7 @@ videos:
 
 ## Erst ankommen, dann auf Tour
 
-Zu zweit geht es mit PKW und Anhänger von Recklinghausen in Richtung Oberpfalz; die BMW 800 GS reist verzurrt auf dem Hänger mit. Vor der Abfahrt und unterwegs Verzurrung sowie Reifen prüfen, Pausen einlegen und ohne Kilometerjagd ankommen. Abends bleibt der Hobel auf dem Hänger, während ihr in Ruhe im Gasthof im Raum Velburg eincheckt.
+Ihr reist mit PKW und Anhänger von Recklinghausen in Richtung Oberpfalz; das Motorrad fährt verzurrt auf dem Hänger mit. Vor der Abfahrt und unterwegs Verzurrung sowie Reifen prüfen, Pausen einlegen und ohne Kilometerjagd ankommen. Abends bleibt der Hobel auf dem Hänger, während ihr in Ruhe im Gasthof im Raum Velburg eincheckt.
 
 - **Transport:** PKW + Anhänger.
 - **Übernachtung:** Hotel oder Gasthof im Raum Velburg; Anhängerstellplatz vorher bestätigen.

@@ -49,7 +49,7 @@ videos:
 
 ## Küstenkurven bis Biograd
 
-Zu zweit auf der BMW 800 GS folgt ihr der D8 über Karlobag, Starigrad, Maslenica und Posedarje nach Zadar und weiter nach Biograd. Felsige Hänge, Inselblick und die Küstenlinie geben den Takt vor. Die Zwischenpunkte halten euch an der Küste und weg von der A1; in Zadar ist der Tankstopp eingeplant.
+Mit dem Motorrad folgt ihr der D8 über Karlobag, Starigrad, Maslenica und Posedarje nach Zadar und weiter nach Biograd. Felsige Hänge, Inselblick und die Küstenlinie geben den Takt vor. Die Zwischenpunkte halten euch an der Küste und weg von der A1; in Zadar ist der Tankstopp eingeplant.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Biograd na Moru.  

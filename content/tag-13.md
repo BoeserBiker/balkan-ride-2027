@@ -47,9 +47,9 @@ videos:
     titel: 'Balkan-Reise: Komani Lake Tunnel 🇦🇱'
 ---
 
-## Fähre ohne BMW – danach weiter nach Lezha
+## Fähre ohne Motorrad – danach weiter nach Lezha
 
-Der Hobel bleibt mit sicherem Stellplatz an der Unterkunft in Koman. Zu zweit geht ihr als Fußpassagiere an Bord: Der V7-Plan nennt 09:00 Uhr für die Abfahrt nach Fierzë, etwa zweieinhalb Stunden für die Hinfahrt, 13:00 Uhr für die Rückfahrt und eine Ankunft in Koman gegen 15:30 Uhr. Das sind Planungswerte, keine bestätigte Abfahrt für 2027. Der Sonnenuntergang ist im V7 mit ca. 18:43 Uhr angegeben; die 68,4 km nach Lezha sollen davor liegen. Nach der Rückkehr Gepäck aufladen und mit der BMW 800 GS weiterfahren.
+Der Hobel bleibt mit sicherem Stellplatz an der Unterkunft in Koman. Ihr geht als Fußpassagiere an Bord: Der V7-Plan nennt 09:00 Uhr für die Abfahrt nach Fierzë, etwa zweieinhalb Stunden für die Hinfahrt, 13:00 Uhr für die Rückfahrt und eine Ankunft in Koman gegen 15:30 Uhr. Das sind Planungswerte, keine bestätigte Abfahrt für 2027. Der Sonnenuntergang ist im V7 mit ca. 18:43 Uhr angegeben; die 68,4 km nach Lezha sollen davor liegen. Nach der Rückkehr Gepäck aufladen und mit dem Motorrad weiterfahren.
 
 **Transport:** Fähre als Fußpassagiere, anschließend Motorrad.  
 **Übernachtung:** Hotel oder Pension in Lezha.  

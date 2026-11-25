@@ -49,7 +49,7 @@ videos:
 
 ## Klöster am Morgen, Meer am Abend
 
-Zu zweit auf der BMW 800 GS nehmt ihr morgens die Panoramastraße zu den Meteora-Klöstern. Laut V7 hat das Große Meteoron dienstags Ruhetag und ist am Freitag geöffnet; Varlaam ist freitags geschlossen und wird nur von außen angeschaut. Kleidervorschriften beachten und bar zahlen. Danach über Ioannina und die A2 zurück an die Küste nach Igoumenitsa.
+Mit dem Motorrad nehmt ihr morgens die Panoramastraße zu den Meteora-Klöstern. Laut V7 hat das Große Meteoron dienstags Ruhetag und ist am Freitag geöffnet; Varlaam ist freitags geschlossen und wird nur von außen angeschaut. Kleidervorschriften beachten und bar zahlen. Danach über Ioannina und die A2 zurück an die Küste nach Igoumenitsa.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel im Raum Igoumenitsa mit schriftlich bestätigtem Meerblick; letzte Nacht vor der geplanten Fähre.  

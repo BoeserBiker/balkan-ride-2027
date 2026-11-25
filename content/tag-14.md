@@ -49,7 +49,7 @@ videos:
 
 ## Luft holen vor der Riviera
 
-Zu zweit auf der BMW 800 GS geht es über den Raum Durrës nach Fier. Heute sorgen Haupt- und Schnellstraßen für entspanntes Vorankommen, nicht der Kurvenrekord. Keine Stadttour durch Tirana dranhängen; morgen braucht ihr die Aufmerksamkeit für die Riviera. Abends Tank und Wetterbericht für den Llogara prüfen.
+Mit dem Motorrad fahrt ihr über den Raum Durrës nach Fier. Heute sorgen Haupt- und Schnellstraßen für entspanntes Vorankommen, nicht der Kurvenrekord. Keine Stadttour durch Tirana dranhängen; morgen braucht ihr die Aufmerksamkeit für die Riviera. Abends Tank und Wetterbericht für den Llogara prüfen.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Fier.  

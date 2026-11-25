@@ -49,7 +49,7 @@ videos:
 
 ## Der lange Ritt zu den schwebenden Klöstern
 
-Zu zweit auf der BMW 800 GS früh über den Grenzübergang Qafë Botë starten und in Griechenland die Uhr eine Stunde vorstellen. Über Ioannina geht es auf der A2 ostwärts nach Kalambaka. Die 275,3 km sind die ausdrücklich geplante Meteora-Ausnahme über 200 km; mehrere Pausen einplanen und nicht hetzen. Am Abend bleibt ein Aussichtspunkt über den Felsen für den Sonnenuntergang.
+Mit dem Motorrad überquert ihr früh den Grenzübergang Qafë Botë und stellt in Griechenland die Uhr eine Stunde vor. Über Ioannina geht es auf der A2 ostwärts nach Kalambaka. Die 275,3 km sind die ausdrücklich geplante Meteora-Ausnahme über 200 km; mehrere Pausen einplanen und nicht hetzen. Am Abend bleibt ein Aussichtspunkt über den Felsen für den Sonnenuntergang.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Kalambaka.  

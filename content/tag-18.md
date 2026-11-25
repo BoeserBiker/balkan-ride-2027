@@ -49,7 +49,7 @@ videos:
 
 ## Einschiffen – nur mit bestätigter Verbindung
 
-Nach dem Frühstück mit Meerblick fahrt ihr mit der BMW 800 GS die kurze Strecke zum Neuen Hafen. Der V7-Fährtermin am 25.09.2027 ist ein Planungsfenster, keine nachgewiesene Abfahrt. Erst eine bestätigte Verbindung mit Kabine und Motorradplatz macht die Einschiffung planbar. Zur Check-in-Zeit auf dem Ticket erscheinen; laut V7 verlangt der Betreiber aktuell mindestens drei Stunden vor Abfahrt Anwesenheit im Einschiffungsbereich.
+Nach dem Frühstück mit Meerblick fahrt ihr mit dem Motorrad die kurze Strecke zum Neuen Hafen. Der V7-Fährtermin am 25.09.2027 ist ein Planungsfenster, keine nachgewiesene Abfahrt. Erst eine bestätigte Verbindung mit Kabine und Motorradplatz macht die Einschiffung planbar. Zur Check-in-Zeit auf dem Ticket erscheinen; laut V7 verlangt der Betreiber aktuell mindestens drei Stunden vor Abfahrt Anwesenheit im Einschiffungsbereich.
 
 **Transport:** Motorrad + geplante Fähre.  
 **Übernachtung:** Gebuchte Kabine, sofern ein passender Fahrplan bestätigt ist.  

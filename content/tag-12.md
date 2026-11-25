@@ -49,7 +49,7 @@ videos:
 
 ## Aus dem Bergtal zum Anleger
 
-Zu zweit auf der BMW 800 GS fahrt ihr morgens auf der SH21 zurück nach Shkodra und über Vau i Dejës die enge Bergstraße hinauf zum Koman-Stausee. In der Unterkunft nahe dem Anleger einchecken und den Hobel für die morgige Fährfahrt sicher abstellen. Am Abend den Termin beim Betreiber bestätigen.
+Mit dem Motorrad fahrt ihr morgens auf der SH21 zurück nach Shkodra und über Vau i Dejës die enge Bergstraße hinauf zum Koman-Stausee. In der Unterkunft nahe dem Anleger einchecken und den Hobel für die morgige Fährfahrt sicher abstellen. Am Abend den Termin beim Betreiber bestätigen.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Unterkunft nahe dem Fähranleger in Koman mit sicherem Motorradstellplatz für den Fährtag.  

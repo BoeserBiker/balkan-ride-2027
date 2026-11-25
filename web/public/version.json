@@ -1,7 +1,17 @@
 {
-  "version": "v2.96",
-  "serviceWorkerCache": "v109",
+  "version": "v2.98",
+  "serviceWorkerCache": "v111",
   "serviceWorkerHistory": [
+    {
+      "version": "v111",
+      "date": "2026-11-25",
+      "message": "Pre-Commit-Versionshook und Cache-Historie synchronisiert"
+    },
+    {
+      "version": "v110",
+      "date": "2026-11-25",
+      "message": "Pre-Commit-Versionshook und Cache-Historie synchronisiert"
+    },
     {
       "version": "v109",
       "date": "2026-11-25",
@@ -99,6 +109,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.98",
+      "date": "2026-11-25",
+      "message": "Pre-Commit-Versionshook und Cache-Historie synchronisiert"
+    },
+    {
+      "version": "v2.97",
+      "date": "2026-11-25",
+      "message": "Pre-Commit-Versionshook und Cache-Historie synchronisiert"
+    },
     {
       "version": "v2.96",
       "date": "2026-11-25",

@@ -49,7 +49,7 @@ videos:
 
 ## Über die Hochflächen ins Drina-Tal
 
-Zu zweit auf der BMW 800 GS geht es über Nevesinje und Gacko durch die Herzegowina nach Foča. Weite Karsthochflächen und wenig Verkehr geben dem Tag seinen ruhigen Rhythmus. In Foča den Tank füllen und Bargeld für den Grenztag bereithalten.
+Mit dem Motorrad fahrt ihr über Nevesinje und Gacko durch die Herzegowina nach Foča. Weite Karsthochflächen und wenig Verkehr geben dem Tag seinen ruhigen Rhythmus. In Foča den Tank füllen und Bargeld für den Grenztag bereithalten.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Foča.  

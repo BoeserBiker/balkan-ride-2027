@@ -162,6 +162,30 @@
 
 ## Chronologie
 
+### 2026-11-25 – CI-Fehler auf nicht enthaltene Etappenänderungen zurückgeführt
+
+- Der GitHub-Actions-Lauf auf `756876a119fb1589b7db8a51e139eb8b41b899cb`
+  scheiterte in `issue-group-address.test.js`, weil `content/tag-01.md` und
+  weitere Etappen der Reihe `tag-01` bis `tag-20` im Commit noch „Zu zweit“
+  und/oder „BMW 800 GS“ enthielten. Das ist kein Linux-, Case-Sensitivity-,
+  Pfad-, Ignore- oder Zeitzonenfehler.
+- Im lokalen Arbeitsbaum sind 20 Etappendateien bereits korrigiert; die
+  vollständige Node-Suite besteht dort 19/19, auch unter `TZ=UTC`. Die
+  Etappenänderungen sind jedoch nicht im getesteten Commit enthalten. Der
+  Regressionstest bleibt bestehen, damit die veralteten Formulierungen nicht
+  erneut in einen Commit gelangen.
+- Die von den Tests per `new URL(..., import.meta.url)` gelesenen Dateien und
+  alle 22 Etappendateien sind laut `git ls-files` getrackt. `.visual-report/`
+  ist ignoriert, wird von `web/tests/*.test.js` aber nicht gelesen. Der Raw-
+  Import der Logistikdatei in `web/src/main.js` ist ebenfalls getrackt.
+- Verifikation: `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` erfolgreich. Kein Pull, Commit oder Push
+  ausgeführt; GitHub Actions wird erst grün, wenn die bereits vorhandenen
+  Etappenänderungen in einem autorisierten Commit enthalten sind.
+- Quellen: `web/tests/issue-group-address.test.js`,
+  `content/tag-01.md` bis `content/tag-20.md`, Workflow-Lauf
+  `45642675188`.
+
 ### 2026-11-25 – Pre-Commit-Versionierung vollständig synchronisiert
 
 - Der Pre-Commit-Lauf erhöhte zuvor App-Version und `sw.js`, ließ aber

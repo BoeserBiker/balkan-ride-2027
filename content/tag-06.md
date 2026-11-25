@@ -49,7 +49,7 @@ videos:
 
 ## Immer weiter an der Küste entlang
 
-Zu zweit auf der BMW 800 GS rollt ihr über Vodice nach Šibenik und weiter via Primošten, Marina, Trogir und Split nach Omiš. Der Ortsverkehr gehört dazu: gelassen mitschwimmen und eine Pause in Primošten oder Trogir machen. Am Abend liegt Omiš zwischen Felswand und Meer.
+Mit dem Motorrad rollt ihr über Vodice nach Šibenik und weiter via Primošten, Marina, Trogir und Split nach Omiš. Der Ortsverkehr gehört dazu: gelassen mitschwimmen und eine Pause in Primošten oder Trogir machen. Am Abend liegt Omiš zwischen Felswand und Meer.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Omiš.  

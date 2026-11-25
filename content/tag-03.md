@@ -49,7 +49,7 @@ videos:
 
 ## Von den Kehren ins Soča-Tal
 
-Zu zweit auf der BMW 800 GS geht es über den Wurzenpass und Kranjska Gora in die Julischen Alpen. Am Vršič warten enge, teils gepflasterte Kehren; bleibt bei Nässe ruhig am Gas, haltet Abstand und prüft vor dem Losfahren den Passstatus. Danach führt die Route über Bovec und Tolmin weiter nach Idrija.
+Mit dem Motorrad fahrt ihr über den Wurzenpass und Kranjska Gora in die Julischen Alpen. Am Vršič warten enge, teils gepflasterte Kehren; bleibt bei Nässe ruhig am Gas, haltet Abstand und prüft vor dem Losfahren den Passstatus. Danach führt die Route über Bovec und Tolmin weiter nach Idrija.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Idrija.  

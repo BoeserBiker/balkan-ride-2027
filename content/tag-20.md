@@ -49,7 +49,7 @@ videos:
 
 ## Den Kreis in Villach schließen
 
-Nach der Ausschiffung fahrt ihr zu zweit auf der BMW 800 GS über das italienische Fernstraßennetz und Tarvisio zurück zum Basis-Hotel in Villach. Die 252,2 km sind die bewusste Rückführungs-Ausnahme über 200 km. Danach den Hobel verladen, die Verzurrung prüfen und in Villach schlafen.
+Nach der Ausschiffung fahrt ihr mit dem Motorrad über das italienische Fernstraßennetz und Tarvisio zurück zum Basis-Hotel in Villach. Die 252,2 km sind die bewusste Rückführungs-Ausnahme über 200 km. Danach den Hobel verladen, die Verzurrung prüfen und in Villach schlafen.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Dasselbe Basis-Hotel in Villach.  

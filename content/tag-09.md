@@ -49,7 +49,7 @@ videos:
 
 ## Königsetappe durch Montenegro
 
-Zu zweit auf der BMW 800 GS geht es am Grenzübergang Šćepan Polje nach Montenegro und durch den Piva-Canyon mit seinen unbeleuchteten Felstunneln. Vorbei an der Mratinje-Staumauer erreicht ihr Plužine und fahrt über das Hochplateau und den Sedlo-Pass nach Žabljak. Für den Tara-Abstecher Licht an, Visier klar und mit Gegenverkehr in den Tunneln rechnen.
+Mit dem Motorrad fahrt ihr am Grenzübergang Šćepan Polje nach Montenegro und durch den Piva-Canyon mit seinen unbeleuchteten Felstunneln. Vorbei an der Mratinje-Staumauer erreicht ihr Plužine und fahrt über das Hochplateau und den Sedlo-Pass nach Žabljak. Für den Tara-Abstecher Licht an, Visier klar und mit Gegenverkehr in den Tunneln rechnen.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Žabljak.  

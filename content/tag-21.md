@@ -49,7 +49,7 @@ videos:
 
 ## Rückfahrt im Gespann – Teil eins
 
-Mit PKW und Anhänger geht es von Villach Richtung Oberpfalz. Die BMW und das Gepäck sind verstaut; jetzt zählen Konzentration, regelmäßige Pausen und die letzte Verzurrkontrolle. Heute fahrt ihr bis zum gebuchten Zwischenhotel, nicht in einem Rutsch ins Ruhrgebiet.
+Mit PKW und Anhänger geht es von Villach Richtung Oberpfalz. Motorrad und Gepäck sind verstaut; jetzt zählen Konzentration, regelmäßige Pausen und die letzte Verzurrkontrolle. Heute fahrt ihr bis zum gebuchten Zwischenhotel, nicht in einem Rutsch ins Ruhrgebiet.
 
 **Transport:** PKW + Anhänger.  
 **Übernachtung:** Hotel oder Gasthof im Raum Velburg.  

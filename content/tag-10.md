@@ -52,7 +52,7 @@ videos:
 
 ## Von Durmitor an die Bucht
 
-Zu zweit auf der BMW 800 GS geht es über Šavnik und Nikšić hinunter nach Risan und am Wasser entlang über Perast nach Kotor. Früh einchecken und den Abend an der Bucht ausklingen lassen. Die Bucht ist kein geologischer Fjord.
+Mit dem Motorrad fahrt ihr über Šavnik und Nikšić hinunter nach Risan und am Wasser entlang über Perast nach Kotor. Früh einchecken und den Abend an der Bucht ausklingen lassen. Die Bucht ist kein geologischer Fjord.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Kotor oder direkt an der Bucht.  

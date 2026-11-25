@@ -49,7 +49,7 @@ videos:
 
 ## Von der Riviera nach Mostar
 
-Zu zweit auf der BMW 800 GS fahrt ihr entlang der Makarska-Riviera unter dem Biokovo über Gradac, Ploče und Metković nach Bosnien-Herzegowina. An den Kravica-Wasserfällen ist Zeit für einen Besuch, danach geht es nach Mostar. Den Hobel sicher abstellen und abends zur Alten Brücke spazieren. Der Neretva-Canyon nördlich von Mostar und die Biokovo-Auffahrt sind nicht Teil dieser Etappe.
+Mit dem Motorrad fahrt ihr entlang der Makarska-Riviera unter dem Biokovo über Gradac, Ploče und Metković nach Bosnien-Herzegowina. An den Kravica-Wasserfällen ist Zeit für einen Besuch, danach geht es nach Mostar. Den Hobel sicher abstellen und abends zur Alten Brücke spazieren. Der Neretva-Canyon nördlich von Mostar und die Biokovo-Auffahrt sind nicht Teil dieser Etappe.
 
 **Transport:** Motorrad.  
 **Übernachtung:** Hotel oder Pension in Mostar; Motorradstellplatz anfragen.  
