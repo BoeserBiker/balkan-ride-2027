@@ -87,6 +87,7 @@
 html { max-width: 100%; overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; scroll-padding-top: 80px; }
 body, main, .roadbook-layout { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
 [hidden] { display: none !important; }
+.roadbook-layout[hidden], .media-page[hidden], .logistics-section[hidden] { display: none !important; }
 :root[data-font-size="1"] { font-size: 14px; }
 :root[data-font-size="2"] { font-size: 16px; }
 :root[data-font-size="3"] { font-size: 17px; }
@@ -140,7 +141,7 @@ a { color: inherit; }
 .site-nav a { position: relative; color: #c4cbc5; font-size: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
 .site-nav a::after { position: absolute; inset: -16px -4px; content: ""; }
 .header-navigation .settings-toggle { margin: -7px 0; }
-.site-nav a:hover, .site-nav a:focus-visible, .site-nav a[aria-current="location"] { color: var(--accent); }
+.site-nav a:hover, .site-nav a:focus-visible, .site-nav a[aria-current="page"], .site-nav a.active { color: var(--accent); }
 
 .roadbook-layout {
   display: grid;

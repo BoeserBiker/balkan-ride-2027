@@ -189,8 +189,17 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   ]);
   assert.match(styleSource, /\.site-nav \{ display: flex; flex-wrap: nowrap;/);
   assert.match(styleSource, /\.site-nav a \{[^}]*white-space: nowrap;/);
-  assert.match(styleSource, /\.site-nav a:hover, \.site-nav a:focus-visible, \.site-nav a\[aria-current="location"\]/);
+  assert.match(styleSource, /\.site-nav a:hover, \.site-nav a:focus-visible, \.site-nav a\[aria-current="page"\], \.site-nav a\.active/);
   assert.match(mainSource, /id="media" class="media-page"/);
+  assert.match(mainSource, /viewSections\.forEach\(\(section\) => \{ section\.hidden = section\.id !== active; \}\)/);
+  assert.match(mainSource, /\['roadbook', 'media', 'logistics'\]/);
+  assert.match(mainSource, /setAttribute\('aria-current', 'page'\)/);
+  assert.match(mainSource, /history\.pushState\(null, '', `#\$\{id\}`\)/);
+  assert.match(mainSource, /window\.scrollTo\(0, 0\)/);
+  assert.match(mainSource, /addEventListener\('hashchange'/);
+  assert.match(mainSource, /addEventListener\('popstate'/);
+  assert.match(mainSource, /map\.resize\(\)/);
+  assert.match(styleSource, /\.roadbook-layout\[hidden\], \.media-page\[hidden\], \.logistics-section\[hidden\] \{ display: none !important; \}/);
   assert.match(mainSource, /id="media-type-filter"/);
   assert.match(mainSource, /id="media-stage-filter"/);
   assert.match(mainSource, /renderMediaGallery\(roadbookDays/);

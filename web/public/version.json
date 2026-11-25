@@ -1,6 +1,11 @@
 {
-  "version": "v2.82",
+  "version": "v2.83",
   "history": [
+    {
+      "version": "v2.83",
+      "date": "2026-11-25",
+      "message": "UI-Umbau und Feinschliff: Header, Einstellungen mit 4-Stufen-Schriftregler, zweizeiliger Etappenkopf und iPhone Overflow-Fix"
+    },
     {
       "version": "v2.82",
       "date": "2026-11-25",

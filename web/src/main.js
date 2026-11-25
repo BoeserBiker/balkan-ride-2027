@@ -399,19 +399,38 @@ function renderApp() {
 
   renderShell();
   const navigationLinks = [...document.querySelectorAll('.site-nav a')];
-  const updateNavigationState = () => {
-    const activeHash = location.hash || '#roadbook';
+  const viewIds = ['roadbook', 'media', 'logistics'];
+  const viewSections = viewIds.map((id) => document.getElementById(id));
+  let onRoadbookShown = () => {};
+  const showView = (id) => {
+    const active = viewIds.includes(id) ? id : 'roadbook';
+    viewSections.forEach((section) => { section.hidden = section.id !== active; });
     navigationLinks.forEach((link) => {
-      if (link.hash === activeHash) {
-        link.setAttribute('aria-current', 'location');
+      const isActive = link.hash === `#${active}`;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'page');
       } else {
         link.removeAttribute('aria-current');
       }
     });
+    if (active === 'roadbook') {
+      onRoadbookShown();
+    }
   };
-  navigationLinks.forEach((link) => link.addEventListener('click', updateNavigationState));
-  window.addEventListener('hashchange', updateNavigationState);
-  updateNavigationState();
+  const viewFromHash = () => location.hash.replace('#', '');
+  navigationLinks.forEach((link) => link.addEventListener('click', (event) => {
+    event.preventDefault();
+    const id = link.hash.replace('#', '');
+    if (viewFromHash() !== id) {
+      history.pushState(null, '', `#${id}`);
+    }
+    showView(id);
+    window.scrollTo(0, 0);
+  }));
+  window.addEventListener('hashchange', () => { showView(viewFromHash()); window.scrollTo(0, 0); });
+  window.addEventListener('popstate', () => showView(viewFromHash()));
+  showView(viewFromHash());
 
   const mediaGallery = document.querySelector('#media-gallery');
   mediaGallery.innerHTML = renderMediaGallery(roadbookDays, { assetUrls: mediaAssets });
@@ -437,6 +456,7 @@ function renderApp() {
     L, roadbookDays, document.querySelector('#map-status'), document.querySelector('#gpx-download'),
   );
   settings.setThemeChangeHandler(map.setTheme);
+  onRoadbookShown = () => requestAnimationFrame(() => map.resize());
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
   let activeProfileController = null;
