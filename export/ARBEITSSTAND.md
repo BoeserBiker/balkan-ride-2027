@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.95`, Service-Worker-Cache `v108`
+- Web-Stand 2026-11-25: App-Version `v2.107`, Service-Worker-Cache `v120`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -16,16 +16,17 @@
   Regressionen. Roadbook und UI sprechen die Reisegruppe
   in der Mehrzahl an; ein konkretes Motorradmodell und eine Gruppengröße
   bleiben offen. Der
-  Playwright-Closed-Loop prüfte vier Viewports
+  zuletzt dokumentierte Playwright-Closed-Loop prüfte vier Viewports
   (375, 412, 768 und 1280 px): 100/100 PASS, 24 Screenshots in
   `web/.visual-report/REPORT.md`. Die gemessene Unterkantenabweichung des
   Einstellungsbuttons zur „Galerie“-Beschriftung betrug bei allen vier
   Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
   Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
   oder vertikalen Inhaltsüberlauf exklusiv öffnen. 19/19 Node-Tests und
-  Produktionsbuild erfolgreich. Die fünf Zahlenmarken des Schriftreglers
-  sitzen in allen Viewports mit 0,0 px gemessener Abweichung unter den
-  Soll-Rastpunkten 0/25/50/75/100 %.
+  Produktionsbuild damals erfolgreich; die Prüfergebnisse sind kein neuer
+  Nachweis für den aktuellen Versionsstand. Die fünf Zahlenmarken des
+  Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
+  unter den Soll-Rastpunkten 0/25/50/75/100 %.
   Dies ist keine reale Geräte-/Offline- oder fachliche V5-Abnahme.
 - Die V5-Dokumentation ist in drei Zuständigkeiten getrennt: das
   [Lastenheft](../docs/master_ablauf_prompt_plan_v5.md) führt technische
@@ -33,21 +34,21 @@
   [Pflichtenheft](../docs/Balkan_Tour_Pflichtenheft_V5.md) das Produkt- und
   Fachziel, dieses Daily den aktuellen Stand und alle offenen Arbeiten. V5
   ist seit der Freigabe durch BB am 2026-11-25 die verbindliche
-  Arbeitsgrundlage; V4 bleibt als historische Referenz erhalten. Die
-  Statuszeilen „Entwurf zur Nutzerfreigabe“ in den beiden V5-Dokumenten
-  selbst sind noch nicht nachgezogen.
+  Arbeitsgrundlage; V4 bleibt als historische Referenz erhalten.
 - Die tatsächliche Runner-Allowlist umfasst neben `content/tag-01.md` bis
   `content/tag-22.md` auch `web/index.html`, `web/src/`, `web/public/`,
   `web/tests/` und Teile von `config/`; `.github/`, `config/commands/`,
   `config/skills/`, `web/scripts/`, `web/package.json`, `docs/` und `export/`
   sowie `web/vite.config.js`, `assets/` und alle übrigen nicht gelisteten
-  Pfade sind nicht erlaubt. A01 kann daher nicht über den bestehenden Runner
-  laufen und braucht einen direkt von BB autorisierten Maintainer-PR.
+  Pfade sind nicht erlaubt. A01 ist umgesetzt; die neue Workflow-Härtung A02
+  benötigt wegen Änderungen an `.github/` und `config/commands/` einen direkt
+  von BB autorisierten Maintainer-PR außerhalb des Issue-Runners.
 - Die frühere Logistik-Datei wurde nach
   [`web/src/content/logistik.md`](../web/src/content/logistik.md) verschoben.
   Raw-Import in `web/src/main.js` und Sonderladen im Runner-Planlauf hängen
-  damit nicht mehr an `docs/`; F02 betrifft nur noch die Frage, ob `docs/`
-  selbst öffentlich bleibt. Die Privacy-Entscheidung bleibt offen.
+  damit nicht mehr an `docs/`. Für F02 ist entschieden, `docs/` privat zu
+  halten; die Entfernung bereits versionierter Dateien aus dem Index bleibt
+  offen.
 - `export/` ist dem unbeaufsichtigten GitHub-Actions-Issue-Runner verboten.
   Eine interaktive VS-Code-Sitzung unter direkter Steuerung von BB darf die
   Export-Übergabe auf ausdrücklichen Wunsch fortschreiben.
@@ -102,9 +103,9 @@
   liegen daneben. Header, HTML und Manifest verwenden dasselbe Motiv.
   Das Motorrad zeigt nach links und trägt blaue und weiße Akzente.
   Beim damaligen Icon-Update wurden Service-Worker-Cache und Icon-URLs auf
-  Version 3 gesetzt; der aktuelle Cache-Stand ist `v104`. Die tatsächliche
-  Aktualisierung bereits installierter Homescreen-Icons auf iOS und Android
-  muss auf Geräten geprüft werden.
+  Version 3 gesetzt; der damals dokumentierte Cache-Stand war `v104`. Die
+  tatsächliche Aktualisierung bereits installierter Homescreen-Icons auf iOS
+  und Android muss auf Geräten geprüft werden.
 - Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
@@ -163,6 +164,39 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – A02 als nächste Workflow-Härtung eingeplant
+
+- A02 im Lastenheft technisch und im Pflichtenheft produktseitig verankert:
+  vollständige Pläne, SHA-gebundene isolierte Prüfung vor Push, Git-/Pages-
+  Schutz, robuste Tests und Visual-Gate. A02 folgt auf A01 und geht größeren
+  V5-Features über den Agentenworkflow voraus; Umsetzung nur als direkt von BB
+  autorisierter Maintainer-PR.
+- A01 als erledigt geführt: Der Agenten-PR
+  [#23](https://github.com/BoeserBiker/balkan-ride-2027/pull/23) wurde
+  gemergt; der zugehörige
+  [Implementierungslauf](https://github.com/BoeserBiker/balkan-ride-2027/actions/runs/45662764461)
+  meldet Generate, Verify und Publish erfolgreich. Frühere Versuche zum
+  gleichen Issue waren fehlgeschlagen; der Erfolg belegt nicht bereits A02.
+- Tatsächlichen lokalen Versionsstand `v2.107` / Cache `v120` im Kopf
+  nachgezogen. Verifikation: Dokumentenabgleich, Versionsdateien und
+  GitHub-PR-/Laufstatus gelesen; keine Tests, Builds oder Änderungen am
+  Produkt- oder Runner-Code.
+
+### 2026-11-25 – Issue-Agenten-Workflow analysiert
+
+- Planvollständigkeit, fragile Tests, Prüf- und Versionsablauf sowie
+  Git-/CI-Risiken untersucht; priorisiertes Härtungskonzept mit Fundstellen in
+  [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md).
+  Besonders offen: Bindung von Generierung, Verify und PR an denselben Commit,
+  Versionsabgleich gegen `main` und Visual-Gate. Keine Härtung umgesetzt.
+- Verifikation: statische Quellensichtung und modellfreie Messung der
+  Kontextauswahl; keine Tests, Builds oder Live-Actions-Läufe. Der neue Bericht
+  ist lokal und durch `.gitignore` ausgeschlossen; ältere `docs/`-Dateien
+  können dennoch bereits versioniert sein.
+- Damalige Abweichung im Daily-Kopf: Die Versionsdateien zeigten
+  App `v2.107` und Cache `v120`, nicht `v2.95` und `v108`. Ein Live-Deploy
+  wurde nicht geprüft; der Kopf wurde später berichtigt.
 
 ### 2026-11-25 – Wiederholte Implementierungen mit Lease-Push abgesichert
 
@@ -1215,9 +1249,9 @@
 4. **GitHub-Automatisierung beobachten:** Der Plan → Freigabe → PR-Ablauf
    wurde mit PR #2 erfolgreich getestet. Nach weiteren Workflow-Änderungen
    erneut mit einem Test-Issue prüfen.
-### V5-Arbeitspakete – offen
+### V5-Arbeitspakete
 
-Alle folgenden Punkte bleiben offen; diese kompakten Statuszeilen ersetzen
+Die Kästchen kennzeichnen offene und erledigte Punkte; diese Statuszeilen ersetzen
 die frühere parallele To-do-Datei. Fachliche und technische Anforderungen
 stehen in den beiden V5-Spezifikationen.
 
@@ -1229,10 +1263,17 @@ stehen in den beiden V5-Spezifikationen.
 - [x] **F03:** Festgelegt: max. 5 Motorräder, Solo-Fahrer ja, Kontakt
   `https://www.instagram.com/boeser_biker`; Selbstcheck-Checkboxen sind rein
   informativ (keine Filter-/Teilnahmebedingung).
-- [x] **A01–A03:** Im lokalen Code nachgewiesen (47/47 Runner-Tests): V5-
-  Pfadgrenzen, Planbindung und Agentenreferenzen. Wirksam auf `main` erst
-  nach dem autorisierten Maintainer-Commit der `.github/`- und
-  `config/commands/`-Änderungen.
+- [x] **A01:** App-weite Agentenfähigkeit umgesetzt; erfolgreicher Live-
+  Durchlauf mit gemergtem [PR #23](https://github.com/BoeserBiker/balkan-ride-2027/pull/23).
+- [ ] **A02:** Als nächster unmittelbarer Umsetzungsschritt Workflow-Härtung
+  nach [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md):
+  Planvollständigkeit, SHA-gebundene isolierte Vorabprüfung, Git-/Deploy-
+  Schutz, robuste Tests, Versionsabgleich und Visual-Gate T01. Vor P01/P02,
+  U01 und D01–D08 über den Agentenworkflow; separat von BB autorisierter
+  Maintainer-PR erforderlich.
+- **A03:** Zuvor gemeinsam mit A01–A03 als lokal geprüft aufgeführt
+  (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären. A02
+  bezeichnet nun ausdrücklich die offene Workflow-Härtung.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
   Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
 - [ ] **P01–P02:** Tourübersicht und Teilnahme-/Kontaktanforderungen nach
@@ -1247,8 +1288,8 @@ stehen in den beiden V5-Spezifikationen.
 - [ ] **W01–W02:** PWA-Offlineumfang und Aktualisierung auf iOS/Android
   getrennt abnehmen.
 - [ ] **T01–T04:** Tests/CI, mobilen Agenten-End-to-End-Lauf, Gesamt- und
-  Live-Abnahme abschließen; Visual-Check ist bis zu einem nachgewiesenen
-  Actions-Gate lokal verpflichtend.
+  Live-Abnahme abschließen; das Visual-Gate T01 ist Bestandteil von A02.
+  Der Visual-Check ist bis zum nachgewiesenen Actions-Gate lokal verpflichtend.
 
 ## Relevante Quellen
 

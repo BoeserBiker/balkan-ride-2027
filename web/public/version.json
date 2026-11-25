@@ -4,8 +4,8 @@
   "serviceWorkerHistory": [
     {
       "version": "v121",
-      "date": "2026-11-26",
-      "message": "Einstellungen-Ueberschrift im Dialog zentriert"
+      "date": "2026-11-25",
+      "message": "Fix: Logistik-Import in web/src/main.js auf ./content/logistik.md umgestellt"
     },
     {
       "version": "v120",
@@ -161,8 +161,8 @@
   "history": [
     {
       "version": "v2.108",
-      "date": "2026-11-26",
-      "message": "Einstellungen-Ueberschrift im Dialog zentriert"
+      "date": "2026-11-25",
+      "message": "Fix: Logistik-Import in web/src/main.js auf ./content/logistik.md umgestellt"
     },
     {
       "version": "v2.107",

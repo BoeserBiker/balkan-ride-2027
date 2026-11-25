@@ -8,7 +8,14 @@ VS_CODE_Tools/
 .codebase-memory/
 node_modules/
 
+# Temporäre visuelle Prüfberichte und Screenshots
+web/.visual-report/
+
 daten/chat_verlauf/
+
+# Private Entwurfs- und Planungsdokumente (F02, Freigabe 2026-11-25).
+# Bereits getrackte Dateien bleiben bis zu `git rm -r --cached docs/` im Index.
+/docs/
 
 .env
 
