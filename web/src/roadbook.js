@@ -188,7 +188,7 @@ function renderVideo(video, urls) {
       <button class="video-open-button" type="button" data-lightbox-index="${video.index}" data-lightbox-type="video" data-lightbox-src="${escapeHtml(url)}" data-lightbox-alt="${title}" data-lightbox-caption="${title}" aria-label="Video ${title} in Galerie öffnen"><span aria-hidden="true">▶</span> In Galerie ansehen</button>
       <video controls preload="metadata" ${poster ? `poster="${escapeHtml(poster)}"` : ''} aria-label="${title}">
       <source src="${escapeHtml(url)}" type="video/mp4">
-      Dein Browser unterstützt dieses Videoformat nicht.
+      Dieses Videoformat wird von eurem Browser nicht unterstützt.
       </video>
       <p class="media-caption">${title}</p>
     </div>

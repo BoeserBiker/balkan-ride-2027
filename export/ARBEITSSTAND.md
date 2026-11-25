@@ -7,34 +7,51 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.91`, Service-Worker-Cache `v97`;
-  beide Verläufe in `web/public/version.json` sind synchron. Die Einstellungen
-  zeigen beide aktuellen Versionen kompakt nebeneinander und bieten getrennte,
-  standardmäßig geschlossene Verlaufskarten. Die Fotokarten behalten Bildtitel,
-  Urheber und Lizenz ohne Bearbeitungsnotiz; die Medienimport-Grenze beträgt
-  1600 px. Lightbox und Verläufe sind scrollbar. 17 Node-Tests und der Vite-
-  Produktionsbuild waren erfolgreich. Eine visuelle Browser-/Geräteprüfung
-  wurde nicht durchgeführt.
-- Das konsolidierte [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md)
-  ergänzt V4 um eine vorgeschaltete Tourübersicht, eindeutige Reisezeiträume,
-  Daten-/GPX-Prüfung, Logistikmatrix, UI-/PWA-Offline- und Medienanforderungen.
-  Als Soll-Anforderung umfasst der `/plan-item`- und `/implement-item`-
-  Workflow nun geplante Änderungen an der gesamten Roadbook-App; die Umsetzung
-  bleibt auf die genehmigte Dateiliste begrenzt und verlangt passende Tests
-  sowie Build. Die bestehende Agentenimplementierung wurde nicht angepasst und
-  bietet diese erweiterte Fähigkeit noch nicht nachweislich.
-  Es wurden keine Etappen-, Routen-, Buchungs- oder App-Dateien geändert.
-- Der Abgleich des Review V4 mit V5 hat weitere Spezifikationslücken
-  identifiziert: ein Budget-/Kostenüberblick, ausdrückliche Reserve-/Puffertage
-  und ein Schutz vor dem öffentlichen Build privater Planungsdokumente sind
-  nicht festgelegt. Konkrete D01-/D14-Höhenbefunde und die Abgrenzung zwischen
-  Teilnehmerprofil und echter Filterfunktion sind nur teilweise abgebildet.
-  V5 wurde bei diesem Abgleich nicht geändert.
-- Die [V5-Dokumente](../docs/V5/) enthalten nun zusätzlich einen Masterplan
-  und priorisierten To-do-Plan. Beide sind Freigabeentwürfe auf Basis des
-  Pflichtenhefts V5; sie führen unter anderem Agenten-Erweiterung, Daten- und
-  Review-Prüffälle, Budget, Puffer, Recruiting sowie Datenschutz als konkrete
-  Arbeitspakete. V4 bleibt bis zur ausdrücklichen Freigabe maßgeblich.
+- Web-Stand 2026-11-25: App-Version `v2.93`, Service-Worker-Cache `v106`
+  (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
+  hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
+  Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
+  Aktualisierungsbutton liegen und ihre jeweilige Historie exklusiv öffnen.
+  Die Tests trennen wiederverwendbare Basisprüfungen von issue-spezifischen
+  Regressionen. Roadbook und UI sprechen die Reisegruppe
+  in der Mehrzahl an; ein konkretes Motorradmodell und eine Gruppengröße
+  bleiben offen. Der
+  Playwright-Closed-Loop prüfte vier Viewports
+  (375, 412, 768 und 1280 px): 100/100 PASS, 24 Screenshots in
+  `web/.visual-report/REPORT.md`. Die gemessene Unterkantenabweichung des
+  Einstellungsbuttons zur „Galerie“-Beschriftung betrug bei allen vier
+  Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
+  Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
+  oder vertikalen Inhaltsüberlauf exklusiv öffnen. 19/19 Node-Tests und
+  Produktionsbuild erfolgreich. Die fünf Zahlenmarken des Schriftreglers
+  sitzen in allen Viewports mit 0,0 px gemessener Abweichung unter den
+  Soll-Rastpunkten 0/25/50/75/100 %.
+  Dies ist keine reale Geräte-/Offline- oder fachliche V5-Abnahme.
+- Die V5-Dokumentation ist in drei Zuständigkeiten getrennt: das
+  [Lastenheft](../docs/master_ablauf_prompt_plan_v5.md) führt technische
+  Vorgaben und Architektur, das
+  [Pflichtenheft](../docs/Balkan_Tour_Pflichtenheft_V5.md) das Produkt- und
+  Fachziel, dieses Daily den aktuellen Stand und alle offenen Arbeiten. V5
+  bleibt bis zur ausdrücklichen Freigabe ein Entwurf; bis dahin bleibt V4 die
+  bisherige freigegebene Grundlage.
+- Die tatsächliche Runner-Allowlist umfasst neben `content/tag-01.md` bis
+  `content/tag-22.md` auch `web/index.html`, `web/src/`, `web/public/`,
+  `web/tests/` und Teile von `config/`; `.github/`, `config/commands/`,
+  `config/skills/`, `web/scripts/`, `web/package.json`, `docs/` und `export/`
+  sowie `web/vite.config.js`, `assets/` und alle übrigen nicht gelisteten
+  Pfade sind nicht erlaubt. A01 kann daher nicht über den bestehenden Runner
+  laufen und braucht einen direkt von BB autorisierten Maintainer-PR.
+- F02 hat zwei getrennte Kopplungen an `docs/motorrad_checkliste_logistik.md`:
+  den Raw-Import in `web/src/main.js` ins Build-Artefakt und das direkte Laden
+  in den Modellkontext während des Runner-Planlaufs. Falls `docs/` privat
+  eingestuft wird, müssen beide Verbindungen getrennt werden. Diese
+  Privacy-Entscheidung bleibt offen.
+- `export/` ist dem unbeaufsichtigten GitHub-Actions-Issue-Runner verboten.
+  Eine interaktive VS-Code-Sitzung unter direkter Steuerung von BB darf die
+  Export-Übergabe auf ausdrücklichen Wunsch fortschreiben.
+- Der frühere Masterplan, das V5-Pflichtenheft und der To-do-Plan unter
+  `docs/V5/` sind jetzt Verweise auf die kanonischen Dokumente bzw. dieses
+  Daily. Die bestehenden V4-Dateien bleiben unverändert erhalten.
 - Workspace-Check am 2026-11-22: 19 Python- und vier Frontend-Tests sowie
   der Produktionsbuild erfolgreich. Alle 22 Etappen besitzen jeweils vier
   lokal lesbare Querformatbilder und einen strukturell gültigen
@@ -83,9 +100,9 @@
   liegen daneben. Header, HTML und Manifest verwenden dasselbe Motiv.
   Das Motorrad zeigt nach links und trägt blaue und weiße Akzente.
   Beim damaligen Icon-Update wurden Service-Worker-Cache und Icon-URLs auf
-  Version 3 gesetzt; der aktuelle Cache-Stand ist `v96` (siehe den Eintrag
-  vom 2026-11-25). Die tatsächliche Aktualisierung bereits installierter
-  Homescreen-Icons auf iOS und Android muss auf Geräten geprüft werden.
+  Version 3 gesetzt; der aktuelle Cache-Stand ist `v104`. Die tatsächliche
+  Aktualisierung bereits installierter Homescreen-Icons auf iOS und Android
+  muss auf Geräten geprüft werden.
 - Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
   22 Kalendertage (08.–29.09.2027) in
   [`content/tag-01.md`](../content/tag-01.md) bis
@@ -144,6 +161,217 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – Versionsschema an bump_version.py angepasst
+
+- Die Versionsdatei verwendet jetzt `v2.93`, passend zum vollständigen
+  Versionsmuster `v<Zahl>.<Zahl>` in `scripts/bump_version.py`. Der oberste
+  App-Historieneintrag stimmt mit `version` überein.
+- Der Service-Worker-Cache wurde wegen der Web-Änderung von `v105` auf `v106`
+  erhöht; `sw.js`, `serviceWorkerCache` und der neueste
+  `serviceWorkerHistory`-Eintrag sind synchron.
+- Das Basistest-Muster und Abschnitt 6 des Lastenhefts wurden auf das
+  Skriptformat abgestimmt.
+- Verifikation: `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (100/100 PASS, 24 Screenshots).
+- Quellen: `scripts/bump_version.py`, `web/public/version.json`,
+  `web/public/sw.js`, `web/tests/baseline.test.js`,
+  `docs/master_ablauf_prompt_plan_v5.md` und
+  [Visual-Prüfbericht](../web/.visual-report/REPORT.md).
+
+### 2026-11-25 – Schriftregler-Zahlen an Rastpunkten ausgerichtet
+
+- Die Zahlen 1–5 stehen nun exakt unter den fünf tatsächlichen Thumb-
+  Rastpunkten bei 0 %, 25 %, 50 %, 75 % und 100 % der nutzbaren Reglerlänge.
+- Der Visual-Check misst die Mittelpunkt-Abweichung in iPhone 12 mini
+  (375 × 812), Android (412 × 915), Tablet (768 × 1024) und Desktop
+  (1280 × 800); alle fünf Werte liegen je Viewport bei 0,0 px Abweichung.
+- App-Version `v2.92.05`; Service-Worker-Cache von `v104` auf `v105` erhöht
+  und mit `version.json` synchronisiert.
+- Verifikation: `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (100/100 PASS, 24 Screenshots).
+- Quellen: `web/src/style.css`, `web/tests/features.test.js`,
+  `web/scripts/visual-check.mjs`, `web/public/sw.js`,
+  `web/public/version.json` und
+  [Visual-Prüfbericht](../web/.visual-report/REPORT.md).
+
+### 2026-11-25 – Schriftregler auf fünf Stufen erweitert
+
+- Der Schriftgrößenregler bietet jetzt die Stufen 1 bis 5: Klein, Normal,
+  Groß, Sehr groß und Extra groß. Stufe 5 setzt die Grundschrift auf 20 px;
+  vorhandene gespeicherte Stufe 4 behält ihre bisherige Größe und Bezeichnung.
+- Die Versionskarten und geöffneten Historien wurden bei maximaler Schrift
+  5/5 in allen vier Playwright-Viewports erneut auf Überlauf und
+  Erreichbarkeit geprüft.
+- App-Version `v2.92.04`; Service-Worker-Cache von `v103` auf `v104` erhöht
+  und mit beiden Verläufen synchronisiert.
+- Verifikation: `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (96/96 PASS, 24 Screenshots).
+- Quellen: `web/src/main.js`, `web/src/style.css`,
+  `web/tests/features.test.js`, `web/scripts/visual-check.mjs`,
+  `web/public/sw.js`, `web/public/version.json` und
+  [Visual-Prüfbericht](../web/.visual-report/REPORT.md).
+
+### 2026-11-25 – Versionskarten öffnen ihre Historien direkt
+
+- Die separaten Aufklapp-Leisten für App- und Cache-Verlauf wurden entfernt.
+  Die Versionskarten stehen jetzt unter „App & Offline-Cache aktualisieren“,
+  sind zugängliche Buttons und öffnen jeweils direkt darunter ihre Historie;
+  die Verläufe schließen sich gegenseitig aus.
+- Dialog, Karten und Historien sind im Playwright-Check bei Schriftstufe 4/4
+  auf 375 × 812, 412 × 915, 768 × 1024 und 1280 × 800 geprüft. Die Historien
+  bleiben innerhalb des scrollbaren Dialogs vollständig erreichbar.
+- App-Version `v2.92.03`; Service-Worker-Cache von `v102` auf `v103` erhöht
+  und mit beiden Verläufen synchronisiert.
+- Verifikation: `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (96/96 PASS, 24 Screenshots).
+- Quellen: `web/src/main.js`, `web/src/style.css`,
+  `web/tests/features.test.js`, `web/scripts/visual-check.mjs`,
+  `web/public/sw.js`, `web/public/version.json` und
+  [Visual-Prüfbericht](../web/.visual-report/REPORT.md).
+
+### 2026-11-25 – Closed-Loop-Regeln gebündelt und Tests modularisiert
+
+- Das Lastenheft V5 ist die zentrale Quelle für Web-Prüfablauf,
+  Versionssynchronisierung und Daily-Pflege. Copilot- und Riderrix-Vorgaben
+  sowie die Export-README verweisen darauf, statt die ausführlichen Regeln
+  parallel zu pflegen. Das Dokumentationskonzept bleibt maßgeblich für die
+  Struktur der Übergabe; der GitHub-Issue-Runner erhält dadurch keinen Zugriff
+  auf gesperrte Pfade.
+- `web/tests/baseline.test.js` bündelt erweiterbare, einzeln benannte
+  Grundinvarianten. `web/tests/issue-group-address.test.js` enthält den
+  änderungsspezifischen Regressionstest; `features.test.js` behält die
+  übrigen Feature- und Workflowprüfungen.
+- Cache `v102` ist gegenüber `v101` um genau eins erhöht und mit
+  `serviceWorkerCache` sowie dem neuesten Cache-Verlauf synchron. Die App
+  bleibt `v2.92.02`, da keine sichtbare oder fachliche App-Änderung erfolgte.
+- Verifikation: `node --test web/tests/*.test.js` (19/19) und
+  `npm run build --prefix web` erfolgreich. Der Visual-Check wurde nicht
+  erneut ausgeführt: UI und Funktionalität blieben unverändert; der letzte
+  UI-Lauf ergab 84/84 PASS. Sein Bericht wurde vor dem rein technischen
+  Cache-Schritt `v102` erzeugt.
+- Quellen: [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md),
+  [.github/copilot-instructions.md](../.github/copilot-instructions.md),
+  [Riderrix-Agent](../.github/agents/riderrix.agent.md),
+  `web/tests/baseline.test.js`, `web/tests/issue-group-address.test.js`,
+  `web/public/sw.js` und `web/public/version.json`.
+
+### 2026-11-25 – Gruppenansprache und Motorradmodell neutralisiert
+
+- Die UI- und Etappentexte sprechen die Reisegruppe jetzt in der Mehrzahl an.
+  Festlegungen wie „BMW 800 GS“ und „zu zweit“ wurden aus den redaktionellen
+  Etappentexten entfernt; Fahrzeugmodell und Gruppengröße bleiben offen.
+  Originale externe Videotitel und Hashtags blieben als Quellenmetadaten
+  unverändert.
+- Das Pflichtenheft V5 hält die Produktregel fest. Routen-, GPX-, Entfernungs-,
+  Höhenmeter- und Koordinatendaten wurden nicht geändert.
+- App-Version `v2.92.02` und Service-Worker-Cache `v101` sind synchron in
+  `web/public/version.json` und `web/public/sw.js` dokumentiert.
+- Verifikation: `node --test web/tests/*.test.js` (18/18),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (84/84, 20 Screenshots) erfolgreich. Der
+  [Visual-Prüfbericht](../web/.visual-report/REPORT.md) enthält Messwerte und
+  Screenshots.
+- Quellen: `content/tag-01.md` bis `content/tag-22.md`,
+  `web/src/main.js`, `web/src/roadbook.js`,
+  `web/tests/features.test.js`, `web/public/sw.js`,
+  `web/public/version.json` und
+  [Pflichtenheft V5](../docs/Balkan_Tour_Pflichtenheft_V5.md).
+
+### 2026-11-25 – V5-Dokumentation in Lastenheft, Pflichtenheft und Daily getrennt
+
+- Das technische Lastenheft wurde als
+  [docs/master_ablauf_prompt_plan_v5.md](../docs/master_ablauf_prompt_plan_v5.md)
+  festgelegt. Es führt Architektur, Datenmodell, PWA, Agenten-Workflow,
+  Tests und Versionssynchronisierung ohne laufende Tages-To-dos.
+- Das schlanke
+  [Produkt- und Fach-Pflichtenheft](../docs/Balkan_Tour_Pflichtenheft_V5.md)
+  enthält Zielbild, 22-tägige Roadbook-Struktur, Biker-Ton, Medien-/GPX-
+  Anforderungen und die Grenze zwischen PWA und Offline-Navigation.
+- Dieses Daily ist die einzige Quelle für aktuellen Arbeitsstand, offene
+  Entscheidungen, Arbeitspakete und nächste Schritte. Frühere Pfade unter
+  `docs/V5/` wurden zu Verweisen umgestellt; der frühere V5-To-do-Pfad verweist
+  auf die offene Arbeit im Daily. V4-Dateien wurden nicht gelöscht oder
+  geändert.
+- Die Referenzen in Riderrix, Root-README und Export-README wurden auf die
+  Dreiteilung umgestellt. Es wurden keine Web-, Routen-, GPX-, Buchungs- oder
+  Rechtsdaten geändert. Bearbeitung blieb auf dem aktuellen Branch `main`;
+  kein Pull, Commit oder Push ausgeführt.
+- Quellen: Lastenheft V5, Pflichtenheft V5, bisherige V5-Dokumente,
+  `.github/agents/riderrix.agent.md`, `README.md` und
+  `.github/Dokumentationskonzept.md`.
+
+### 2026-11-25 – Galerie-Navigation und Headerausrichtung
+
+- Die öffentliche Navigation wurde von „Medien“ in „Galerie“ umbenannt; der
+  Galerie-Seitentitel und das Lightbox-Aria-Label verwenden die Bezeichnung
+  konsistent. Die internen Ansichts-IDs und Medienfunktionen bleiben
+  unverändert.
+- Der Einstellungsbutton ist im Header nun mit Box-Modell- und Randabstand-
+  Schutz ausgerichtet; negative vertikale Margins wurden entfernt. Ein
+  Playwright-Geometriecheck prüft seine Unterkante relativ zum Galerie-Link
+  sowie die Einhaltung des Header-Innenrands.
+- Der Visual-Check umfasst jetzt zusätzlich 768 × 1024 px. Auf iPhone 12 mini
+  (375 × 812), Android (412 × 915), Tablet (768 × 1024) und Desktop
+  (1280 × 800) bestanden 84/84 Prüfungen; die Unterkantenabweichung lag in
+  allen Viewports bei 0,0 px. Es wurden 20 Screenshots erzeugt.
+- App-Version `v2.92.01` und Service-Worker-Cache `v100` sind in
+  `web/public/version.json` und `web/public/sw.js` synchronisiert. Die
+  Versionsprüfung sichert auch den Cache-Schritt `v99` → `v100` ab.
+- Verifikation: `node --test web/tests/*.test.js` (17/17), `npm run build
+  --prefix web` und `npm run test:visual --prefix web` (84/84) erfolgreich.
+  Der [Visual-Prüfbericht](../web/.visual-report/REPORT.md) enthält Messwerte
+  und Links zu den 20 Screenshots.
+- Quellen: `web/src/main.js`, `web/src/style.css`,
+  `web/scripts/visual-check.mjs`, `web/tests/features.test.js`,
+  `web/public/sw.js` und `web/public/version.json`.
+
+### 2026-11-25 – V5-Prüfergebnisse konsolidiert
+
+- Die drei V5-Dokumente wurden anhand des tatsächlichen Runner-Codeumfangs
+  korrigiert: Der Runner ist nicht auf Etappendateien beschränkt, erlaubt
+  aber nur eine begrenzte Whitelist. Änderungen an `.github/` und
+  `config/commands/` müssen als direkt von BB autorisierter Maintainer-PR
+  außerhalb des unbeaufsichtigten Issue-Runners erfolgen (A01 bleibt offen).
+- F02 dokumentiert nun beide technischen Verbindungen der
+  Logistik-Checkliste: Raw-Import ins Web-Build und Laden in den Modellkontext
+  beim Planlauf. Falls `docs/` privat bleibt, müssen beide getrennt werden.
+- Der Ist-Stand der 3-Tab-App und das Split-/Stapel-Layout innerhalb
+  „Etappen“ wurden von den V5-Zielen P01/U01 getrennt. U02 bezieht sich nach
+  D02/D05 auf die getrennte Anzeige von Netto-Modellzeit und Brutto-
+  Tagesdauer; die ellipsenfreie Grunddarstellung besteht bereits.
+- Die Medienanforderungen wurden auf Lazy Loading, Lightbox, Posterbilder,
+  Leerzustände, netzabhängige Einbettungen sowie Lizenz- und Duplikatprüfung
+  zurückgeführt. T01 hält den lokalen Visual-Check verpflichtend und die
+  Vorbereitung eines GitHub-Actions-CI-Gates fest. Der V5-Verzeichnisbaum
+  enthält Masterplan und To-do-Plan; eine nicht vorhandene Agent-Prompt-Datei
+  wird nicht mehr als vorhandene Quelle geführt.
+- `export/` bleibt für den unbeaufsichtigten Runner gesperrt; diese
+  Fortschreibung erfolgte in der interaktiven VS-Code-Sitzung unter direkter
+  Steuerung von BB. F01 sowie offene Sach-, Datenschutz- und Routenprüfungen
+  bleiben offen. Keine Routen-, Buchungs- oder Rechtsdaten wurden geändert.
+- Quellen: [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md),
+  [Masterplan V5](../docs/V5/master_ablauf_prompt_plan_v5.md),
+  [To-do V5](../docs/V5/todo_plan_v5.md), `agent_runner.py`,
+  `web/src/main.js` und Pages-Workflow.
+
+### 2026-11-25 – V5-Dokumente und Übergabe auf Ist-Stand gebracht
+
+- Pflichtenheft V5, V5-To-do und V5-Masterplan dokumentieren nun den
+  App-Ist-Stand vom 25.11.2026 sowie den zweistufigen Playwright-Closed-Loop
+  und den Prüfbericht mit 60/60 PASS und 15 Screenshots. Die V5-Dokumente
+  bleiben Entwürfe; F01 und sämtliche offenen V5-Arbeitspakete bleiben offen.
+- Root-README behält den bisherigen Roadbook-Agent-Inhalt und ergänzt einen
+  knappen Balkan-Ride-Überblick. Export-README und dieser Arbeitsstand nennen
+  App `v2.92`, Cache `v99`, 17/17 Node-Tests und erfolgreichen Build.
+- Keine Routen-, Buchungs-, Rechts- oder Fachwerte wurden ergänzt oder
+  bestätigt. Keine reale iOS-/Android-/Offline-Abnahme behauptet.
+- Quellen: `web/public/version.json`, `web/public/sw.js`,
+  `web/.visual-report/REPORT.md`, V5-Dokumente und Projekt-README.
 
 ### 2026-11-25 – Versionsverlauf in den Einstellungen überarbeitet
 
@@ -835,22 +1063,38 @@
 4. **GitHub-Automatisierung beobachten:** Der Plan → Freigabe → PR-Ablauf
    wurde mit PR #2 erfolgreich getestet. Nach weiteren Workflow-Änderungen
    erneut mit einem Test-Issue prüfen.
-5. **Dokumentation bereinigen:** Root-README auf Balkan-Ride 2027 ausrichten
-   und die veralteten Claude-3.5-Beispiele im Master-Ablaufplan aktualisieren
-   oder eindeutig als historische Vorlage kennzeichnen.
-6. **V7-Buchungen bestätigen:** Fähre Igoumenitsa–Fusina, Basis-Hotel
-   Villach, Unterkunft Koman mit sicherem Motorradstellplatz, Meerblickzimmer
-   Igoumenitsa, Koman-Fährbestätigung und Meteora-Ruhetage gemäß
-   [`docs/motorrad_checkliste_logistik.md`](../docs/motorrad_checkliste_logistik.md)
-   klären.
-7. **GPX und Medien prüfen:** Nach Buchung echte Routen-/GPX-Tracks erstellen
-   und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl und
-   vorhandene Videos sichten. Die Einstellungs-Dialoge und Verlaufslisten
-   wurden per Tests, nicht visuell im Browser geprüft; anschließend die
-   iOS-/Android-PWA-Prüfung durchführen.
+### V5-Arbeitspakete – offen
+
+Alle folgenden Punkte bleiben offen; diese kompakten Statuszeilen ersetzen
+die frühere parallele To-do-Datei. Fachliche und technische Anforderungen
+stehen in den beiden V5-Spezifikationen.
+
+- [ ] **F01–F03:** V5 ausdrücklich freigeben; `docs/`-Privacy einschließlich
+  der beiden oben beschriebenen Kopplungen entscheiden; Gruppengröße,
+  Kontaktweg und Recruiting-Modus festlegen.
+- [ ] **A01–A03:** Agentenfähigkeit per autorisiertem Maintainer-PR,
+  Pfad-/Freigabeschranken und Planbindung mit Tests absichern.
+- [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
+  Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
+- [ ] **P01–P02:** Tourübersicht und Teilnahme-/Kontaktanforderungen nach
+  Klärung der zugrunde liegenden Fakten umsetzen.
+- [ ] **L01–L05:** Etappenlogistik, Reichweite/Pannen, Fähren/Unterkünfte
+  (u. a. Adria- und Koman-Fähre, Villach und Igoumenitsa), Kostenstruktur und
+  Reserveplanung quellenbasiert klären.
+- [ ] **U01–U02:** Kartenpins lesbar entflechten und Netto-Modellzeit von
+  Brutto-Tagesdauer getrennt darstellen.
+- [ ] **M01–M03:** Medien-Duplikate, Lizenzen/Attribution und Galerie-
+  Performance samt Leerzuständen prüfen.
+- [ ] **W01–W02:** PWA-Offlineumfang und Aktualisierung auf iOS/Android
+  getrennt abnehmen.
+- [ ] **T01–T04:** Tests/CI, mobilen Agenten-End-to-End-Lauf, Gesamt- und
+  Live-Abnahme abschließen; Visual-Check ist bis zu einem nachgewiesenen
+  Actions-Gate lokal verpflichtend.
 
 ## Relevante Quellen
 
+- [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md)
+- [Pflichtenheft V5](../docs/Balkan_Tour_Pflichtenheft_V5.md)
 - [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md)
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md)
 - [To-do-Plan V4](../docs/todo_plan_v4.md)

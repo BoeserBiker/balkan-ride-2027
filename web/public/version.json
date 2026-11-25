@@ -1,7 +1,52 @@
 {
-  "version": "v2.92",
-  "serviceWorkerCache": "v97",
+  "version": "v2.94",
+  "serviceWorkerCache": "v106",
   "serviceWorkerHistory": [
+    {
+      "version": "v106",
+      "date": "2026-11-25",
+      "message": "App-Version an das v2.xx-Format von bump_version.py angepasst"
+    },
+    {
+      "version": "v105",
+      "date": "2026-11-25",
+      "message": "Schriftstufen-Markierungen an den fünf Regler-Rastpunkten ausgerichtet"
+    },
+    {
+      "version": "v104",
+      "date": "2026-11-25",
+      "message": "Schriftregler auf fünf Stufen erweitert"
+    },
+    {
+      "version": "v103",
+      "date": "2026-11-25",
+      "message": "Versionsverläufe direkt über die Versionskarten aufrufbar"
+    },
+    {
+      "version": "v102",
+      "date": "2026-11-25",
+      "message": "Closed-Loop zentralisiert; Basis- und Issue-Tests getrennt"
+    },
+    {
+      "version": "v101",
+      "date": "2026-11-25",
+      "message": "Gruppenansprache vereinheitlicht; Motorradmodell neutralisiert"
+    },
+    {
+      "version": "v100",
+      "date": "2026-11-25",
+      "message": "Galerie umbenannt; Einstellungsbutton responsiv ausgerichtet"
+    },
+    {
+      "version": "v99",
+      "date": "2026-11-25",
+      "message": "Visuelle Closed-Loop-Prüfung mit Playwright (Prüfbericht und Screenshots) eingerichtet"
+    },
+    {
+      "version": "v98",
+      "date": "2026-11-25",
+      "message": "Cache-Version nachgezogen (sw.js und Versionsdatei wieder synchronisiert)"
+    },
     {
       "version": "v97",
       "date": "2026-11-25",
@@ -39,6 +84,36 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.94",
+      "date": "2026-11-25",
+      "message": "style: Einstellungs-Verlaeufe kompakt und scrollbar gestaltet (v2.91 / v97)"
+    },
+    {
+      "version": "v2.93",
+      "date": "2026-11-25",
+      "message": "Zahlen des fünfstufigen Schriftreglers an den Rastpunkten ausgerichtet"
+    },
+    {
+      "version": "v2.92.04",
+      "date": "2026-11-25",
+      "message": "Schriftregler ergänzt fünfte Stufe Extra groß"
+    },
+    {
+      "version": "v2.92.03",
+      "date": "2026-11-25",
+      "message": "Einstellungsdialog: Versionsverläufe über die Versionskarten geöffnet"
+    },
+    {
+      "version": "v2.92.02",
+      "date": "2026-11-25",
+      "message": "Roadbook-Texte auf Gruppenansprache umgestellt; Motorradmodell neutralisiert"
+    },
+    {
+      "version": "v2.92.01",
+      "date": "2026-11-25",
+      "message": "Galerie statt Medien; Einstellungsbutton im Header responsiv ausgerichtet"
+    },
     {
       "version": "v2.92",
       "date": "2026-11-25",

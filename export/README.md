@@ -7,6 +7,18 @@ ist [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md).
 `ARBEITSSTAND.md` hält den aktuellen Stand, wesentliche Entscheidungen und die
 Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
 
+## Dokumentenaufteilung
+
+- [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md) ist führend für
+  technische Anforderungen, Architektur, Datenmodell, PWA, Qualitätssicherung
+  und Agenten-Workflow.
+- [Pflichtenheft V5](../docs/Balkan_Tour_Pflichtenheft_V5.md) enthält das
+  Produkt- und Fachziel für Tour und Roadbook.
+- [ARBEITSSTAND.md](./ARBEITSSTAND.md) ist das Daily und führt ausschließlich
+  aktuellen Stand, Chronologie, offene Entscheidungen und nächste Schritte.
+- Die früheren V5-Pfade unter `docs/V5/` sind Verweise, keine parallelen
+  Spezifikationen oder To-do-Listen. V4-Dateien bleiben erhalten.
+
 ## Pflege
 
 - Vor Änderungen die vorhandene README und den Arbeitsstand lesen und
@@ -31,21 +43,29 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
   indizieren und den Indexstatus prüfen. Künftige Dateien unter
   `daten/chat_verlauf/` sind durch ihre `.gitignore` bewusst sowohl vom
   Git-Upload als auch von der Codebase-Memory-Indexierung ausgeschlossen.
-- Bei jeder Änderung unter `web/` Cache-Version in `web/public/sw.js` um 1
-  erhöhen, `serviceWorkerCache` und `serviceWorkerHistory` in
-  `web/public/version.json` synchron halten und passende Node-Tests ergänzen.
-  Sichtbare oder fachliche App-Änderungen erhalten zusätzlich eine neue
-  App-Version und einen Eintrag in `history`; rein technische Änderungen
-  erhöhen nur den Service-Worker-Stand.
+- Verbindliche Test-, Build-, Visual-, Versions- und Daily-Regeln stehen im
+  [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md), Abschnitte 5–7.
 
 ## Aktueller Web-Stand – 2026-11-25
 
-- App-Version `v2.91`; Service-Worker-Cache `v97`. Die beiden Versionen und
+- App-Version `v2.93`; Service-Worker-Cache `v106`. Die beiden Versionen und
   Verläufe sind in `../web/public/version.json` synchron dokumentiert.
-- Die Einstellungen zeigen App- und Cache-Version nebeneinander; die getrennten
-  Verlaufslisten sind standardmäßig eingeklappt. Tests und Build sind
-  erfolgreich; die tatsächliche Darstellung im Browser und auf Geräten ist
-  noch visuell zu prüfen. Details, offene Punkte und nächste Schritte stehen in
+- Die App führt die Ansichten Etappen, Galerie und Logistik; im
+  Einstellungsdialog liegen die klickbaren Versionskarten unter dem
+  Aktualisierungsbutton und öffnen ihre Verläufe direkt darunter, jeweils
+  exklusiv. Der fünfstufige Schriftregler reicht von Klein bis Extra groß.
+  UI und Roadbook sprechen die Reisegruppe in der Mehrzahl an; ein konkretes
+  Motorradmodell bleibt offen. Basis- und issue-spezifische Regressionstests
+  sind getrennt.
+  19/19 Node-Tests und Produktionsbuild bestanden. Der
+  Playwright-Closed-Loop besteht 100/100 Prüfungen und erzeugte 24 Screenshots
+  für vier Viewports (375, 412, 768 und 1280 px), einschließlich Dialog und
+  beider geöffneter Historien bei Schriftstufe 5/5; Ergebnisse stehen im
+  [`web/.visual-report/REPORT.md`](../web/.visual-report/REPORT.md). Die
+  fünf Zahlenmarken liegen dort an allen Viewports mit 0,0 px Abweichung
+  unter den Rastpunkten 0/25/50/75/100 %. Dies
+  ersetzt keine reale iOS-/Android-/Offline-Abnahme. Details, offene Punkte
+  und nächste Schritte stehen in
   [ARBEITSSTAND.md](./ARBEITSSTAND.md).
 
 ## Dateien
@@ -92,15 +112,15 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
 - Der Web-Build erzeugt das GPX-ZIP aus den 22 Tagesdateien. D19 ist darin
   als Seetag ohne Straßen-Track enthalten; die Straßen-Tracks sind vorläufige
   OSRM-PKW-Routen und müssen vor der Tour geprüft werden.
-- [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – fachliche und
-  technische Projektvorgaben.
-- [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md) –
-  konsolidierte Fortschreibung mit Landingpage-, Datenqualitäts-, Logistik-,
-  Offline-, Medien- und App-weiten Agentenanforderungen.
-- [Master-Ablaufplan V5](../docs/V5/master_ablauf_prompt_plan_v5.md) –
-  phasenweiser Umsetzungs-, Agenten- und Abnahmeplan.
-- [To-do-Plan V5](../docs/V5/todo_plan_v5.md) – priorisierte Aufgaben,
-  Abhängigkeiten und Abnahmekriterien für V5.
+- [Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md) – technische
+  Vorgaben und Architektur.
+- [Pflichtenheft V5](../docs/Balkan_Tour_Pflichtenheft_V5.md) – Produkt- und
+  Fachanforderungen.
+- [V5-Daily](./ARBEITSSTAND.md) – aktueller Projektstand und offene Arbeiten.
+- [Früherer V5-To-do-Pfad](../docs/V5/todo_plan_v5.md) – Verweis auf das
+  Daily; die Liste wird dort nicht parallel weitergeführt.
+- [Pflichtenheft V4](../docs/Balkan_Tour_Pflichtenheft_V4.md) – erhaltene
+  Vorgängergrundlage; bis zur ausdrücklichen V5-Freigabe maßgeblich.
 - [Master-Ablaufplan V4](../docs/master_ablauf_prompt_plan_v4.md) – Agenten-
   und Automatisierungsplan.
 - [To-do-Plan V4](../docs/todo_plan_v4.md) – Projektphasen und offene

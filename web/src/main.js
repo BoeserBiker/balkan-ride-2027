@@ -23,9 +23,15 @@ const SETTINGS_KEYS = {
 };
 const APP_CACHE_PREFIX = 'balkan-ride-shell-';
 const THEMES = new Set(['default', 'schalke', 'bvb']);
-const FONT_SIZES = new Set(['1', '2', '3', '4']);
+const FONT_SIZES = new Set(['1', '2', '3', '4', '5']);
 const LEGACY_FONT_SIZES = { normal: '2', large: '4' };
-const FONT_SIZE_LABELS = { 1: 'Klein', 2: 'Normal', 3: 'Groß', 4: 'Sehr groß' };
+const FONT_SIZE_LABELS = {
+  1: 'Klein',
+  2: 'Normal',
+  3: 'Groß',
+  4: 'Sehr groß',
+  5: 'Extra groß',
+};
 const mediaAssets = import.meta.glob('../../assets/media/**/*.{avif,gif,jpeg,jpg,png,webp,mp4,webm}', {
   eager: true,
   query: '?url',
@@ -86,6 +92,7 @@ function initializeSettings() {
   const navigationSelect = dialog.querySelector('#navigation-app');
   const refreshButton = dialog.querySelector('#refresh-app');
   const status = dialog.querySelector('#settings-status');
+  const historyToggles = [...dialog.querySelectorAll('[data-version-history-toggle]')];
   let onThemeChange = () => {};
 
   function applyTheme(theme, persist = false) {
@@ -106,7 +113,7 @@ function initializeSettings() {
     root.dataset.fontSize = size;
     fontSlider.value = size;
     fontSlider.setAttribute('aria-valuetext', FONT_SIZE_LABELS[size]);
-    fontValue.textContent = `${size}/4 · ${FONT_SIZE_LABELS[size]}`;
+    fontValue.textContent = `${size}/5 · ${FONT_SIZE_LABELS[size]}`;
     dialog.querySelectorAll('[data-font-step]').forEach((step) => {
       step.classList.toggle('is-active', step.dataset.fontStep === size);
     });
@@ -126,6 +133,18 @@ function initializeSettings() {
   navigationSelect.addEventListener('change', () => {
     setNavigationApp(navigationSelect.value);
     updateNavigationLinks();
+  });
+
+  historyToggles.forEach((button) => {
+    button.addEventListener('click', () => {
+      const shouldExpand = button.getAttribute('aria-expanded') !== 'true';
+      historyToggles.forEach((toggleButton) => {
+        const history = document.getElementById(toggleButton.getAttribute('aria-controls'));
+        const expanded = toggleButton === button && shouldExpand;
+        toggleButton.setAttribute('aria-expanded', String(expanded));
+        history.hidden = !expanded;
+      });
+    });
   });
 
   toggle.addEventListener('click', () => {
@@ -202,7 +221,7 @@ function renderShell() {
       <div class="header-navigation">
         <nav class="site-nav" aria-label="Hauptnavigation">
           <a href="#roadbook">Etappen</a>
-          <a href="#media">Medien</a>
+          <a href="#media">Galerie</a>
           <a href="#logistics">Logistik</a>
         </nav>
         <div class="header-tools">
@@ -237,7 +256,7 @@ function renderShell() {
             <div>
               <p class="eyebrow">DIE TOUR · ${roadbookDays.length} TAGE UNTERWEGS</p>
               <h1>Der Balkan ruft.</h1>
-              <p class="intro">${roadbookDays.length} Tage. Eine Menge Kehren. Dein digitales Roadbook für die große Runde.</p>
+              <p class="intro">${roadbookDays.length} Tage. Eine Menge Kehren. Euer digitales Roadbook für die große Runde.</p>
             </div>
             <div class="day-count"><strong id="day-count">00</strong><span>ETAPPEN<br>IM ROADBOOK</span></div>
           </div>
@@ -258,7 +277,7 @@ function renderShell() {
       <section id="media" class="media-page" aria-labelledby="media-title">
         <div class="section-heading">
           <p class="eyebrow">FOTOS · VIDEOS · ETAPPEN</p>
-          <h2 id="media-title">Momente der Tour.</h2>
+          <h2 id="media-title">Galerie der Tour.</h2>
           <p>Alle Bilder und Videos aus dem Roadbook, gesammelt an einem Ort.</p>
         </div>
         <div class="media-gallery-toolbar">
@@ -290,7 +309,7 @@ function renderShell() {
           <p>Die wichtigsten Punkte für Papiere, Pässe, Sprit und Schrauberei.</p>
         </div>
         <div id="logistics-checklist" class="checklist-grid"></div>
-        <p class="checklist-note">Deine Häkchen werden auf diesem Gerät gespeichert.</p>
+        <p class="checklist-note">Eure Häkchen werden auf diesem Gerät gespeichert.</p>
       </section>
     </main>
 
@@ -304,7 +323,7 @@ function renderShell() {
       <span>BALKAN-RIDE 2027 · ROADBOOK</span>
     </footer>
 
-    <dialog id="lightbox" class="lightbox" aria-label="Medienansicht">
+    <dialog id="lightbox" class="lightbox" aria-label="Galerieansicht">
       <button class="lightbox-close" type="button" aria-label="Bildansicht schließen">SCHLIESSEN <span aria-hidden="true">×</span></button>
       <div class="lightbox-media">
         <img alt="" hidden>
@@ -349,33 +368,37 @@ function renderShell() {
       <fieldset class="settings-group">
         <legend>Schriftgröße / Handschuh-Modus</legend>
         <div class="font-size-control">
-          <input id="font-size-range" class="font-size-range" type="range" min="1" max="4" step="1" value="2" aria-label="Schriftgröße, Stufe 1 bis 4" list="font-size-steps">
+          <input id="font-size-range" class="font-size-range" type="range" min="1" max="5" step="1" value="2" aria-label="Schriftgröße, Stufe 1 bis 5" list="font-size-steps">
           <ol id="font-size-steps" class="font-size-steps" aria-hidden="true">
-            <li data-font-step="1">1</li><li data-font-step="2">2</li><li data-font-step="3">3</li><li data-font-step="4">4</li>
+            <li data-font-step="1">1</li><li data-font-step="2">2</li><li data-font-step="3">3</li><li data-font-step="4">4</li><li data-font-step="5">5</li>
           </ol>
           <output id="font-size-value" class="font-size-value" for="font-size-range" aria-live="polite"></output>
         </div>
       </fieldset>
+      <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
+      <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
       <section class="version-current-grid" aria-label="Aktueller Versionsstand">
-        <div class="version-current-card">
-          <span class="version-current-label">App-Version</span>
-          <strong id="version-current">lädt …</strong>
+        <div class="version-current-item">
+          <button id="app-version-toggle" class="version-current-card" type="button" aria-expanded="false" aria-controls="app-version-history" data-version-history-toggle>
+            <span class="version-current-label">App-Version</span>
+            <strong id="version-current">lädt …</strong>
+            <span class="version-history-indicator" aria-hidden="true">▾</span>
+          </button>
+          <section id="app-version-history" class="settings-history" aria-labelledby="app-version-toggle" hidden>
+            <ol id="app-version-history-list" class="version-history-list"></ol>
+          </section>
         </div>
-        <div class="version-current-card">
-          <span class="version-current-label">Service-Worker-Cache</span>
-          <strong id="service-worker-current">lädt …</strong>
+        <div class="version-current-item">
+          <button id="service-worker-version-toggle" class="version-current-card" type="button" aria-expanded="false" aria-controls="service-worker-version-history" data-version-history-toggle>
+            <span class="version-current-label">Service-Worker-Cache</span>
+            <strong id="service-worker-current">lädt …</strong>
+            <span class="version-history-indicator" aria-hidden="true">▾</span>
+          </button>
+          <section id="service-worker-version-history" class="settings-history" aria-labelledby="service-worker-version-toggle" hidden>
+            <ol id="service-worker-history-list" class="version-history-list"></ol>
+          </section>
         </div>
       </section>
-      <details id="app-version-history" class="settings-history">
-        <summary>App-Versionsverlauf</summary>
-        <ol id="app-version-history-list" class="version-history-list"></ol>
-      </details>
-      <details id="service-worker-version-history" class="settings-history">
-        <summary>Service-Worker- / Cache-Verlauf</summary>
-        <ol id="service-worker-history-list" class="version-history-list"></ol>
-      </details>
-      <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
-      <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
     </dialog>
   `;
 }
