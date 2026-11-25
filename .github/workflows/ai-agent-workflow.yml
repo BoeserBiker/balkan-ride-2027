@@ -55,6 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/agent_runner.py
 
+  # Erzeugt nur einen lokalen Commit samt Bundle: kein Push, kein Schreibzugriff auf das Repository.
   implement-generate:
     if: |
       github.event_name == 'issue_comment' &&
@@ -69,43 +70,80 @@ jobs:
       group: roadbook-implement-${{ github.event.issue.number }}
       cancel-in-progress: false
     permissions:
-      contents: write
+      contents: read
       issues: write
+    outputs:
+      base_sha: ${{ steps.runner.outputs.base_sha }}
+      head_sha: ${{ steps.runner.outputs.head_sha }}
+      bundle_sha256: ${{ steps.runner.outputs.bundle_sha256 }}
+      plan_sha256: ${{ steps.runner.outputs.plan_sha256 }}
+      artifact_name: ${{ steps.runner.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v6
         with:
           ref: main
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: python -m pip install requests anthropic PyYAML
       - run: python -m unittest discover -s .github/scripts -p test_agent_runner.py
-      - name: Stufe 2a - Änderungen erzeugen und Feature-Branch pushen
+      - name: Stufe 2a - Änderungen erzeugen und als Bundle ablegen
+        id: runner
         env:
           MODE: implement
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-sonnet-5-5' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUNDLE_DIR: ${{ runner.temp }}/implement-bundle
+          ARTIFACT_NAME: implement-bundle-${{ github.run_id }}-${{ github.run_attempt }}
         run: python .github/scripts/agent_runner.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.runner.outputs.artifact_name }}
+          path: ${{ runner.temp }}/implement-bundle
+          retention-days: 1
+          if-no-files-found: error
 
-  # Führt den erzeugten Code aus: ohne API-Key, ohne Token-Umgebung und nur mit Leserechten.
+  # Führt den erzeugten Code aus: ohne API-Key, ohne Token und nur mit Leserechten.
+  # Der Runner-Code stammt aus dem Basisstand; geprüft wird genau der erzeugte Commit.
   implement-verify:
     needs: implement-generate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: feature/issue-${{ github.event.issue.number }}
+          ref: ${{ needs.implement-generate.outputs.base_sha }}
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: python -m pip install requests PyYAML
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.implement-generate.outputs.artifact_name }}
+          path: ${{ runner.temp }}/bundle
+      - name: Gate - Bundle, Commit, Pfade und Versionsschritt prüfen
+        env:
+          MODE: gate
+          BUNDLE_FILE: ${{ runner.temp }}/bundle/implement.bundle
+          BASE_SHA: ${{ needs.implement-generate.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.implement-generate.outputs.head_sha }}
+          BUNDLE_SHA256: ${{ needs.implement-generate.outputs.bundle_sha256 }}
+        run: python .github/scripts/agent_runner.py
+      - name: Geprüften Commit auschecken
+        env:
+          HEAD_SHA: ${{ needs.implement-generate.outputs.head_sha }}
+        run: git checkout --detach "$HEAD_SHA"
       - name: Agenten-Tests
         run: python -m unittest discover -s .github/scripts -p test_agent_runner.py
+      - name: Python-Tests (Web und Skripte)
+        run: |
+          python -m unittest discover -s web/tests -p "test_*.py"
+          python -m unittest discover -s scripts -p "test_*.py"
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -118,13 +156,29 @@ jobs:
         run: node --test web/tests/*.test.js
       - name: Produktionsbuild
         run: npm run build --prefix web
+      - name: Chromium für den Visual-Check installieren
+        run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Visual-Check (blockierend)
+        run: npm run test:visual --prefix web
+      - name: Visual-Bericht sichern
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-report-issue-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: web/.visual-report/
+          if-no-files-found: warn
 
+  # Pusht genau den geprüften Commit und öffnet den PR. Führt keinen Code aus dem Artefakt aus.
   implement-publish:
-    needs: implement-verify
+    needs: [implement-generate, implement-verify]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: roadbook-publish-${{ github.event.issue.number }}
+      cancel-in-progress: false
     permissions:
-      contents: read
+      contents: write
       issues: write
       pull-requests: write
     steps:
@@ -132,20 +186,29 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - run: python -m pip install requests anthropic PyYAML
-      - name: Stufe 2b - Diff prüfen und Pull Request eröffnen
+      - run: python -m pip install requests PyYAML
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.implement-generate.outputs.artifact_name }}
+          path: ${{ runner.temp }}/bundle
+      - name: Stufe 2b - Prüfungen wiederholen, Commit pushen und Pull Request eröffnen
         env:
           MODE: publish
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUNDLE_FILE: ${{ runner.temp }}/bundle/implement.bundle
+          BASE_SHA: ${{ needs.implement-generate.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.implement-generate.outputs.head_sha }}
+          BUNDLE_SHA256: ${{ needs.implement-generate.outputs.bundle_sha256 }}
+          PLAN_SHA256: ${{ needs.implement-generate.outputs.plan_sha256 }}
+          VISUAL_ARTIFACT: visual-report-issue-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: python .github/scripts/agent_runner.py
 
   implement-report:
-    needs: implement-verify
-    if: ${{ always() && (needs.implement-verify.result == 'failure' || needs.implement-verify.result == 'cancelled') }}
+    needs: [implement-generate, implement-verify, implement-publish]
+    if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -159,11 +222,15 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - run: python -m pip install requests anthropic PyYAML
+      - run: python -m pip install requests PyYAML
       - name: Fehlschlag melden
         env:
           MODE: report
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GENERATE_RESULT: ${{ needs.implement-generate.result }}
+          VERIFY_RESULT: ${{ needs.implement-verify.result }}
+          PUBLISH_RESULT: ${{ needs.implement-publish.result }}
+          VISUAL_ARTIFACT: visual-report-issue-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: python .github/scripts/agent_runner.py
 
   plan-report:
@@ -176,15 +243,30 @@ jobs:
     steps:
       - name: Fehlschlag melden
         uses: actions/github-script@v8
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            await github.rest.issues.createComment({
+            const attempt = Number(process.env.RUN_ATTEMPT);
+            const marker = `<!-- roadbook-run:${attempt > 1 ? `${process.env.RUN_ID}-${attempt}` : process.env.RUN_ID} -->`;
+            const params = {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
+            };
+            const comments = await github.paginate(github.rest.issues.listComments, params);
+            if (comments.some((comment) => comment.body.includes(marker))) {
+              return;
+            }
+            await github.rest.issues.createComment({
+              ...params,
               body: [
                 'Die Planerstellung ist fehlgeschlagen; es wurde kein Umsetzungsplan erzeugt.',
                 '',
-                '[Details im GitHub-Actions-Lauf](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})',
+                `[Details im GitHub-Actions-Lauf](${process.env.RUN_URL})`,
+                '',
+                marker,
               ].join('\n'),
             });

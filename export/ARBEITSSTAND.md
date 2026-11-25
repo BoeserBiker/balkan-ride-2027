@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.109`, Service-Worker-Cache `v122`
+- Web-Stand 2026-11-25: App-Version `v2.110`, Service-Worker-Cache `v123`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -164,6 +164,94 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – A02-2 umgesetzt (Commit-Bindung, Vorab-Prüfung, Deploy-Schutz, Visual-Gate)
+
+- **Freigaben (BB):** D-4 = S2, D-6 = relaxed, D-7 = Bundle, D-8 = zweistufig,
+  D-10 = ja, D-11 = A02-3 (später separat), D-12 = nicht ändern, D-14 = ja.
+  **D-13 ist erledigt** (siehe Arbeitspakete). A02-1 liegt auf `origin/main`
+  (`8c4e1bf`).
+- **Ablauf neu** (`.github/workflows/ai-agent-workflow.yml`):
+  `implement-generate` (nur `contents: read`/`issues: write`, Checkout ohne
+  Zugangsdaten) erzeugt einen **lokalen** Commit auf `implement`, schreibt
+  Bundle und `meta.json` und meldet `base_sha`, `head_sha`, `bundle_sha256`,
+  `plan_sha256`, `artifact_name` (Artefakt `implement-bundle-<run>-<attempt>`,
+  1 Tag). `implement-verify` (nur `contents: read`, keine Secrets, kein Token)
+  checkt den Basisstand aus, führt `MODE=gate` aus (Bundle-Prüfsumme,
+  `git bundle verify`, genau ein Agenten-Commit über `base_sha`,
+  Pfad-Allowlist, Dateimodus 100644, Text-/Etappenschema,
+  `enforce_changeset_policy`) und checkt erst danach `head_sha` aus; es folgen
+  Agenten-Tests, Python-Tests (`web/tests`, `scripts`; D-14), `npm ci`,
+  `node --test`, Build, Chromium-Installation und der **blockierende**
+  Visual-Check; der Bericht wird mit `if: always()` als Artefakt gesichert.
+  `implement-publish` (`needs` Generate und Verify; `concurrency`
+  `roadbook-publish-<n>`) führt keinen Artefaktcode aus und läuft `MODE=publish`.
+  `implement-report` und `plan-report` benennen die gescheiterte Stufe und
+  kommentieren nicht doppelt (Marker `<!-- roadbook-run:<RUN_ID> -->`; bei
+  einem Neustart desselben Laufs `<RUN_ID>-<ATTEMPT>`). Shell-Schritte nutzen
+  `env:` statt Ausdrucks-Interpolation; per Test abgesichert.
+- **Runner** (`.github/scripts/agent_runner.py`): `create_commit` (kein
+  `fetch`/`push`), `write_bundle`, `import_bundle`, `inspect_commit`,
+  `gate_bundle`, `publish_verified` mit den Prüfungen vor dem Push (Plan-Hash,
+  Bundle/SHA, Änderungen ⊆ Plan, Versionsschritt gegen `origin/main`,
+  Basis-Abgleich D-6 relaxed, fehlersensitives `git ls-remote --exit-code`
+  (nur Exit 2 gilt als „fehlt“), nur Agenten-Commits auf einem bestehenden
+  Branch, Branch-Regex `^feature/issue-[1-9][0-9]*$`,
+  `--force-with-lease=<ref>:<erwartet>`, Read-after-write) und idempotenter PR
+  (bestehender PR wird nur gemeldet). `anthropic` ist optional importiert, damit
+  Gate/Publish/Report ohne das SDK laufen. `config/commands/implement-item.md`:
+  Schlusssatz angepasst.
+- **`deploy-pages.yml`:** Upload und `deploy` nur bei `refs/heads/main`
+  (zusätzlich zur Environment-Regel); Python-Tests, Playwright-Installation und
+  Visual-Check vor dem Pages-Artefakt; Bericht-Artefakt `visual-report`.
+  **Rollout D-8:** `continue-on-error` hängt an der Repository-Variable
+  `VISUAL_GATE_BLOCKING`. Solange sie nicht `true` ist, wird der erste
+  Linux-Lauf nur gemessen; nach einem ausgewerteten Lauf setzt BB die Variable
+  (keine Code-Änderung nötig). `web/scripts/visual-check.mjs` blieb unverändert.
+- **Tests:** Runner-Tests 125 (vorher 85): echte Git-Integrationstests mit
+  lokalem Bare-Remote (Commit nur lokal, Bundle-Roundtrip, Manipulation, Gate,
+  Push exakt des geprüften SHA, Lease, leere Erwartung, fehlerhafter Remote,
+  fremde Commits, wiederholter Lauf, veraltete Basis in drei Fällen, PR-
+  Idempotenz), Report-/Marker-Tests und `WorkflowPolicyTests` (PyYAML). In
+  `features.test.js` entfielen der Workflow-Quelltexttest und die
+  Playwright-redundanten Assertions (Geometrie-/Abstands-CSS, Router-,
+  Dialog- und Verlauf-Quelltexte; 149 → 68 `assert`-Zeilen in der Datei seit
+  Beginn von A02-1). **Bewusst behalten** (kein Playwright-Gegenstück): die
+  Speicher-Schlüssel `SETTINGS_KEYS`, die Etappen-Beschriftung, die
+  Fahrzeit-Varianten (`.duration-*`), `[hidden]` und die
+  Quelltext-Verbotsliste in `main.js`.
+- **Verifikation (lokal, Python 3.13 in frischer Umgebung nur mit `requests`
+  und `PyYAML`, wie im CI):** Runner 125/125, `web/tests` 2/2, `scripts` 20/20,
+  `node --test web/tests/*.test.js` 20/20 (vorher 21; der Workflow-Text-Test
+  entfiel), `npm run build --prefix web` erfolgreich,
+  `npm run test:visual --prefix web` **100/100 PASS** in vier Viewports (375,
+  412, 768, 1280 px; 0 FAIL, 24 Screenshots, keine Konsolenfehler,
+  [Prüfbericht](../web/.visual-report/REPORT.md)), `actionlint` 1.7.12 ohne
+  Befund, Python-3.10-Syntax der Runner-Dateien geprüft.
+  **Gegenproben** (jeweils nachweislich rot, danach zurückgesetzt): (A)
+  `ls-remote`-Fehler wie „Branch fehlt“ behandelt → 1 Test rot; (B) Lease durch
+  `--force` ersetzt → 2 Tests rot; (C) `continue-on-error` am Visual-Check im
+  Verify → Richtlinientest rot. Für Git wurden vorab Bundle-Roundtrip, Lease
+  (leer, korrekt, veraltet) und `ls-remote`-Exitcodes (0/2/128) in einem
+  lokalen Test-Repository nachgewiesen.
+- **Nicht geprüft:** ein Live-Lauf in GitHub Actions (Bundle-Artefakt,
+  `upload-artifact@v7`/`download-artifact@v8` – die Tags existieren laut
+  GitHub-API, wurden aber nicht ausgeführt), Chromium-Start auf Ubuntu-Runnern,
+  Python 3.10 des Workflows, reale Geräte.
+- **Hinweise:** (1) `implement-publish` behält die Checkout-Zugangsdaten (nötig
+  für den Push); es führt dort keinen Artefaktcode aus. (2) Das Gate im
+  Verify kennt die Versionsstufe des Plans nicht (offline); sie wird beim
+  Veröffentlichen geprüft. (3) Der Visual-Check blockiert Agenten-PRs sofort;
+  scheitert er auf Linux aus Umgebungsgründen, muss er angepasst werden
+  (Plan D-8). (4) Der lokale Pre-Commit-Hook erhöht beim Commit Version und
+  Cache; App-Code blieb unverändert, daher keine Versionsänderung in diesem
+  Schritt (Stand `v2.110` / `v123`). (5) Die Änderungen liegen nur lokal im
+  Arbeitsbaum; kein Pull, Commit oder Push. Vor dem Merge dürfen keine
+  Implementierungsläufe laufen oder warten.
+- **Nächste Schritte:** Maintainer-Commit durch BB, **Live-Abnahme von A02-2**
+  (grünes und absichtlich rotes Test-Issue), Auswertung des ersten
+  Pages-Visual-Laufs und Setzen von `VISUAL_GATE_BLOCKING=true`; danach
+  **P01/P02 (Tour-Landingpage)** und A02-3.
 
 ### 2026-11-25 – A02-1 umgesetzt (Plan-Vollständigkeit, Versionsschritt, robuste Tests)
 
@@ -1326,22 +1414,28 @@ stehen in den beiden V5-Spezifikationen.
   informativ (keine Filter-/Teilnahmebedingung).
 - [x] **A01:** App-weite Agentenfähigkeit umgesetzt; erfolgreicher Live-
   Durchlauf mit gemergtem [PR #23](https://github.com/BoeserBiker/balkan-ride-2027/pull/23).
-- [ ] **A02:** Workflow-Härtung nach
+- [x] **A02-2/A02:** Workflow-Härtung nach
   [Detailplan_A02.md](../docs/V5/Detailplan_A02.md) und
-  [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md);
-  vor P01/P02, U01 und D01–D08 über den Agentenworkflow; jeweils als direkt
-  von BB autorisierter Maintainer-PR.
+  [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md)
+  in den Paketen A02-1 und A02-2 umgesetzt und lokal verifiziert; wirksam auf
+  `main` erst nach dem von BB autorisierten Maintainer-Commit (`.github/`,
+  `config/commands/`). Offen bleibt die Live-Abnahme (siehe unten) und die
+  Störungsbehandlung A02-3.
   - [x] **A02-1** (Plan-Vollständigkeit, Versionsschritt, robuste Tests):
-    lokal umgesetzt und verifiziert (Runner 85/85, Node 21/21, Build, Visual
-    100/100); wirksam erst nach dem Maintainer-Commit (siehe Chronologie).
-  - [ ] **A02-2 – nächster unmittelbarer Schritt:** Commit-Bindung per Bundle,
-    isolierte Prüfung vor dem Push (`implement-generate` ohne Push und ohne
-    `contents: write`), Visual-Gate T01 in `implement-verify` und
-    `deploy-pages.yml` (zweistufig), Deploy-Guard auf `main`, Git-Integrations-
-    und Workflow-Richtlinientests, danach Entfernen der noch bewusst
-    behaltenen Quelltext-/CSS-Assertions (D-4 = S2).
+    auf `origin/main` (`8c4e1bf`).
+  - [x] **A02-2** (Commit-Bindung per Bundle, isolierte Prüfung vor dem Push,
+    Deploy-Guard, Visual-Gate): lokal umgesetzt (Runner 125/125, Node 20/20,
+    Python-Tests Web 2/2 und Skripte 20/20, Build, Visual 100/100,
+    `actionlint` ohne Befund); Details in der Chronologie.
+  - [ ] **Live-Abnahme A02-2 – nächster unmittelbarer Schritt:** nach dem
+    Maintainer-Commit zwei Test-Issues (grün und absichtlich rot) durch Plan →
+    Freigabe → Verify → PR führen; im roten Fall darf kein `feature/issue-*`
+    entstehen. Davor keine Implementierungsläufe laufen oder warten lassen.
   - [ ] **A02-3** (Störungsbehandlung): SDK/Abhängigkeiten pinnen,
     Retry-/Timeout-Budget, Token-Vorabschätzung (D-11).
+- [x] **D-13:** `feature/issue-24` gelöscht und „Branch nach Merge löschen“
+  aktiviert (von BB auf GitHub erledigt; per `gh` bestätigt:
+  `deleteBranchOnMerge: true`, `feature/issue-24` nicht mehr vorhanden).
 - **A03:** Zuvor gemeinsam mit A01–A03 als lokal geprüft aufgeführt
   (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
@@ -1357,9 +1451,16 @@ stehen in den beiden V5-Spezifikationen.
   Performance samt Leerzuständen prüfen.
 - [ ] **W01–W02:** PWA-Offlineumfang und Aktualisierung auf iOS/Android
   getrennt abnehmen.
-- [ ] **T01–T04:** Tests/CI, mobilen Agenten-End-to-End-Lauf, Gesamt- und
-  Live-Abnahme abschließen; das Visual-Gate T01 ist Bestandteil von A02.
-  Der Visual-Check ist bis zum nachgewiesenen Actions-Gate lokal verpflichtend.
+- [x] **T01:** Visual-Gate (`npm run test:visual --prefix web`) in den
+  Workflows eingerichtet: in `implement-verify` blockierend (ohne
+  `continue-on-error`, Bericht als Artefakt auch bei Fehler); in
+  `deploy-pages.yml` zweistufig (D-8): solange die Repository-Variable
+  `VISUAL_GATE_BLOCKING` nicht `true` ist, wird der erste Linux-Lauf nur
+  gemessen. **Nachweis offen:** Ein Actions-Lauf mit dem Gate wurde noch nicht
+  ausgeführt; bis dahin darf er nicht als nachgewiesen gelten (Lastenheft §5).
+- [ ] **T02–T04:** Mobilen Agenten-End-to-End-Lauf, Gesamt- und
+  Live-Abnahme abschließen; der Visual-Check bleibt bis zum nachgewiesenen
+  Actions-Gate lokal verpflichtend.
 
 ## Relevante Quellen
 

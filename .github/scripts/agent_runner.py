@@ -6,7 +6,10 @@ import subprocess
 from datetime import date
 from pathlib import Path, PurePosixPath
 
-import anthropic
+try:
+    import anthropic
+except ImportError:  # gate/publish/report brauchen das SDK nicht
+    anthropic = None
 import requests
 import yaml
 
@@ -29,7 +32,7 @@ PLAN_CONTEXT_BYTES = 45000
 MAX_CHANGESET_BYTES = 1024 * 1024
 PLAN_HEADING = "## Umsetzungsplan"
 APPROVAL = "/implement-item"
-APPROVED_MODES = {"implement", "publish", "report"}
+APPROVED_MODES = {"implement", "gate", "publish", "report"}
 PLAN_FOOTER = (
     "*Freigabe erteilen: Kommentiere mit `/implement-item`, "
     "um die Umsetzung als Pull Request zu starten.*"
@@ -72,6 +75,19 @@ TEST_HINTS = {
     "web/public/version.json": "web/tests/baseline.test.js",
 }
 RUN_MARKER = "<!-- roadbook-run:{run_id} -->"
+AGENT_NAME = "AI Roadbook Agent"
+AGENT_EMAIL = "agent@balkan-ride.local"
+FEATURE_BRANCH = re.compile(r"feature/issue-[1-9][0-9]*")
+SHA1 = re.compile(r"[0-9a-f]{40}")
+SHA256 = re.compile(r"[0-9a-f]{64}")
+LOCAL_BRANCH = "implement"
+BUNDLE_NAME = "implement.bundle"
+VERIFIED_REF = "refs/agent/verified"
+STAGES = (
+    ("generate", "Änderungen erzeugen (implement-generate)"),
+    ("verify", "Prüfung mit Tests, Build und Visual-Check (implement-verify)"),
+    ("publish", "Veröffentlichung (implement-publish)"),
+)
 PLAN_ITEM = re.compile(r"- `[^`\n]+`[^`\n]*")
 
 
@@ -310,6 +326,8 @@ def validate_stage(path: str, text: str, old: str | None = None) -> dict:
 def ask_model(mode: str, context: dict, extra_rules: str) -> str:
     command = {"plan": "plan-item", "implement": "implement-item"}[mode]
     rules = (ROOT / "config" / "commands" / f"{command}.md").read_text(encoding="utf-8")
+    if anthropic is None:
+        raise RuntimeError("Das Python-Paket anthropic ist nicht installiert.")
     client = anthropic.Anthropic(timeout=90)
     budgets = (6000,) if mode == "plan" else (16000, 32000)
     for max_tokens in budgets:
@@ -602,12 +620,31 @@ def git(*args: str) -> None:
     subprocess.run(["git", "--no-pager", *args], cwd=ROOT, check=True)
 
 
+def git_out(*args: str) -> str:
+    result = subprocess.run(
+        ["git", "--no-pager", *args], cwd=ROOT, check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    return result.stdout.strip()
+
+
+def git_ok(*args: str) -> bool:
+    return subprocess.run(
+        ["git", "--no-pager", *args], cwd=ROOT, capture_output=True,
+    ).returncode == 0
+
+
 def git_show(ref: str, path: str) -> str | None:
     result = subprocess.run(
         ["git", "--no-pager", "show", f"{ref}:{path}"],
-        cwd=ROOT, capture_output=True, text=True,
+        cwd=ROOT, capture_output=True,
     )
-    return result.stdout if result.returncode == 0 else None
+    if result.returncode != 0:
+        return None
+    try:
+        return result.stdout.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"{path}: Kein UTF-8-Text.") from error
 
 
 def git_paths(*args: str) -> set[str]:
@@ -619,6 +656,38 @@ def git_paths(*args: str) -> set[str]:
 
 def branch_name(issue: dict) -> str:
     return f"feature/issue-{issue['number']}"
+
+
+def push_branch(issue: dict) -> str:
+    """Einziges erlaubtes Pushziel: feature/issue-<nummer>; niemals main oder fremde Branches."""
+    branch = branch_name(issue)
+    if (
+        branch == "main" or not FEATURE_BRANCH.fullmatch(branch)
+        or branch != f"feature/issue-{int(issue['number'])}"
+    ):
+        raise ValueError(f"Unsicherer Zielbranch für den Push: {branch}")
+    return branch
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def run_marker() -> str:
+    run_id = os.environ["GITHUB_RUN_ID"]
+    attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
+    return RUN_MARKER.format(run_id=run_id if attempt in ("", "1") else f"{run_id}-{attempt}")
+
+
+def write_outputs(values: dict[str, str]) -> None:
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        for key, value in values.items():
+            if "\n" in value or "\r" in value:
+                raise ValueError(f"Ungültiger Ausgabewert für {key}.")
+            handle.write(f"{key}={value}\n")
 
 
 def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, number: int) -> None:
@@ -657,39 +726,183 @@ def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, n
     raise ValueError("Ungültiger Modus oder Event.")
 
 
-def commit_branch(issue: dict, changes: dict[str, str]) -> None:
+def create_commit(issue: dict, changes: dict[str, str]) -> tuple[str, str]:
+    """Erzeugt den Commit nur lokal (kein fetch, kein push) und liefert (base_sha, head_sha)."""
     number = issue["number"]
-    branch = branch_name(issue)
-    if branch == "main" or not branch.startswith("feature/issue-"):
-        raise ValueError(f"Unsicherer Zielbranch für den Push: {branch}")
-    git("switch", "-c", branch)
+    base_sha = git_out("rev-parse", "HEAD")
+    git("switch", "-c", LOCAL_BRANCH)
     for path, text in changes.items():
         safe_target(path).write_text(text, encoding="utf-8", newline="\n")
     git("add", "--", *changes)
     if git_paths("diff", "--cached", "--name-only", "--no-renames") != set(changes):
         raise ValueError("Die gestagten Dateien weichen von den freigegebenen Änderungen ab.")
     git(
-        "-c", "user.name=AI Roadbook Agent", "-c", "user.email=agent@balkan-ride.local",
+        "-c", f"user.name={AGENT_NAME}", "-c", f"user.email={AGENT_EMAIL}",
         "commit", "-m", f"feat: Umsetzung Issue #{number}",
     )
-    try:
-        git("fetch", "origin", f"refs/heads/{branch}:refs/remotes/origin/{branch}")
-    except subprocess.CalledProcessError:
-        pass
-    git("push", "--force-with-lease", "origin", f"refs/heads/{branch}:refs/heads/{branch}")
+    return base_sha, git_out("rev-parse", "HEAD")
 
 
-def verify_branch_diff(issue: dict, paths: set[str]) -> list[str]:
-    changed = git_paths(
-        "diff", "--name-only", "--no-renames", f"origin/main...origin/{branch_name(issue)}",
+def plan_sha256(plan: str) -> str:
+    return hashlib.sha256(plan.encode("utf-8")).hexdigest()
+
+
+def write_bundle(
+    issue: dict, plan: str, base_sha: str, head_sha: str, changed: set[str] | list[str],
+) -> str:
+    """Schreibt Bundle (genau ein Commit über base_sha) und meta.json; meldet die Anker als Outputs."""
+    directory = Path(os.environ["BUNDLE_DIR"])
+    directory.mkdir(parents=True, exist_ok=True)
+    bundle = directory / BUNDLE_NAME
+    git("bundle", "create", str(bundle), f"refs/heads/{LOCAL_BRANCH}", f"^{base_sha}")
+    digest = sha256_file(bundle)
+    plan_hash = plan_sha256(plan)
+    meta = {
+        "issue": issue["number"], "base_sha": base_sha, "head_sha": head_sha,
+        "tree_sha": git_out("rev-parse", f"{head_sha}^{{tree}}"),
+        "bundle_sha256": digest, "plan_sha256": plan_hash, "changed": sorted(changed),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+    }
+    (directory / "meta.json").write_text(
+        json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8",
     )
-    if not changed:
-        raise ValueError("Der Feature-Branch enthält keine Änderungen.")
-    for path in changed:
+    write_outputs({
+        "base_sha": base_sha, "head_sha": head_sha, "bundle_sha256": digest,
+        "plan_sha256": plan_hash, "artifact_name": os.environ.get("ARTIFACT_NAME", ""),
+    })
+    return digest
+
+
+def import_bundle(bundle: Path, base_sha: str, head_sha: str, expected_sha256: str) -> None:
+    """Prüft Bundle-Prüfsumme und -Integrität und weist nach: genau ein Agenten-Commit über base_sha."""
+    for label, value, pattern in (
+        ("BASE_SHA", base_sha, SHA1), ("HEAD_SHA", head_sha, SHA1),
+        ("BUNDLE_SHA256", expected_sha256, SHA256),
+    ):
+        if not pattern.fullmatch(value or ""):
+            raise ValueError(f"{label} ist ungültig.")
+    if not bundle.is_file() or sha256_file(bundle) != expected_sha256:
+        raise ValueError("Die Prüfsumme des Bundles weicht vom erzeugten Stand ab.")
+    git("bundle", "verify", str(bundle))
+    git("fetch", "--no-tags", str(bundle), f"+refs/heads/{LOCAL_BRANCH}:{VERIFIED_REF}")
+    if git_out("rev-parse", VERIFIED_REF) != head_sha:
+        raise ValueError("Der Commit im Bundle entspricht nicht dem erzeugten head_sha.")
+    if git_out("rev-list", "--count", f"{base_sha}..{head_sha}") != "1":
+        raise ValueError("Das Bundle muss genau einen Commit über base_sha enthalten.")
+    if git_out("rev-parse", f"{head_sha}^") != base_sha:
+        raise ValueError("Der Commit baut nicht direkt auf base_sha auf.")
+    identity = git_out("log", "-1", "--format=%an%n%ae%n%cn%n%ce", head_sha).split("\n")
+    if identity != [AGENT_NAME, AGENT_EMAIL, AGENT_NAME, AGENT_EMAIL]:
+        raise ValueError("Der Commit stammt nicht vom Roadbook-Agenten.")
+
+
+def inspect_commit(base_sha: str, head_sha: str) -> tuple[dict[str, str], dict[str, str | None]]:
+    """Liest den Änderungssatz aus Git und prüft Pfade, Dateimodus und Inhalt wie bei der Erzeugung."""
+    raw = git_out("diff", "--raw", "--no-renames", "-z", base_sha, head_sha)
+    tokens = [token for token in raw.split("\0") if token]
+    entries = []
+    index = 0
+    while index < len(tokens):
+        if not tokens[index].startswith(":") or index + 1 >= len(tokens):
+            raise ValueError("Unerwartete Ausgabe von git diff.")
+        fields = tokens[index][1:].split(" ")
+        entries.append((fields[1], fields[-1], tokens[index + 1]))
+        index += 2
+    if not entries:
+        raise ValueError("Der Commit enthält keine Änderungen.")
+    updated: dict[str, str] = {}
+    old: dict[str, str | None] = {}
+    for new_mode, status, path in entries:
         validate_repo_path(path)
-    if changed - paths:
-        raise ValueError("Der Feature-Branch ändert nicht freigegebene Dateien: " + ", ".join(sorted(changed - paths)))
-    return sorted(changed)
+        if status not in {"A", "M"} or new_mode != "100644":
+            raise ValueError(f"{path}: Nur normale Textdateien dürfen angelegt oder geändert werden.")
+        text = git_show(head_sha, path)
+        if text is None:
+            raise ValueError(f"{path}: Datei fehlt im Commit.")
+        old[path] = git_show(base_sha, path)
+        if STAGE_PATH.fullmatch(path):
+            validate_stage(path, text, old[path])
+        else:
+            validate_text_file(path, text)
+        updated[path] = text
+    if sum(len(text.encode("utf-8")) for text in updated.values()) > MAX_CHANGESET_BYTES:
+        raise ValueError("Der Commit überschreitet das Größenlimit für Änderungen.")
+    for path in VERSION_FILES:
+        old.setdefault(path, git_show(base_sha, path))
+    return updated, old
+
+
+def gate_bundle() -> None:
+    """Offline-Prüfung im Verify-Job (ohne Token und API): Bundle, Commit, Pfade, Versionsschritt."""
+    base_sha, head_sha = os.environ.get("BASE_SHA", ""), os.environ.get("HEAD_SHA", "")
+    import_bundle(
+        Path(os.environ.get("BUNDLE_FILE", "")), base_sha, head_sha,
+        os.environ.get("BUNDLE_SHA256", ""),
+    )
+    if git_out("rev-parse", "HEAD") != base_sha:
+        raise ValueError("Der Checkout entspricht nicht dem Basisstand (base_sha).")
+    updated, old = inspect_commit(base_sha, head_sha)
+    # Die Versionsstufe steht im Plan und wird erst beim Veröffentlichen geprüft.
+    enforce_changeset_policy(updated, old, "")
+    print(f"Gate bestanden: {len(updated)} Datei(en) in {head_sha[:12]} über {base_sha[:12]}.")
+
+
+def check_base_fresh(base_sha: str, main_sha: str, changed: list[str]) -> None:
+    """D-6 relaxed: Abbruch nur, wenn main seit der Generierung dieselben Dateien oder Versionsdateien berührt."""
+    if main_sha == base_sha:
+        return
+    if not git_ok("merge-base", "--is-ancestor", base_sha, main_sha):
+        raise ValueError("Der Basisstand ist nicht mehr Teil von main; bitte `/implement-item` erneut auslösen.")
+    relevant = set(changed) | (set(VERSION_FILES) if requires_version(changed) else set())
+    overlap = git_paths("diff", "--name-only", "--no-renames", base_sha, main_sha) & relevant
+    if overlap:
+        raise ValueError(
+            "Basis veraltet: main hat seit der Generierung dieselben Dateien geändert ("
+            + ", ".join(sorted(overlap)) + "). Bitte `/implement-item` erneut auslösen."
+        )
+
+
+def remote_branch_sha(branch: str) -> str | None:
+    """SHA des Remote-Branches; nur Exit-Code 2 (nicht vorhanden) gilt als fehlend, alles andere ist ein Fehler."""
+    ref = f"refs/heads/{branch}"
+    result = subprocess.run(
+        ["git", "--no-pager", "ls-remote", "--exit-code", "--heads", "origin", ref],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    if result.returncode == 2:
+        return None
+    if result.returncode != 0:
+        raise RuntimeError("Remote-Zustand nicht ermittelbar: " + result.stderr.strip()[:300])
+    found = dict(line.split("\t")[::-1] for line in result.stdout.splitlines() if "\t" in line)
+    sha = found.get(ref)
+    if sha is not None and not SHA1.fullmatch(sha):
+        raise RuntimeError("Unerwartete Ausgabe von git ls-remote.")
+    return sha
+
+
+def ensure_agent_only(branch: str, main_sha: str) -> None:
+    """Ein bestehender Branch darf nur Agenten-Commits enthalten; fremde Arbeit wird nicht überschrieben."""
+    git("fetch", "--no-tags", "origin", f"+refs/heads/{branch}:refs/remotes/origin/{branch}")
+    log = git_out("log", "--format=%an%x09%ae%x09%cn%x09%ce", f"{main_sha}..refs/remotes/origin/{branch}")
+    for line in log.splitlines():
+        if line.split("\t") != [AGENT_NAME, AGENT_EMAIL, AGENT_NAME, AGENT_EMAIL]:
+            raise ValueError(
+                f"Der Branch {branch} enthält Commits, die nicht vom Roadbook-Agenten stammen; "
+                "er wird nicht überschrieben. Bitte Branch prüfen oder löschen."
+            )
+
+
+def push_verified_commit(issue: dict, head_sha: str, expected_remote: str | None) -> None:
+    """Pusht genau den geprüften Commit; der Lease erwartet den zuvor gelesenen Remote-Stand."""
+    branch = push_branch(issue)
+    if not SHA1.fullmatch(head_sha or ""):
+        raise ValueError("HEAD_SHA ist ungültig.")
+    git(
+        "push", f"--force-with-lease=refs/heads/{branch}:{expected_remote or ''}",
+        "origin", f"{head_sha}:refs/heads/{branch}",
+    )
+    if remote_branch_sha(branch) != head_sha:
+        raise RuntimeError("Der Remote-Branch zeigt nach dem Push nicht auf den geprüften Commit.")
 
 
 def run_url() -> str:
@@ -699,44 +912,75 @@ def run_url() -> str:
     )
 
 
-def check_branch_version_step(issue: dict, changed: list[str], plan: str = "") -> None:
-    """Prüft den Versionsschritt des Feature-Branches gegen den aktuellen Stand von origin/main."""
-    if not requires_version(changed):
-        return
-    missing = [path for path in VERSION_FILES if path not in changed]
-    if missing:
-        raise ValueError("Web-Änderung ohne Versionsdateien im Branch: " + ", ".join(missing))
-    branch = f"origin/{branch_name(issue)}"
-    base = [git_show("origin/main", path) for path in VERSION_FILES]
-    head = [git_show(branch, path) for path in VERSION_FILES]
-    if None in base or None in head:
-        raise ValueError("Die Versionsdateien konnten nicht aus Git gelesen werden.")
-    try:
-        check_version_step(base[0], base[1], head[0], head[1], plan_version_level(plan))
-    except ValueError as error:
-        raise ValueError(
-            f"Versionsstand passt nicht zum aktuellen main (Basis veraltet?): {error}"
-        ) from error
-
-
 def open_pull_request(
-    session: requests.Session, repo_url: str, issue: dict, paths: set[str], plan: str = "",
+    session: requests.Session, repo_url: str, issue: dict, base_sha: str, head_sha: str,
+    changed: list[str],
 ) -> str:
+    """Eröffnet den PR oder aktualisiert nur den Hinweis, wenn für den Branch bereits einer offen ist."""
     number = issue["number"]
-    changed = verify_branch_diff(issue, paths)
-    check_branch_version_step(issue, changed, plan)
+    branch = push_branch(issue)
+    owner = os.environ["REPOSITORY"].split("/")[0]
+    existing = api(session, "GET", f"{repo_url}/pulls", params={
+        "head": f"{owner}:{branch}", "base": "main", "state": "open",
+    }).json()
+    if existing:
+        return (
+            f"Der offene Pull Request wurde auf `{head_sha}` aktualisiert: {existing[0]['html_url']}"
+        )
+    artifact = os.environ.get("VISUAL_ARTIFACT", "")
+    report = f" Visual-Bericht und Screenshots: Actions-Artefakt `{artifact}`." if artifact else ""
     pr = api(session, "POST", f"{repo_url}/pulls", json={
         "title": f"Update (Issue #{number}): {issue['title']}"[:256],
-        "head": branch_name(issue),
+        "head": branch,
         "base": "main",
         "body": (
             "Geänderte Dateien: " + ", ".join(changed)
-            + f"\n\nAgenten-Tests, `node --test web/tests/*.test.js` und "
-            f"`npm run build --prefix web` waren erfolgreich: [Lauf]({run_url()})"
+            + f"\n\nCommit `{head_sha}` über `{base_sha}`: genau dieser Stand wurde in "
+            "`implement-verify` geprüft (Agenten-Tests, Python-Tests, "
+            "`node --test web/tests/*.test.js`, `npm run build --prefix web`, "
+            f"`npm run test:visual --prefix web`): [Lauf]({run_url()}).{report}"
             + f"\n\nCloses #{number}"
         ),
     }).json()
     return f"Umsetzung bereit zur Prüfung im Pull Request: {pr['html_url']}"
+
+
+def publish_verified(
+    session: requests.Session, repo_url: str, issue: dict, plan: str, paths: set[str],
+) -> str:
+    """Veröffentlicht den in implement-verify geprüften Commit; alle Prüfungen laufen vor dem Push."""
+    base_sha, head_sha = os.environ.get("BASE_SHA", ""), os.environ.get("HEAD_SHA", "")
+    if plan_sha256(plan) != os.environ.get("PLAN_SHA256", ""):
+        raise ValueError("Der freigegebene Plan hat sich seit der Generierung geändert.")
+    branch = push_branch(issue)
+    import_bundle(
+        Path(os.environ.get("BUNDLE_FILE", "")), base_sha, head_sha,
+        os.environ.get("BUNDLE_SHA256", ""),
+    )
+    updated, old = inspect_commit(base_sha, head_sha)
+    changed = sorted(updated)
+    if set(changed) - paths:
+        raise ValueError("Der Commit ändert nicht freigegebene Dateien: " + ", ".join(sorted(set(changed) - paths)))
+    enforce_changeset_policy(updated, old, plan)
+    git("fetch", "--no-tags", "origin", "main")
+    main_sha = git_out("rev-parse", "origin/main")
+    check_base_fresh(base_sha, main_sha, changed)
+    if requires_version(changed):
+        main_files = [git_show(main_sha, path) for path in VERSION_FILES]
+        if None in main_files:
+            raise ValueError("Die Versionsdateien fehlen auf main.")
+        try:
+            check_version_step(
+                main_files[0], main_files[1], updated[VERSION_FILES[0]], updated[VERSION_FILES[1]],
+                plan_version_level(plan),
+            )
+        except ValueError as error:
+            raise ValueError(f"Versionsstand passt nicht zum aktuellen main: {error}") from error
+    remote = remote_branch_sha(branch)
+    if remote is not None:
+        ensure_agent_only(branch, main_sha)
+    push_verified_commit(issue, head_sha, remote)
+    return open_pull_request(session, repo_url, issue, base_sha, head_sha, changed)
 
 
 def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]) -> None:
@@ -756,7 +1000,8 @@ def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]
     )
     updated = validated_changes(raw, paths, files)
     enforce_changeset_policy(updated, files, plan)
-    commit_branch(issue, updated)
+    base_sha, head_sha = create_commit(issue, updated)
+    write_bundle(issue, plan, base_sha, head_sha, updated)
 
 
 UI_KEYWORDS = (
@@ -881,7 +1126,7 @@ def report_failure(session: requests.Session, issue_url: str, label: str, error:
     failure_body = (
         f"{label}: {type(error).__name__}: {message}\n\n"
         f"[Details im GitHub-Actions-Lauf]({run_url()})\n\n"
-        f"{RUN_MARKER.format(run_id=os.environ['GITHUB_RUN_ID'])}"
+        f"{run_marker()}"
     )
     try:
         api(session, "POST", f"{issue_url}/comments", json={"body": failure_body})
@@ -891,6 +1136,35 @@ def report_failure(session: requests.Session, issue_url: str, label: str, error:
         ) from error
 
 
+def failed_stage() -> tuple[str, str, str] | None:
+    """Erste fehlgeschlagene oder abgebrochene Stufe laut den von der Workflow-Datei übergebenen Ergebnissen."""
+    for key, label in STAGES:
+        result = os.environ.get(f"{key.upper()}_RESULT", "")
+        if result in {"failure", "cancelled"}:
+            return key, label, "abgebrochen" if result == "cancelled" else "fehlgeschlagen"
+    return None
+
+
+def report_body(session: requests.Session, issue_url: str) -> str | None:
+    """Fehlerbericht des Workflows; entfällt, wenn der Runner für diesen Lauf bereits kommentiert hat."""
+    marker = run_marker()
+    if any(marker in comment["body"] for comment in get_comments(session, issue_url)):
+        return None
+    stage = failed_stage()
+    where = f"in der Stufe {stage[1]} {stage[2]}" if stage else "fehlgeschlagen"
+    lines = [f"Die automatisierte Umsetzung ist {where}; es wurde kein Pull Request eröffnet."]
+    if stage and stage[0] in {"generate", "verify"}:
+        lines.append("Es wurde kein Feature-Branch gepusht.")
+    elif stage:
+        lines.append("Ob bereits ein Feature-Branch gepusht wurde, ist dem Lauf zu entnehmen.")
+    if stage and stage[0] == "verify" and os.environ.get("VISUAL_ARTIFACT"):
+        lines.append(
+            f"Visual-Bericht und Screenshots (soweit erzeugt): Actions-Artefakt `{os.environ['VISUAL_ARTIFACT']}`."
+        )
+    lines.append(f"[Details im GitHub-Actions-Lauf]({run_url()})")
+    return "\n\n".join(lines) + f"\n\n{marker}"
+
+
 def main() -> None:
     mode = os.environ["MODE"]
     event_name = os.environ["GITHUB_EVENT_NAME"]
@@ -898,6 +1172,9 @@ def main() -> None:
     allowed_user = os.environ["ALLOWED_GITHUB_USER"].casefold()
     number = int(os.environ["ISSUE_NUMBER"])
     validate_event(mode, event_name, event, allowed_user, number)
+    if mode == "gate":
+        gate_bundle()
+        return
 
     repo_url = f"https://api.github.com/repos/{os.environ['REPOSITORY']}"
     issue_url = f"{repo_url}/issues/{number}"
@@ -917,10 +1194,7 @@ def main() -> None:
                 report_failure(session, issue_url, "Die Planerstellung ist fehlgeschlagen", error)
                 raise
         elif mode == "report":
-            body = (
-                "Tests oder Build für den Feature-Branch sind fehlgeschlagen; es wurde kein "
-                f"Pull Request eröffnet.\n\n[Details im GitHub-Actions-Lauf]({run_url()})"
-            )
+            body = report_body(session, issue_url)
         else:
             try:
                 plan, replies = approved_plan(get_comments(session, issue_url), event["comment"]["id"], issue)
@@ -936,7 +1210,7 @@ def main() -> None:
                 if mode == "implement":
                     generate_changes(issue, plan, replies, paths)
                 else:
-                    body = open_pull_request(session, repo_url, issue, paths, plan)
+                    body = publish_verified(session, repo_url, issue, plan, paths)
             except Exception as error:
                 report_failure(session, issue_url, "Die automatisierte Umsetzung ist fehlgeschlagen", error)
                 raise

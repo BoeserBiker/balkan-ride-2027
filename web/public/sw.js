@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v123`;
+const CACHE_NAME = `${CACHE_PREFIX}v124`;
 const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {

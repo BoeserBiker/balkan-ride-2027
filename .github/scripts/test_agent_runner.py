@@ -2,6 +2,7 @@ import copy
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,8 @@ import types
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import yaml
 
 
 spec = importlib.util.spec_from_file_location(
@@ -661,73 +664,73 @@ class EventGateTests(unittest.TestCase):
             agent_runner.validate_event("implement", "issue_comment", self.event(), "boss", 4)
 
 
+BASE_SHA = "a" * 40
+HEAD_SHA = "b" * 40
+SHAS = (BASE_SHA, HEAD_SHA)
+
+
 class BranchTests(TemporaryRoot):
-    def test_only_approved_files_are_staged_committed_and_pushed(self):
-        self.write("web/src/main.js", "old\n")
-        calls = []
-        with patch.object(agent_runner, "git", side_effect=lambda *args: calls.append(args)), \
-                patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
-            agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
-        self.assertEqual((self.root / "web/src/main.js").read_text(encoding="utf-8"), "new\n")
-        self.assertEqual(calls[0], ("switch", "-c", "feature/issue-22"))
-        self.assertIn(("add", "--", "web/src/main.js"), calls)
-        self.assertIn((
-            "fetch", "origin",
-            "refs/heads/feature/issue-22:refs/remotes/origin/feature/issue-22",
-        ), calls)
-        self.assertEqual(calls[-1], (
-            "push", "--force-with-lease", "origin",
-            "refs/heads/feature/issue-22:refs/heads/feature/issue-22",
-        ))
-
-    def test_missing_remote_branch_does_not_block_the_lease_push(self):
-        self.write("web/src/main.js", "old\n")
+    def run_create_commit(self, issue, changes, staged):
         calls = []
 
-        def fake_git(*args):
+        def fake_out(*args):
             calls.append(args)
-            if args[0] == "fetch":
-                raise subprocess.CalledProcessError(1, ["git", *args])
+            return BASE_SHA if len(calls) == 1 else HEAD_SHA
 
-        with patch.object(agent_runner, "git", side_effect=fake_git), \
-                patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
-            agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
-        self.assertEqual(calls[-1], (
-            "push", "--force-with-lease", "origin",
-            "refs/heads/feature/issue-22:refs/heads/feature/issue-22",
-        ))
+        with patch.object(agent_runner, "git", side_effect=lambda *args: calls.append(args)), \
+                patch.object(agent_runner, "git_out", side_effect=fake_out), \
+                patch.object(agent_runner, "git_paths", return_value=staged):
+            try:
+                result = agent_runner.create_commit(issue, changes)
+                error = None
+            except Exception as caught:
+                result, error = None, caught
+        return calls, result, error
 
-    def test_non_feature_branches_are_rejected_before_any_git_operation(self):
-        for branch in ("main", "release/1", "fix/issue-22"):
+    def test_only_approved_files_are_staged_and_committed_locally(self):
+        self.write("web/src/main.js", "old\n")
+        calls, result, error = self.run_create_commit(
+            {"number": 22}, {"web/src/main.js": "new\n"}, {"web/src/main.js"})
+        self.assertIsNone(error)
+        self.assertEqual(result, SHAS)
+        self.assertEqual((self.root / "web/src/main.js").read_text(encoding="utf-8"), "new\n")
+        self.assertIn(("switch", "-c", "implement"), calls)
+        self.assertIn(("add", "--", "web/src/main.js"), calls)
+        commit = next(call for call in calls if "commit" in call)
+        self.assertIn("user.name=AI Roadbook Agent", commit)
+
+    def test_generation_never_touches_the_remote(self):
+        self.write("web/src/main.js", "old\n")
+        calls, _, error = self.run_create_commit(
+            {"number": 22}, {"web/src/main.js": "new\n"}, {"web/src/main.js"})
+        self.assertIsNone(error)
+        forbidden = {"push", "fetch", "ls-remote", "pull", "clone"}
+        self.assertFalse(any(forbidden & set(call) for call in calls), calls)
+
+    def test_unexpected_staged_files_stop_before_commit(self):
+        self.write("web/src/main.js", "old\n")
+        calls, _, error = self.run_create_commit(
+            {"number": 7}, {"web/src/main.js": "new\n"}, {"web/src/main.js", "docs/x.md"})
+        self.assertIsInstance(error, ValueError)
+        self.assertFalse(any("commit" in call for call in calls))
+
+    def test_only_feature_issue_branches_can_be_pushed(self):
+        for branch in ("main", "release/1", "fix/issue-22", "feature/issue-0", "feature/issue-1x",
+                       "feature/issue-1/../main", "feature/issue-"):
             with self.subTest(branch=branch):
                 with patch.object(agent_runner, "branch_name", return_value=branch), \
                         patch.object(agent_runner, "git") as git:
                     with self.assertRaises(ValueError):
-                        agent_runner.commit_branch({"number": 22}, {"web/src/main.js": "new\n"})
-                git.assert_not_called()
+                        agent_runner.push_verified_commit({"number": 22}, HEAD_SHA, None)
+                    git.assert_not_called()
+        self.assertEqual(agent_runner.push_branch({"number": 22}), "feature/issue-22")
 
-    def test_unexpected_staged_files_stop_before_commit_and_push(self):
-        self.write("web/src/main.js", "old\n")
-        calls = []
-        with patch.object(agent_runner, "git", side_effect=lambda *args: calls.append(args)), \
-                patch.object(agent_runner, "git_paths", return_value={"web/src/main.js", "docs/x.md"}):
-            with self.assertRaises(ValueError):
-                agent_runner.commit_branch({"number": 7}, {"web/src/main.js": "new\n"})
-        self.assertFalse(any(call[0] in {"commit", "push"} for call in calls))
-
-    def test_branch_diff_must_stay_within_the_approved_paths(self):
-        issue = {"number": 7}
-        approved = {"web/src/main.js", "web/tests/main.test.js"}
-        with patch.object(agent_runner, "git_paths", return_value={"web/src/main.js"}):
-            self.assertEqual(agent_runner.verify_branch_diff(issue, approved), ["web/src/main.js"])
-        for changed in (
-            set(), {"web/src/main.js", "web/src/extra.js"}, {".github/workflows/ai-agent-workflow.yml"},
-            {"web/src/main.js", ".github/scripts/agent_runner.py"},
-        ):
-            with self.subTest(changed=changed), \
-                    patch.object(agent_runner, "git_paths", return_value=changed):
-                with self.assertRaises(ValueError):
-                    agent_runner.verify_branch_diff(issue, approved)
+    def test_invalid_head_sha_is_rejected_before_the_push(self):
+        with patch.object(agent_runner, "git") as git:
+            for sha in ("", "main", "b" * 39, "B" * 40, "b" * 40 + "\n--force"):
+                with self.subTest(sha=sha), self.assertRaises(ValueError):
+                    agent_runner.push_verified_commit({"number": 22}, sha, None)
+            git.assert_not_called()
 
 
 class RunnerFlowTests(TemporaryRoot):
@@ -738,7 +741,8 @@ class RunnerFlowTests(TemporaryRoot):
     }
     issue = {"number": 3, "title": "App", "body": "Text", "state": "open", "user": {"login": "boss"}}
 
-    def run_main(self, mode, plan=None, comment_body="/implement-item"):
+    def run_main(self, mode, plan=None, comment_body="/implement-item", extra_env=None,
+                 extra_comments=()):
         self.write("web/src/main.js", "old\n")
         self.write("web/tests/existing.test.js")
         for path, text in BASE_VERSION_FILES.items():
@@ -752,6 +756,7 @@ class RunnerFlowTests(TemporaryRoot):
         comments = [
             {"id": 10, "user": {"login": agent_runner.BOT, "type": "Bot"}, "body": f"{plan}\n{marker}\n"},
             {"id": 20, "user": {"login": "boss", "type": "User"}, "body": "/implement-item"},
+            *extra_comments,
         ]
         posted = []
 
@@ -761,7 +766,7 @@ class RunnerFlowTests(TemporaryRoot):
                 return Mock(json=Mock(return_value={"html_url": "https://github.com/o/r/pull/1"}))
             return Mock(json=Mock(return_value=self.issue))
 
-        env = {**self.environment, "MODE": mode, "GITHUB_EVENT_PATH": str(event)}
+        env = {**self.environment, "MODE": mode, "GITHUB_EVENT_PATH": str(event), **(extra_env or {})}
         with patch.dict(os.environ, env), patch.object(agent_runner, "api", fake_api), \
                 patch.object(agent_runner, "get_comments", return_value=comments):
             try:
@@ -779,7 +784,8 @@ class RunnerFlowTests(TemporaryRoot):
     def test_generation_with_a_forbidden_planned_path_fails_without_model_call(self):
         plan = plan_with("- `web/src/main.js`", "- `.github/workflows/ai-agent-workflow.yml`")
         with patch.object(agent_runner, "ask_model") as ask, \
-                patch.object(agent_runner, "commit_branch") as commit:
+                patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                        patch.object(agent_runner, "write_bundle") as bundle:
             posted, error = self.run_main("implement", plan)
         self.assertIsInstance(error, ValueError)
         ask.assert_not_called()
@@ -791,7 +797,8 @@ class RunnerFlowTests(TemporaryRoot):
         plan = complete_plan_text()
         raw = json.dumps(valid_changes(**{"web/src/main.js": "new", "web/tests/main.test.js": "test"}))
         with patch.object(agent_runner, "ask_model", return_value=raw) as ask, \
-                patch.object(agent_runner, "commit_branch") as commit:
+                patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                        patch.object(agent_runner, "write_bundle") as bundle:
             posted, error = self.run_main("implement", plan)
         self.assertIsNone(error)
         context = ask.call_args.args[1]
@@ -809,7 +816,8 @@ class RunnerFlowTests(TemporaryRoot):
         plan = complete_plan_text()
         raw = json.dumps({**valid_changes(), "web/src/style.css": "x"})
         with patch.object(agent_runner, "ask_model", return_value=raw), \
-                patch.object(agent_runner, "commit_branch") as commit:
+                patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                        patch.object(agent_runner, "write_bundle") as bundle:
             posted, error = self.run_main("implement", plan)
         self.assertIsInstance(error, ValueError)
         self.assertIn("ausschließlich freigegebenen Pfaden", str(error))
@@ -820,7 +828,8 @@ class RunnerFlowTests(TemporaryRoot):
             "web/public/sw.js": sw_text(12), "web/public/version.json": version_text(cache=12),
         }))
         with patch.object(agent_runner, "ask_model", return_value=raw), \
-                patch.object(agent_runner, "commit_branch") as commit:
+                patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                        patch.object(agent_runner, "write_bundle") as bundle:
             posted, error = self.run_main("implement", complete_plan_text())
         self.assertIsInstance(error, ValueError)
         self.assertIn("Cache v12 statt v11", str(error))
@@ -831,7 +840,8 @@ class RunnerFlowTests(TemporaryRoot):
         changes = valid_changes()
         del changes["web/public/version.json"]
         with patch.object(agent_runner, "ask_model", return_value=json.dumps(changes)), \
-                patch.object(agent_runner, "commit_branch") as commit:
+                patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                        patch.object(agent_runner, "write_bundle") as bundle:
             posted, error = self.run_main("implement", complete_plan_text())
         self.assertIsInstance(error, ValueError)
         commit.assert_not_called()
@@ -840,66 +850,115 @@ class RunnerFlowTests(TemporaryRoot):
         plan = plan_with("- `web/src/main.js`")
         for mode in ("implement", "publish"):
             with self.subTest(mode=mode), patch.object(agent_runner, "ask_model") as ask, \
-                    patch.object(agent_runner, "commit_branch") as commit:
+                    patch.object(agent_runner, "create_commit", return_value=SHAS) as commit, \
+                    patch.object(agent_runner, "write_bundle"), \
+                    patch.object(agent_runner, "publish_verified") as publish:
                 posted, error = self.run_main(mode, plan)
             self.assertIsInstance(error, agent_runner.PlanIncomplete)
             ask.assert_not_called()
             commit.assert_not_called()
+            publish.assert_not_called()
             body = posted[0][1]["body"]
             for expected in ("unvollständig", "web/public/sw.js", "web/public/version.json",
                              "web/tests/<name>.test.js", "Versionsstufe", "/plan-item"):
                 self.assertIn(expected, body)
             self.assertFalse(posted[0][0].endswith("/pulls"))
 
-    def test_publish_opens_the_pull_request_only_after_the_diff_matches_the_plan(self):
-        plan = complete_plan_text()
-        changed = set(valid_changes())
-        heads = {path: text for path, text in valid_changes().items() if path.startswith("web/public/")}
-
-        def show(ref, path):
-            return (heads if ref.startswith("origin/feature/") else BASE_VERSION_FILES).get(path)
-
-        with patch.object(agent_runner, "git_paths", return_value=changed), \
-                patch.object(agent_runner, "git_show", side_effect=show):
-            posted, error = self.run_main("publish", plan)
+    def test_generation_writes_the_bundle_after_the_commit(self):
+        raw = json.dumps(valid_changes())
+        with patch.object(agent_runner, "ask_model", return_value=raw), \
+                patch.object(agent_runner, "create_commit", return_value=SHAS), \
+                patch.object(agent_runner, "write_bundle") as bundle:
+            posted, error = self.run_main("implement", complete_plan_text())
         self.assertIsNone(error)
-        pr = posted[0][1]
-        self.assertEqual((posted[0][0].endswith("/pulls"), pr["head"], pr["base"]),
-                         (True, "feature/issue-3", "main"))
-        self.assertIn("web/src/main.js", pr["body"])
-        self.assertIn("Closes #3", pr["body"])
-        with patch.object(agent_runner, "git_paths", return_value={*changed, "docs/x.md"}), \
-                patch.object(agent_runner, "git_show", side_effect=show):
-            posted, error = self.run_main("publish", plan)
-        self.assertIsInstance(error, ValueError)
-        self.assertFalse(posted[0][0].endswith("/pulls"))
+        args = bundle.call_args.args
+        self.assertEqual((args[2], args[3]), SHAS)
+        self.assertEqual(set(args[4]), set(valid_changes()))
 
-    def test_publish_rejects_a_version_step_that_no_longer_fits_main(self):
-        changed = set(valid_changes())
-        heads = {path: text for path, text in valid_changes().items() if path.startswith("web/public/")}
-        moved_main = {
-            "web/public/sw.js": sw_text(11),
-            "web/public/version.json": version_text(),
-        }
+    def test_publish_delegates_to_the_verified_publish_and_comments_the_result(self):
+        with patch.object(agent_runner, "publish_verified", return_value="PR bereit") as publish:
+            posted, error = self.run_main("publish", complete_plan_text())
+        self.assertIsNone(error)
+        publish.assert_called_once()
+        self.assertEqual(publish.call_args.args[3], complete_plan_text() + "\n" + agent_runner.plan_marker(self.issue) + "\n")
+        self.assertEqual(posted[0][1]["body"], "PR bereit")
 
-        def show(ref, path):
-            return (heads if ref.startswith("origin/feature/") else moved_main).get(path)
-
-        with patch.object(agent_runner, "git_paths", return_value=changed), \
-                patch.object(agent_runner, "git_show", side_effect=show):
+    def test_publish_failure_is_reported_once_with_the_run_marker(self):
+        with patch.object(agent_runner, "publish_verified", side_effect=ValueError("Basis veraltet")):
             posted, error = self.run_main("publish", complete_plan_text())
         self.assertIsInstance(error, ValueError)
-        self.assertIn("Basis veraltet", str(error))
-        self.assertIn("Cache v11 statt v12", str(error))
-        self.assertFalse(posted[0][0].endswith("/pulls"))
+        self.assertEqual(len(posted), 1)
+        self.assertIn("Basis veraltet", posted[0][1]["body"])
+        self.assertIn("<!-- roadbook-run:9 -->", posted[0][1]["body"])
 
-    def test_publish_requires_the_version_files_in_the_branch_diff(self):
-        changed = {"web/src/main.js", "web/tests/main.test.js"}
-        with patch.object(agent_runner, "git_paths", return_value=changed), \
-                patch.object(agent_runner, "git_show", return_value="x"):
-            posted, error = self.run_main("publish", complete_plan_text())
-        self.assertIsInstance(error, ValueError)
-        self.assertIn("ohne Versionsdateien", str(error))
+    def test_gate_mode_needs_neither_token_nor_api(self):
+        event = self.root / "gate-event.json"
+        event.write_text(json.dumps({
+            "action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
+            "comment": {"id": 20, "user": {"login": "boss"}, "body": "/implement-item"},
+        }), encoding="utf-8")
+        env = {key: value for key, value in self.environment.items() if key != "GITHUB_TOKEN"}
+        env.update({"MODE": "gate", "GITHUB_EVENT_PATH": str(event)})
+        with patch.dict(os.environ, env), patch.object(agent_runner, "api") as api, \
+                patch.object(agent_runner, "gate_bundle") as gate:
+            os.environ.pop("GITHUB_TOKEN", None)
+            agent_runner.main()
+        gate.assert_called_once()
+        api.assert_not_called()
+
+    def test_gate_mode_still_requires_a_valid_approval_event(self):
+        event = self.root / "gate-event.json"
+        event.write_text(json.dumps({
+            "action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
+            "comment": {"id": 20, "user": {"login": "mallory"}, "body": "/implement-item"},
+        }), encoding="utf-8")
+        env = {**self.environment, "MODE": "gate", "GITHUB_EVENT_PATH": str(event)}
+        with patch.dict(os.environ, env), patch.object(agent_runner, "gate_bundle") as gate:
+            with self.assertRaises(ValueError):
+                agent_runner.main()
+        gate.assert_not_called()
+
+    def test_run_marker_distinguishes_rerun_attempts(self):
+        with patch.dict(os.environ, {"GITHUB_RUN_ID": "9"}):
+            os.environ.pop("GITHUB_RUN_ATTEMPT", None)
+            self.assertEqual(agent_runner.run_marker(), "<!-- roadbook-run:9 -->")
+            with patch.dict(os.environ, {"GITHUB_RUN_ATTEMPT": "1"}):
+                self.assertEqual(agent_runner.run_marker(), "<!-- roadbook-run:9 -->")
+            with patch.dict(os.environ, {"GITHUB_RUN_ATTEMPT": "2"}):
+                self.assertEqual(agent_runner.run_marker(), "<!-- roadbook-run:9-2 -->")
+
+    def test_report_names_the_failed_stage_and_points_to_the_visual_report(self):
+        extra = {"GENERATE_RESULT": "success", "VERIFY_RESULT": "failure",
+                 "PUBLISH_RESULT": "skipped", "VISUAL_ARTIFACT": "visual-report-issue-3-9-1"}
+        posted, error = self.run_main("report", extra_env=extra)
+        self.assertIsNone(error)
+        body = posted[0][1]["body"]
+        for expected in ("implement-verify", "fehlgeschlagen", "kein Pull Request",
+                         "kein Feature-Branch", "visual-report-issue-3-9-1", "<!-- roadbook-run:9 -->"):
+            self.assertIn(expected, body)
+
+    def test_report_distinguishes_cancelled_generate_and_publish(self):
+        posted, _ = self.run_main("report", extra_env={"GENERATE_RESULT": "cancelled"})
+        self.assertIn("implement-generate", posted[0][1]["body"])
+        self.assertIn("abgebrochen", posted[0][1]["body"])
+        posted, _ = self.run_main("report", extra_env={
+            "GENERATE_RESULT": "success", "VERIFY_RESULT": "success", "PUBLISH_RESULT": "failure"})
+        self.assertIn("implement-publish", posted[0][1]["body"])
+        self.assertIn("Ob bereits ein Feature-Branch gepusht wurde", posted[0][1]["body"])
+        self.assertNotIn("kein Feature-Branch gepusht", posted[0][1]["body"])
+
+    def test_report_skips_when_the_runner_already_commented_for_this_run(self):
+        already = [{"id": 30, "user": {"login": agent_runner.BOT, "type": "Bot"},
+                    "body": "Fehler\n\n<!-- roadbook-run:9 -->"}]
+        posted, error = self.run_main("report", extra_env={"PUBLISH_RESULT": "failure"},
+                                      extra_comments=already)
+        self.assertIsNone(error)
+        self.assertEqual(posted, [])
+        other_run = [{"id": 31, "user": {"login": agent_runner.BOT, "type": "Bot"},
+                      "body": "Fehler\n\n<!-- roadbook-run:8 -->"}]
+        posted, _ = self.run_main("report", extra_env={"PUBLISH_RESULT": "failure"},
+                                  extra_comments=other_run)
+        self.assertEqual(len(posted), 1)
 
     def test_plan_failure_posts_a_specific_comment_with_the_run_marker(self):
         incomplete = complete_plan_text(lines=COMPLETE_LINES[:1]).rstrip() + "\n\n" + agent_runner.PLAN_FOOTER
@@ -1001,6 +1060,542 @@ class RunnerFlowTests(TemporaryRoot):
         with patch.object(agent_runner, "ask_model", return_value=bad):
             with self.assertRaises(ValueError):
                 agent_runner.plan_comment(self.issue)
+
+
+class GitFixture(unittest.TestCase):
+    """Echte Git-Repositories (lokales Bare-Remote, kein Netz) für Commit-, Bundle- und Push-Tests."""
+
+    ISSUE = {"number": 3, "title": "App", "body": "Text", "state": "open", "user": {"login": "boss"}}
+    MAINTAINER = ("-c", "user.name=Maintainer", "-c", "user.email=maintainer@example.org")
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.base = Path(directory.name).resolve()
+        environment = patch.dict(os.environ, {
+            "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_TERMINAL_PROMPT": "0", "HOME": str(self.base),
+            "GITHUB_RUN_ID": "9", "GITHUB_SERVER_URL": "https://github.com", "REPOSITORY": "o/r",
+        })
+        environment.start()
+        self.addCleanup(environment.stop)
+        self.remote = self.base / "origin.git"
+        self.sh(self.base, "init", "-q", "--bare", "-b", "main", str(self.remote))
+        self.work = self.base / "work"
+        self.sh(self.base, "init", "-q", "-b", "main", str(self.work))
+        self.sh(self.work, "remote", "add", "origin", str(self.remote))
+        for path, text in {
+            "web/src/main.js": "old\n", "web/src/style.css": "css\n", "README.md": "readme\n",
+            "web/tests/existing.test.js": "// test\n", "web/public/sw.js": sw_text(10), "web/public/version.json": OLD_VERSION_TEXT,
+            "content/tag-06.md": STAGE,
+        }.items():
+            self.put(self.work, path, text)
+        self.commit(self.work, "Basis")
+        self.sh(self.work, "push", "-q", "origin", "main")
+        self.bundle_dir = self.base / "out"
+        outputs = patch.dict(os.environ, {
+            "BUNDLE_DIR": str(self.bundle_dir), "GITHUB_OUTPUT": str(self.base / "github_output"),
+        })
+        outputs.start()
+        self.addCleanup(outputs.stop)
+
+    def sh(self, cwd, *args):
+        return subprocess.run(
+            ["git", "--no-pager", *args], cwd=cwd, check=True, capture_output=True, text=True,
+        ).stdout.strip()
+
+    def put(self, repo, path, text):
+        target = Path(repo) / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+
+    def commit(self, repo, message, identity=None):
+        identity = identity or self.MAINTAINER
+        self.sh(repo, "add", "-A")
+        self.sh(repo, *identity, "commit", "-q", "-m", message)
+        return self.sh(repo, "rev-parse", "HEAD")
+
+    def clone(self, name):
+        target = self.base / name
+        counter = 1
+        while target.exists():
+            counter += 1
+            target = self.base / f"{name}-{counter}"
+        self.sh(self.base, "clone", "-q", str(self.remote), str(target))
+        return target
+
+    def advance_main(self, changes):
+        """Neuer Commit auf main im Remote (z. B. ein zwischenzeitlich gemergter PR)."""
+        other = self.clone(f"other-{len(list(self.base.iterdir()))}")
+        for path, text in changes.items():
+            self.put(other, path, text)
+        self.commit(other, "main wandert weiter")
+        self.sh(other, "push", "-q", "origin", "main")
+        return self.sh(other, "rev-parse", "HEAD")
+
+    def generate(self, changes=None, plan=None):
+        """Erzeugt Commit und Bundle wie implement-generate (im Checkout `work`)."""
+        plan = plan or complete_plan_text()
+        with patch.object(agent_runner, "ROOT", self.work):
+            self.sh(self.work, "switch", "-q", "main")
+            self.sh(self.work, "branch", "-q", "-D", "implement") if self.sh(
+                self.work, "branch", "--list", "implement") else None
+            base, head = agent_runner.create_commit(self.ISSUE, changes or valid_changes())
+            digest = agent_runner.write_bundle(self.ISSUE, plan, base, head, changes or valid_changes())
+            self.sh(self.work, "switch", "-q", "main")
+        return base, head, digest, plan
+
+    def raw_bundle(self, files, *, identity=("AI Roadbook Agent", "agent@balkan-ride.local"),
+                   commits=1, symlink=None):
+        """Bundle mit frei gebauten Commits (um Prüfungen mit unzulässigem Inhalt zu belegen)."""
+        self.sh(self.work, "switch", "-q", "main")
+        base = self.sh(self.work, "rev-parse", "HEAD")
+        self.sh(self.work, "switch", "-q", "-C", "implement")
+        for number in range(commits):
+            for path, text in files.items():
+                self.put(self.work, path, text + (f"{number}\n" if number else ""))
+            if symlink:
+                (self.work / symlink[1]).symlink_to(symlink[0])
+            self.commit(self.work, f"feat {number}", ("-c", f"user.name={identity[0]}",
+                                                       "-c", f"user.email={identity[1]}"))
+        head = self.sh(self.work, "rev-parse", "HEAD")
+        self.bundle_dir.mkdir(parents=True, exist_ok=True)
+        bundle = self.bundle_dir / agent_runner.BUNDLE_NAME
+        self.sh(self.work, "bundle", "create", str(bundle), "refs/heads/implement", f"^{base}")
+        digest = agent_runner.sha256_file(bundle)
+        self.sh(self.work, "switch", "-q", "main")
+        return base, head, digest
+
+    def environment_for(self, base, head, digest, generated_plan=None):
+        env = {
+            "BUNDLE_FILE": str(self.bundle_dir / agent_runner.BUNDLE_NAME), "BASE_SHA": base,
+            "HEAD_SHA": head, "BUNDLE_SHA256": digest,
+            "PLAN_SHA256": agent_runner.plan_sha256(generated_plan or complete_plan_text()),
+            "VISUAL_ARTIFACT": "visual-report-issue-3-9-1",
+        }
+        return patch.dict(os.environ, env)
+
+    def remote_refs(self):
+        return self.sh(self.base, "--git-dir", str(self.remote), "for-each-ref", "--format=%(refname) %(objectname)")
+
+    def remote_sha(self, branch):
+        return self.sh(self.base, "--git-dir", str(self.remote), "rev-parse", f"refs/heads/{branch}")
+
+    def fake_api(self, existing_prs=()):
+        calls = []
+
+        def api(session, method, url, **kwargs):
+            calls.append((method, url, kwargs))
+            if method == "GET":
+                return Mock(json=Mock(return_value=list(existing_prs)))
+            return Mock(json=Mock(return_value={"html_url": "https://github.com/o/r/pull/7"}))
+
+        return api, calls
+
+    def publish(self, clone, base, head, digest, *, plan=None, generated_plan=None, existing_prs=()):
+        plan = plan or complete_plan_text()
+        api, calls = self.fake_api(existing_prs)
+        with patch.object(agent_runner, "ROOT", clone), \
+                self.environment_for(base, head, digest, generated_plan or plan), \
+                patch.object(agent_runner, "api", api):
+            result = agent_runner.publish_verified(
+                Mock(), "https://api.github.com/repos/o/r", self.ISSUE, plan,
+                agent_runner.planned_paths(plan),
+            )
+        return result, calls
+
+
+class CommitBundleTests(GitFixture):
+    def test_generate_commit_is_local_only(self):
+        before = self.remote_refs()
+        base, head, _, _ = self.generate()
+        self.assertEqual(self.sh(self.work, "rev-parse", f"{head}^"), base)
+        self.assertEqual(self.sh(self.work, "log", "-1", "--format=%an <%ae>", head),
+                         "AI Roadbook Agent <agent@balkan-ride.local>")
+        self.assertEqual(self.remote_refs(), before)
+        self.assertNotIn("feature/issue-3", self.remote_refs())
+
+    def test_bundle_roundtrip_keeps_the_commit_sha_and_reports_the_anchors(self):
+        base, head, digest, plan = self.generate()
+        fresh = self.clone("fresh")
+        with patch.object(agent_runner, "ROOT", fresh):
+            agent_runner.import_bundle(self.bundle_dir / agent_runner.BUNDLE_NAME, base, head, digest)
+            self.assertEqual(self.sh(fresh, "rev-parse", agent_runner.VERIFIED_REF), head)
+        outputs = dict(line.split("=", 1) for line in
+                       (self.base / "github_output").read_text(encoding="utf-8").splitlines())
+        self.assertEqual(
+            (outputs["base_sha"], outputs["head_sha"], outputs["bundle_sha256"], outputs["plan_sha256"]),
+            (base, head, digest, agent_runner.plan_sha256(plan)),
+        )
+        meta = json.loads((self.bundle_dir / "meta.json").read_text(encoding="utf-8"))
+        self.assertEqual((meta["head_sha"], meta["bundle_sha256"]), (head, digest))
+
+    def test_tampered_or_mismatching_bundles_are_rejected(self):
+        base, head, digest, _ = self.generate()
+        bundle = self.bundle_dir / agent_runner.BUNDLE_NAME
+        fresh = self.clone("fresh")
+        with patch.object(agent_runner, "ROOT", fresh):
+            with self.assertRaisesRegex(ValueError, "Prüfsumme"):
+                agent_runner.import_bundle(bundle, base, head, "0" * 64)
+            with self.assertRaisesRegex(ValueError, "head_sha"):
+                agent_runner.import_bundle(bundle, base, base, digest)
+            bundle.write_bytes(bundle.read_bytes() + b"x")
+            with self.assertRaisesRegex(ValueError, "Prüfsumme"):
+                agent_runner.import_bundle(bundle, base, head, digest)
+            for bad in ("", "xyz", "A" * 40):
+                with self.assertRaises(ValueError):
+                    agent_runner.import_bundle(bundle, bad, head, digest)
+
+
+class GateTests(GitFixture):
+    def gate(self, base, head, digest, *, checkout=None):
+        clone = checkout or self.clone("verify")
+        with patch.object(agent_runner, "ROOT", clone), self.environment_for(base, head, digest):
+            agent_runner.gate_bundle()
+
+    def test_gate_accepts_the_generated_commit(self):
+        base, head, digest, _ = self.generate()
+        self.gate(base, head, digest)
+
+    def test_gate_rejects_forbidden_paths(self):
+        for path in (".github/workflows/x.yml", "docs/x.md", "export/x.md", "config/commands/x.md",
+                     "web/package.json", "README.md"):
+            with self.subTest(path=path):
+                base, head, digest = self.raw_bundle({path: "x\n"})
+                with self.assertRaises(ValueError):
+                    self.gate(base, head, digest)
+
+    def test_gate_rejects_more_than_one_commit(self):
+        base, head, digest = self.raw_bundle({"web/src/main.js": "neu\n"}, commits=2)
+        with self.assertRaisesRegex(ValueError, "genau einen Commit"):
+            self.gate(base, head, digest)
+
+    def test_gate_rejects_foreign_authors(self):
+        base, head, digest = self.raw_bundle(
+            {"web/src/main.js": "neu\n"}, identity=("Mallory", "m@example.org"))
+        with self.assertRaisesRegex(ValueError, "nicht vom Roadbook-Agenten"):
+            self.gate(base, head, digest)
+
+    def test_gate_rejects_symlinks(self):
+        base, head, digest = self.raw_bundle(
+            {"web/src/main.js": "neu\n"}, symlink=("main.js", "web/src/link.js"))
+        with self.assertRaisesRegex(ValueError, "normale Textdateien"):
+            self.gate(base, head, digest)
+
+    def test_gate_rejects_a_web_change_without_version_files(self):
+        base, head, digest = self.raw_bundle({"web/src/main.js": "neu\n"})
+        with self.assertRaisesRegex(ValueError, "Versionsdateien"):
+            self.gate(base, head, digest)
+
+    def test_gate_rejects_a_wrong_version_step(self):
+        base, head, digest = self.raw_bundle({
+            "web/src/main.js": "neu\n", "web/tests/main.test.js": "test\n",
+            "web/public/sw.js": sw_text(12), "web/public/version.json": version_text(cache=12),
+        })
+        with self.assertRaisesRegex(ValueError, "Cache v12 statt v11"):
+            self.gate(base, head, digest)
+
+    def test_gate_rejects_an_invalid_stage_file(self):
+        base, head, digest = self.raw_bundle({"content/tag-06.md": "---\ntag: 6\n---\nText\n"})
+        with self.assertRaises(ValueError):
+            self.gate(base, head, digest)
+
+    def test_gate_requires_the_checkout_to_be_the_base_commit(self):
+        base, head, digest, _ = self.generate()
+        self.advance_main({"README.md": "weiter\n"})
+        moved = self.clone("moved")
+        with self.assertRaisesRegex(ValueError, "Basisstand"):
+            self.gate(base, head, digest, checkout=moved)
+
+
+class PublishTests(GitFixture):
+    def test_publish_pushes_exactly_the_verified_sha_and_opens_the_pr(self):
+        base, head, digest, _ = self.generate()
+        result, calls = self.publish(self.clone("publish"), base, head, digest)
+        self.assertEqual(self.remote_sha("feature/issue-3"), head)
+        post = next(kwargs for method, url, kwargs in calls if method == "POST")
+        self.assertIn(head, post["json"]["body"])
+        self.assertIn(base, post["json"]["body"])
+        self.assertIn("visual-report-issue-3-9-1", post["json"]["body"])
+        self.assertIn("Closes #3", post["json"]["body"])
+        self.assertEqual((post["json"]["head"], post["json"]["base"]), ("feature/issue-3", "main"))
+        self.assertIn("pull/7", result)
+
+    def test_changed_plan_stops_before_any_remote_access(self):
+        base, head, digest, plan = self.generate()
+        before = self.remote_refs()
+        with self.assertRaisesRegex(ValueError, "Plan hat sich"):
+            self.publish(self.clone("publish"), base, head, digest,
+                         plan=plan + "\nNeu", generated_plan=plan)
+        self.assertEqual(self.remote_refs(), before)
+
+    def test_changes_outside_the_approved_plan_stop_before_the_push(self):
+        base, head, digest, plan = self.generate()
+        narrow = complete_plan_text(lines=COMPLETE_LINES[1:])
+        before = self.remote_refs()
+        with self.assertRaisesRegex(ValueError, "nicht freigegebene Dateien"):
+            self.publish(self.clone("publish"), base, head, digest, plan=narrow, generated_plan=narrow)
+        self.assertEqual(self.remote_refs(), before)
+
+    def test_lease_rejects_when_the_remote_moved_after_observation(self):
+        base, head, _, _ = self.generate()
+        other = self.clone("other")
+        self.sh(other, "switch", "-q", "-c", "feature/issue-3")
+        self.put(other, "README.md", "a\n")
+        first = self.commit(other, "agent a", ("-c", "user.name=AI Roadbook Agent",
+                                               "-c", "user.email=agent@balkan-ride.local"))
+        self.sh(other, "push", "-q", "origin", "feature/issue-3")
+        self.put(other, "README.md", "b\n")
+        second = self.commit(other, "agent b", ("-c", "user.name=AI Roadbook Agent",
+                                                "-c", "user.email=agent@balkan-ride.local"))
+        self.sh(other, "push", "-q", "origin", "feature/issue-3")
+        fresh = self.clone("push")
+        with patch.object(agent_runner, "ROOT", fresh), self.environment_for(base, head, "0" * 64):
+            self.sh(fresh, "fetch", "-q", str(self.work), "refs/heads/implement:refs/agent/verified")
+            with self.assertRaises(subprocess.CalledProcessError):
+                agent_runner.push_verified_commit(self.ISSUE, head, first)
+        self.assertEqual(self.remote_sha("feature/issue-3"), second)
+
+    def test_absent_remote_uses_an_empty_expectation(self):
+        base, head, _, _ = self.generate()
+        fresh = self.clone("push")
+        with patch.object(agent_runner, "ROOT", fresh):
+            self.sh(fresh, "fetch", "-q", str(self.work), "refs/heads/implement:refs/agent/verified")
+            self.assertIsNone(agent_runner.remote_branch_sha("feature/issue-3"))
+            agent_runner.push_verified_commit(self.ISSUE, head, None)
+            self.assertEqual(self.remote_sha("feature/issue-3"), head)
+            # Der Branch ist inzwischen von jemand anderem angelegt worden: kein Überschreiben.
+            self.sh(fresh, "push", "-q", "--force", "origin", f"{base}:refs/heads/feature/issue-3")
+            with self.assertRaises(subprocess.CalledProcessError):
+                agent_runner.push_verified_commit(self.ISSUE, head, None)
+        self.assertEqual(self.remote_sha("feature/issue-3"), base)
+
+    def test_ls_remote_error_is_not_treated_as_a_missing_branch(self):
+        fresh = self.clone("push")
+        self.sh(fresh, "remote", "set-url", "origin", str(self.base / "gibt-es-nicht.git"))
+        with patch.object(agent_runner, "ROOT", fresh):
+            with self.assertRaisesRegex(RuntimeError, "Remote-Zustand nicht ermittelbar"):
+                agent_runner.remote_branch_sha("feature/issue-3")
+
+    def test_foreign_commits_on_the_remote_branch_block_the_overwrite(self):
+        base, head, digest, _ = self.generate()
+        other = self.clone("human")
+        self.sh(other, "switch", "-q", "-c", "feature/issue-3")
+        self.put(other, "README.md", "von Hand\n")
+        human = self.commit(other, "manuell")
+        self.sh(other, "push", "-q", "origin", "feature/issue-3")
+        with self.assertRaisesRegex(ValueError, "nicht vom Roadbook-Agenten"):
+            self.publish(self.clone("publish"), base, head, digest)
+        self.assertEqual(self.remote_sha("feature/issue-3"), human)
+
+    def test_agent_only_branches_are_overwritten_by_a_repeated_run(self):
+        first_base, first_head, _, _ = self.generate()
+        self.publish(self.clone("first"), first_base, first_head,
+                     agent_runner.sha256_file(self.bundle_dir / agent_runner.BUNDLE_NAME))
+        shutil.rmtree(self.bundle_dir)
+        changes = valid_changes(**{"web/src/main.js": "zweiter Lauf\n"})
+        base, head, digest, _ = self.generate(changes)
+        self.assertNotEqual(head, first_head)
+        self.publish(self.clone("second"), base, head, digest)
+        self.assertEqual(self.remote_sha("feature/issue-3"), head)
+
+    def test_stale_base_blocks_when_main_touched_the_same_paths(self):
+        base, head, digest, _ = self.generate()
+        self.advance_main({"web/src/main.js": "anderer Stand\n"})
+        before = self.remote_refs()
+        with self.assertRaisesRegex(ValueError, "Basis veraltet.*web/src/main.js"):
+            self.publish(self.clone("publish"), base, head, digest)
+        self.assertEqual(self.remote_refs(), before)
+
+    def test_stale_base_blocks_when_main_bumped_the_version_files(self):
+        base, head, digest, _ = self.generate()
+        self.advance_main({"web/public/sw.js": sw_text(11), "web/public/version.json": version_text()})
+        with self.assertRaisesRegex(ValueError, "Basis veraltet.*web/public/sw.js"):
+            self.publish(self.clone("publish"), base, head, digest)
+        self.assertNotIn("feature/issue-3", self.remote_refs())
+
+    def test_stale_base_allows_unrelated_main_changes(self):
+        base, head, digest, _ = self.generate()
+        self.advance_main({"README.md": "weiter\n"})
+        self.publish(self.clone("publish"), base, head, digest)
+        self.assertEqual(self.remote_sha("feature/issue-3"), head)
+
+    def test_existing_open_pr_is_updated_not_duplicated(self):
+        base, head, digest, _ = self.generate()
+        existing = [{"html_url": "https://github.com/o/r/pull/5"}]
+        result, calls = self.publish(self.clone("publish"), base, head, digest, existing_prs=existing)
+        self.assertEqual([method for method, _, _ in calls], ["GET"])
+        self.assertIn("aktualisiert", result)
+        self.assertIn(head, result)
+        self.assertIn("pull/5", result)
+        self.assertEqual(self.remote_sha("feature/issue-3"), head)
+
+
+WORKFLOW_DIRECTORY = Path(__file__).resolve().parents[1] / "workflows"
+
+
+def load_workflow(name):
+    return yaml.safe_load((WORKFLOW_DIRECTORY / name).read_text(encoding="utf-8"))
+
+
+def step_runs(job):
+    return [step.get("run", "") for step in job["steps"]]
+
+
+def step_index(job, predicate, label):
+    for index, step in enumerate(job["steps"]):
+        if predicate(step):
+            return index
+    raise AssertionError(f"Schritt fehlt: {label}")
+
+
+class WorkflowPolicyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.agent = load_workflow("ai-agent-workflow.yml")
+        cls.pages = load_workflow("deploy-pages.yml")
+        cls.jobs = cls.agent["jobs"]
+
+    def test_generate_cannot_write_to_the_repository_and_keeps_no_credentials(self):
+        job = self.jobs["implement-generate"]
+        self.assertEqual(job["permissions"], {"contents": "read", "issues": "write"})
+        checkouts = [step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/checkout")]
+        self.assertTrue(checkouts)
+        for step in checkouts:
+            self.assertIs(step["with"]["persist-credentials"], False)
+        self.assertTrue(job["concurrency"]["group"].startswith("roadbook-implement-"))
+        self.assertIs(job["concurrency"]["cancel-in-progress"], False)
+        self.assertEqual(
+            set(job["outputs"]),
+            {"base_sha", "head_sha", "bundle_sha256", "plan_sha256", "artifact_name"},
+        )
+        upload = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact"))
+        self.assertEqual(upload["with"]["retention-days"], 1)
+        runner = next(step for step in job["steps"] if step.get("id") == "runner")
+        self.assertEqual(runner["env"]["MODE"], "implement")
+        self.assertIn("${{ github.run_id }}-${{ github.run_attempt }}", runner["env"]["ARTIFACT_NAME"])
+        self.assertTrue(runner["env"]["ARTIFACT_NAME"].startswith("implement-bundle-"))
+
+    def test_verify_runs_without_secrets_tokens_or_write_access(self):
+        job = self.jobs["implement-verify"]
+        self.assertEqual(job["permissions"], {"contents": "read"})
+        dump = json.dumps(job)
+        self.assertNotEqual(job["permissions"].get("contents"), "write")
+        for forbidden in ("secrets.", "ANTHROPIC", "GITHUB_TOKEN"):
+            self.assertNotIn(forbidden, dump)
+        self.assertEqual(job["needs"], "implement-generate")
+        checkout = job["steps"][0]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout"))
+        self.assertIs(checkout["with"]["persist-credentials"], False)
+        self.assertEqual(checkout["with"]["ref"], "${{ needs.implement-generate.outputs.base_sha }}")
+
+    def test_verify_checks_the_bound_commit_before_running_any_of_its_code(self):
+        job = self.jobs["implement-verify"]
+        gate = step_index(job, lambda step: step.get("env", {}).get("MODE") == "gate", "gate")
+        detach = step_index(job, lambda step: "checkout --detach" in step.get("run", ""), "detach")
+        agent_tests = step_index(job, lambda step: "test_agent_runner.py" in step.get("run", ""), "agent tests")
+        python_tests = step_index(job, lambda step: 'web/tests -p "test_*.py"' in step.get("run", "")
+                                  and 'scripts -p "test_*.py"' in step.get("run", ""), "python tests")
+        install = step_index(job, lambda step: step.get("run", "") == "npm ci", "npm ci")
+        node = step_index(job, lambda step: "node --test web/tests/*.test.js" in step.get("run", ""), "node")
+        build = step_index(job, lambda step: "npm run build --prefix web" in step.get("run", ""), "build")
+        browser = step_index(job, lambda step: "playwright install" in step.get("run", ""), "chromium")
+        visual = step_index(job, lambda step: "npm run test:visual --prefix web" in step.get("run", ""), "visual")
+        self.assertLess(gate, detach)
+        self.assertLess(detach, agent_tests)
+        self.assertLess(detach, install)
+        self.assertLess(install, node)
+        self.assertLess(node, build)
+        self.assertLess(build, browser)
+        self.assertLess(browser, visual)
+        self.assertLess(detach, python_tests)
+        env = job["steps"][gate]["env"]
+        self.assertEqual(
+            {key: env[key] for key in ("BASE_SHA", "HEAD_SHA", "BUNDLE_SHA256")},
+            {"BASE_SHA": "${{ needs.implement-generate.outputs.base_sha }}",
+             "HEAD_SHA": "${{ needs.implement-generate.outputs.head_sha }}",
+             "BUNDLE_SHA256": "${{ needs.implement-generate.outputs.bundle_sha256 }}"},
+        )
+
+    def test_visual_gate_is_blocking_and_the_report_is_kept_on_failure(self):
+        job = self.jobs["implement-verify"]
+        for step in job["steps"]:
+            self.assertNotIn("continue-on-error", step)
+        upload = next(step for step in job["steps"]
+                      if str(step.get("uses", "")).startswith("actions/upload-artifact"))
+        self.assertEqual(upload["if"], "always()")
+        self.assertEqual(upload["with"]["path"], "web/.visual-report/")
+        self.assertTrue(upload["with"]["name"].startswith("visual-report-issue-"))
+
+    def test_publish_needs_generate_and_verify_and_executes_no_artifact_code(self):
+        job = self.jobs["implement-publish"]
+        self.assertEqual(set(job["needs"]), {"implement-generate", "implement-verify"})
+        self.assertEqual(job["permissions"], {
+            "contents": "write", "issues": "write", "pull-requests": "write"})
+        self.assertTrue(job["concurrency"]["group"].startswith("roadbook-publish-"))
+        self.assertIs(job["concurrency"]["cancel-in-progress"], False)
+        for command in step_runs(job):
+            for forbidden in ("npm", "node ", "unittest", "pytest", "bash ", "sh "):
+                self.assertNotIn(forbidden, command)
+        runner = next(step for step in job["steps"] if step.get("env", {}).get("MODE") == "publish")
+        self.assertEqual(runner["run"], "python .github/scripts/agent_runner.py")
+        self.assertIn("PLAN_SHA256", runner["env"])
+
+    def test_report_jobs_wait_for_every_stage_and_deduplicate_by_run_marker(self):
+        report = self.jobs["implement-report"]
+        self.assertEqual(set(report["needs"]),
+                         {"implement-generate", "implement-verify", "implement-publish"})
+        self.assertIn("always()", report["if"])
+        runner = next(step for step in report["steps"] if step.get("env", {}).get("MODE") == "report")
+        for stage in ("GENERATE_RESULT", "VERIFY_RESULT", "PUBLISH_RESULT"):
+            self.assertIn(stage, runner["env"])
+        plan_report = self.jobs["plan-report"]
+        script = next(step["with"]["script"] for step in plan_report["steps"] if "with" in step)
+        self.assertIn("roadbook-run:", script)
+        self.assertIn("listComments", script)
+
+    def test_run_steps_never_interpolate_expressions_into_shell_commands(self):
+        for workflow in (self.agent, self.pages):
+            for name, job in workflow["jobs"].items():
+                for step in job.get("steps", []):
+                    self.assertNotIn("${{", step.get("run", ""), f"{name}: {step.get('name')}")
+                    self.assertNotIn("${{", step.get("with", {}).get("script", ""), f"{name}: {step.get('name')}")
+
+    def test_all_workflows_start_without_default_permissions_or_with_read_only(self):
+        self.assertEqual(self.agent["permissions"], {})
+        self.assertEqual(self.pages["permissions"], {"contents": "read"})
+
+    def test_pages_deploys_only_main_and_runs_the_gates_before_the_artifact(self):
+        build = self.pages["jobs"]["build"]
+        deploy = self.pages["jobs"]["deploy"]
+        trigger = self.pages.get("on", self.pages.get(True))
+        self.assertEqual(trigger["pull_request"]["branches"], ["main"])
+        self.assertEqual(trigger["push"]["branches"], ["main"])
+        self.assertIn("refs/heads/main", deploy["if"])
+        self.assertIn("github.event_name != 'pull_request'", deploy["if"])
+        self.assertEqual(deploy["needs"], "build")
+        upload = step_index(build, lambda step: str(step.get("uses", "")).startswith("actions/upload-pages-artifact"), "pages")
+        self.assertIn("refs/heads/main", build["steps"][upload]["if"])
+        node = step_index(build, lambda step: "node --test web/tests/*.test.js" in step.get("run", ""), "node")
+        build_step = step_index(build, lambda step: "npm run build --prefix web" in step.get("run", ""), "build")
+        browser = step_index(build, lambda step: "playwright install" in step.get("run", ""), "chromium")
+        visual = step_index(build, lambda step: step.get("id") == "visual", "visual")
+        python_tests = step_index(build, lambda step: 'scripts -p "test_*.py"' in step.get("run", ""), "python")
+        self.assertLess(python_tests, node)
+        self.assertLess(node, build_step)
+        self.assertLess(build_step, browser)
+        self.assertLess(browser, visual)
+        self.assertLess(visual, upload)
+
+    def test_pages_visual_gate_is_staged_through_a_repository_variable(self):
+        build = self.pages["jobs"]["build"]
+        visual = next(step for step in build["steps"] if step.get("id") == "visual")
+        self.assertEqual(visual["run"], "npm run test:visual --prefix web")
+        self.assertEqual(
+            visual["continue-on-error"], "${{ vars.VISUAL_GATE_BLOCKING != 'true' }}")
+        report = next(step for step in build["steps"]
+                      if str(step.get("uses", "")).startswith("actions/upload-artifact"))
+        self.assertEqual(report["if"], "always()")
 
 
 class CollectContextTests(TemporaryRoot):
