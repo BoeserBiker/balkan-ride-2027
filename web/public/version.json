@@ -1,6 +1,16 @@
 {
-  "version": "v2.66",
+  "version": "v2.68",
   "history": [
+    {
+      "version": "v2.68",
+      "date": "2026-11-25",
+      "message": "Bugfix iPhone: Horizontales Herausschieben der App-Ansicht unterbunden"
+    },
+    {
+      "version": "v2.67",
+      "date": "2026-11-25",
+      "message": "Bugfix iPhone: Horizontales Herausschieben der App-Ansicht unterbunden"
+    },
     {
       "version": "v2.66",
       "date": "2026-11-25",
