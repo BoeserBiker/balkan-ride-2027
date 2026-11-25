@@ -1,7 +1,12 @@
 {
-  "version": "v2.108",
-  "serviceWorkerCache": "v121",
+  "version": "v2.109",
+  "serviceWorkerCache": "v122",
   "serviceWorkerHistory": [
+    {
+      "version": "v122",
+      "date": "2026-11-25",
+      "message": "A02 im Daily eingeplant und V5-Arbeitsstand aktualisiert"
+    },
     {
       "version": "v121",
       "date": "2026-11-25",
@@ -159,6 +164,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.109",
+      "date": "2026-11-25",
+      "message": "A02 im Daily eingeplant und V5-Arbeitsstand aktualisiert"
+    },
     {
       "version": "v2.108",
       "date": "2026-11-25",
