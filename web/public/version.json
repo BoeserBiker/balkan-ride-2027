@@ -1,6 +1,16 @@
 {
-  "version": "v2.79",
+  "version": "v2.81",
   "history": [
+    {
+      "version": "v2.81",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff: ROADBOOK 2027 und Header-Navigation bündig abgesenkt"
+    },
+    {
+      "version": "v2.80",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff: ROADBOOK 2027 und Header-Navigation bündig abgesenkt"
+    },
     {
       "version": "v2.79",
       "date": "2026-11-25",
