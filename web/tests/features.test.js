@@ -165,7 +165,8 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.map-panel \{ margin-top: 0; padding-top: 4px; padding-bottom: 6px; \}/);
   assert.match(styleSource, /\.duration-mobile \{ display: none; \}/);
   assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.duration-desktop \{ display: none; \}\n  \.duration-mobile \{ display: inline; \}/);
-  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 2px; display: flex; flex-direction: row; align-items: center; align-self: flex-end;/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 2px; display: flex; flex-direction: row; align-items: flex-end; align-self: flex-end;/);
+  assert.match(styleSource, /\.header-navigation \.settings-toggle \{ margin: 0; \}/);
   assert.match(mainSource, /<\/nav>\s*<div class="header-tools">/);
   assert.match(styleSource, /\.day-section h3, \.story-section h3 \{[^}]*font-size: 13px; font-weight: 650; letter-spacing: \.01em;/);
   assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
@@ -184,7 +185,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
     .map(([, target, label]) => [target, label]);
   assert.deepEqual(links, [
     ['roadbook', 'Etappen'],
-    ['media', 'Medien'],
+    ['media', 'Galerie'],
     ['logistics', 'Logistik'],
   ]);
   assert.match(styleSource, /\.site-nav \{ display: flex; flex-wrap: nowrap;/);

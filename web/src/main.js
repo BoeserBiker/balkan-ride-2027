@@ -202,7 +202,7 @@ function renderShell() {
       <div class="header-navigation">
         <nav class="site-nav" aria-label="Hauptnavigation">
           <a href="#roadbook">Etappen</a>
-          <a href="#media">Medien</a>
+          <a href="#media">Galerie</a>
           <a href="#logistics">Logistik</a>
         </nav>
         <div class="header-tools">
