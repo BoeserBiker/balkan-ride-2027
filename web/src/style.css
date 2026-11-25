@@ -432,7 +432,7 @@ h1, h2, h3, p { margin-top: 0; }
 .version-history-list p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
 .settings-dialog { box-sizing: border-box; width: min(460px, calc(100vw - 32px)); max-width: 460px; max-height: min(86vh, 680px); max-height: min(86dvh, 680px); margin: auto; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 24px 24px 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
 .settings-dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(4px); }
-.settings-dialog h2 { max-width: 100%; margin: 0 38px 20px 0; overflow-wrap: anywhere; font-size: 20px; }
+.settings-dialog h2 { max-width: 100%; margin: 0 0 20px; overflow-wrap: anywhere; font-size: 20px; text-align: center; }
 .settings-close { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 25px; cursor: pointer; }
 .settings-close:hover, .settings-close:focus-visible { color: var(--accent); }
 .settings-dialog > .settings-group, .settings-dialog > .settings-select-label, .settings-dialog > .version-current-grid,

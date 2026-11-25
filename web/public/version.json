@@ -1,7 +1,12 @@
 {
-  "version": "v2.107",
-  "serviceWorkerCache": "v120",
+  "version": "v2.108",
+  "serviceWorkerCache": "v121",
   "serviceWorkerHistory": [
+    {
+      "version": "v121",
+      "date": "2026-11-26",
+      "message": "Einstellungen-Ueberschrift im Dialog zentriert"
+    },
     {
       "version": "v120",
       "date": "2026-11-25",
@@ -154,6 +159,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.108",
+      "date": "2026-11-26",
+      "message": "Einstellungen-Ueberschrift im Dialog zentriert"
+    },
     {
       "version": "v2.107",
       "date": "2026-11-25",
