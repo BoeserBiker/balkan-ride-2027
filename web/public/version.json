@@ -1,7 +1,17 @@
 {
-  "version": "v2.105",
-  "serviceWorkerCache": "v118",
+  "version": "v2.107",
+  "serviceWorkerCache": "v120",
   "serviceWorkerHistory": [
+    {
+      "version": "v120",
+      "date": "2026-11-25",
+      "message": "Runner: --force-with-lease und Branch-Schutz fuer wiederholte /implement-item-Laeufe"
+    },
+    {
+      "version": "v119",
+      "date": "2026-11-25",
+      "message": "Runner: --force-with-lease und Branch-Schutz fuer wiederholte /implement-item-Laeufe"
+    },
     {
       "version": "v118",
       "date": "2026-11-25",
@@ -144,6 +154,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.107",
+      "date": "2026-11-25",
+      "message": "Runner: --force-with-lease und Branch-Schutz fuer wiederholte /implement-item-Laeufe"
+    },
+    {
+      "version": "v2.106",
+      "date": "2026-11-25",
+      "message": "Runner: --force-with-lease und Branch-Schutz fuer wiederholte /implement-item-Laeufe"
+    },
     {
       "version": "v2.105",
       "date": "2026-11-25",

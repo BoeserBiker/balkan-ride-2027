@@ -4,7 +4,7 @@ import { marked } from 'marked';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
 import roadbookDays from 'virtual:roadbook-content';
-import logisticsMarkdown from '../../docs/motorrad_checkliste_logistik.md?raw';
+import logisticsMarkdown from './content/logistik.md?raw';
 import { createRoadbookMap } from './map.js';
 import { renderDayContent, renderMediaGallery } from './roadbook.js';
 import { buildRouteTrack } from './route-scrubber.js';
