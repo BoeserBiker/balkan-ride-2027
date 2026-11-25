@@ -1,7 +1,22 @@
 {
-  "version": "v2.94",
-  "serviceWorkerCache": "v106",
+  "version": "v2.96",
+  "serviceWorkerCache": "v109",
   "serviceWorkerHistory": [
+    {
+      "version": "v109",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff und V5-Dokumentation aktualisiert"
+    },
+    {
+      "version": "v108",
+      "date": "2026-11-25",
+      "message": "Synchronisiere Versionshistorien im Pre-Commit-Lauf"
+    },
+    {
+      "version": "v107",
+      "date": "2026-11-25",
+      "message": "style: Einstellungs-Verlaeufe kompakt und scrollbar gestaltet (v2.91 / v97)"
+    },
     {
       "version": "v106",
       "date": "2026-11-25",
@@ -84,6 +99,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.96",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff und V5-Dokumentation aktualisiert"
+    },
+    {
+      "version": "v2.95",
+      "date": "2026-11-25",
+      "message": "Synchronisiere Versionshistorien im Pre-Commit-Lauf"
+    },
     {
       "version": "v2.94",
       "date": "2026-11-25",

@@ -15,12 +15,16 @@ spec.loader.exec_module(bump_version)
 
 
 class BumpVersionTest(unittest.TestCase):
-    def test_increments_version_history_and_cache_twice(self):
+    def test_increments_app_and_service_worker_versions_and_histories_twice(self):
         with tempfile.TemporaryDirectory() as directory:
             version_file = Path(directory) / "version.json"
             worker_file = Path(directory) / "sw.js"
             version_file.write_text(json.dumps({
                 "version": "v2.34",
+                "serviceWorkerCache": "v11",
+                "serviceWorkerHistory": [
+                    {"version": "v11", "date": "2026-11-22", "message": "Start"}
+                ],
                 "history": [{"version": "v2.34", "date": "2026-11-22", "message": "Start"}],
             }), encoding="utf-8")
             worker_file.write_text("const CACHE_NAME = `${CACHE_PREFIX}v11`;\n", encoding="utf-8")
@@ -37,6 +41,15 @@ class BumpVersionTest(unittest.TestCase):
             self.assertEqual(result["version"], "v2.36")
             self.assertEqual([entry["message"] for entry in result["history"]],
                              ["Zweite Änderung", "Erste Änderung", "Start"])
+            self.assertEqual(result["serviceWorkerCache"], "v13")
+            self.assertEqual(
+                [entry["version"] for entry in result["serviceWorkerHistory"]],
+                ["v13", "v12", "v11"],
+            )
+            self.assertEqual(
+                [entry["message"] for entry in result["serviceWorkerHistory"][:2]],
+                ["Zweite Änderung", "Erste Änderung"],
+            )
             self.assertIn("`${CACHE_PREFIX}v13`", worker_file.read_text(encoding="utf-8"))
 
     def test_rejects_missing_message_without_changes(self):

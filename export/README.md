@@ -48,7 +48,7 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
 
 ## Aktueller Web-Stand – 2026-11-25
 
-- App-Version `v2.93`; Service-Worker-Cache `v106`. Die beiden Versionen und
+- App-Version `v2.95`; Service-Worker-Cache `v108`. Die beiden Versionen und
   Verläufe sind in `../web/public/version.json` synchron dokumentiert.
 - Die App führt die Ansichten Etappen, Galerie und Logistik; im
   Einstellungsdialog liegen die klickbaren Versionskarten unter dem

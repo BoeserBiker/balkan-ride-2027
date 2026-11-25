@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.93`, Service-Worker-Cache `v106`
+- Web-Stand 2026-11-25: App-Version `v2.95`, Service-Worker-Cache `v108`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -161,6 +161,27 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – Pre-Commit-Versionierung vollständig synchronisiert
+
+- Der Pre-Commit-Lauf erhöhte zuvor App-Version und `sw.js`, ließ aber
+  `serviceWorkerCache` und `serviceWorkerHistory` in `version.json` unverändert.
+  `scripts/bump_version.py` aktualisiert jetzt App-Version, App-Verlauf,
+  Service-Worker-Cache, Cache-Verlauf und `sw.js` gemeinsam. Vor dem Schreiben
+  werden erforderliche Verlaufstrukturen und die Cache-Synchronität geprüft.
+- `web/tests/test_bump_version.py` prüft zwei aufeinanderfolgende Läufe samt
+  Versions- und Cache-Historien. Die Node-Basistests blieben unverändert und
+  bestätigten nach dem Hook-Lauf beide Synchronitätsinvarianten.
+- Für den lokalen Hook-Test wurde der bereits inkonsistente Zwischenstand
+  `sw.js v107` / `version.json v106` zunächst vervollständigt. Der direkte
+  Skriptlauf erhöhte anschließend auf App-Version `v2.95` und Cache `v108`.
+- Verifikation nach `python3 scripts/bump_version.py`: Python-Unit-Tests
+  (2/2), `node --test web/tests/*.test.js` (19/19),
+  `npm run build --prefix web` und `npm run test:visual --prefix web`
+  (100/100 PASS, 24 Screenshots).
+- Quellen: `scripts/bump_version.py`, `web/tests/test_bump_version.py`,
+  `web/tests/baseline.test.js`, `web/public/version.json`, `web/public/sw.js`
+  und [Visual-Prüfbericht](../web/.visual-report/REPORT.md).
 
 ### 2026-11-25 – Versionsschema an bump_version.py angepasst
 
