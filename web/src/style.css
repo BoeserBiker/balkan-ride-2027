@@ -487,7 +487,7 @@ h1, h2, h3, p { margin-top: 0; }
   .stats-grid > div { padding: 0 8px; }
   .stats-grid dd { font-size: 12px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
   .stats-grid dt { letter-spacing: .04em; }
-  .header-navigation { --nav-pb: 5.6px; }
+  .header-navigation { --nav-pb: 1.6px; }
   .site-header { padding: 9px 17px; }
   .brand-mark { width: 34px; height: 34px; }
   .brand strong { font-size: 10px; }
@@ -538,7 +538,8 @@ h1, h2, h3, p { margin-top: 0; }
   .site-footer { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
   .duration-desktop { display: none; }
   .duration-mobile { display: inline; }
-  .header-navigation { --nav-pb: 5px; }
+  .header-navigation { --nav-pb: 1px; }
+  .brand > span { position: relative; top: 4px; }
   .site-header { z-index: 1000; padding-top: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--line); background: var(--bg); }
   .brand strong { font-size: 12px; letter-spacing: .12em; }
   .brand small { font-size: 12px; letter-spacing: .04em; }
@@ -612,7 +613,7 @@ h1, h2, h3, p { margin-top: 0; }
   .brand { gap: 7px; }
   .brand-mark { width: 30px; height: 30px; }
   .brand strong { font-size: clamp(9px, 2.6vw, 10px); letter-spacing: .06em; }
-  .header-navigation { --nav-pb: 4px; }
+  .header-navigation { --nav-pb: 0px; }
   .site-header { gap: 4px; padding-top: 10px; padding-bottom: 10px; }
   .header-navigation { flex: 0 0 auto; gap: 2px; }
   .brand small { margin-top: 2px; font-size: 9px; }

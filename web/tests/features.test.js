@@ -156,6 +156,8 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\[hidden\] \{ display: none !important; \}/);
   assert.match(styleSource, /\.gpx-downloads, \.gpx-downloads \.button,[\s\S]*?min-width: 0; max-width: 100%; box-sizing: border-box;/);
   assert.doesNotMatch(styleSource, /--nav-shift|translateY\(var/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 1px; \}\n  \.brand > span \{ position: relative; top: 4px; \}/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 0px; \}/);
   assert.match(styleSource, /\.site-nav a \{ font-size: 12px; \}/);
   assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 0 0 4px; \}/);
   assert.match(styleSource, /#map \{ height: auto; min-height: 330px; flex: 1; \}/);
