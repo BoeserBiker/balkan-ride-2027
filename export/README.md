@@ -40,16 +40,13 @@ Chronologie fest; diese README erklärt Ablage, Pflege und Umzug.
 
 ## Aktueller Web-Stand – 2026-11-25
 
-- App-Version `v2.89`; Service-Worker-Cache `v96`. Die beiden Versionen und
+- App-Version `v2.91`; Service-Worker-Cache `v97`. Die beiden Versionen und
   Verläufe sind in `../web/public/version.json` synchron dokumentiert.
-- Die Fotokarten zeigen Bildtitel sowie Urheber und Lizenz ohne
-  Bearbeitungsnotiz. Die Medienimport-Grenze beträgt 1600 px gemäß
-  Pflichtenheft V4. Die Lightbox ist zentriert und bei langen Inhalten
-  scrollbar; die Service-Worker-Historie im Einstellungsdialog ist ebenfalls
-  scrollbar.
-- Prüfung: 16 Node-Tests, Vite-Produktionsbuild und Python-Syntaxprüfung
-  erfolgreich. Ein visueller Browser-/Gerätetest steht noch aus. Details,
-  offene Punkte und nächste Schritte stehen in [ARBEITSSTAND.md](./ARBEITSSTAND.md).
+- Die Einstellungen zeigen App- und Cache-Version nebeneinander; die getrennten
+  Verlaufslisten sind standardmäßig eingeklappt. Tests und Build sind
+  erfolgreich; die tatsächliche Darstellung im Browser und auf Geräten ist
+  noch visuell zu prüfen. Details, offene Punkte und nächste Schritte stehen in
+  [ARBEITSSTAND.md](./ARBEITSSTAND.md).
 
 ## Dateien
 

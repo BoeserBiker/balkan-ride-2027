@@ -7,14 +7,14 @@
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.89`, Service-Worker-Cache `v96`;
-  beide Verläufe in `web/public/version.json` sind synchron. Die Bildunterschrift
-  behält Titel, Urheber und Lizenz, zeigt aber keine Bearbeitungsnotiz. Der
-  Medienimport nutzt nun die 1600-px-Grenze des Pflichtenhefts V4. Die
-  Lightbox bleibt zentriert und kann bei langen Inhalten scrollen; Fotogrid-
-  Zeilen und Credits bleiben automatisch hoch. 16 Node-Tests, der Vite-
-  Produktionsbuild und die Python-Syntaxprüfung waren erfolgreich. Eine
-  visuelle Browser-/Geräteprüfung wurde nicht durchgeführt.
+- Web-Stand 2026-11-25: App-Version `v2.91`, Service-Worker-Cache `v97`;
+  beide Verläufe in `web/public/version.json` sind synchron. Die Einstellungen
+  zeigen beide aktuellen Versionen kompakt nebeneinander und bieten getrennte,
+  standardmäßig geschlossene Verlaufskarten. Die Fotokarten behalten Bildtitel,
+  Urheber und Lizenz ohne Bearbeitungsnotiz; die Medienimport-Grenze beträgt
+  1600 px. Lightbox und Verläufe sind scrollbar. 17 Node-Tests und der Vite-
+  Produktionsbuild waren erfolgreich. Eine visuelle Browser-/Geräteprüfung
+  wurde nicht durchgeführt.
 - Das konsolidierte [Pflichtenheft V5](../docs/V5/Balkan_Tour_Pflichtenheft_V5.md)
   ergänzt V4 um eine vorgeschaltete Tourübersicht, eindeutige Reisezeiträume,
   Daten-/GPX-Prüfung, Logistikmatrix, UI-/PWA-Offline- und Medienanforderungen.
@@ -144,6 +144,26 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-25 – Versionsverlauf in den Einstellungen überarbeitet
+
+- Die Einstellungen zeigen App-Version und Service-Worker-Cache nun als
+  kompakte Statuskarten nebeneinander. App- und Service-Worker-Verlauf sind
+  getrennte, standardmäßig eingeklappte Bereiche; Einträge sind kompakter
+  formatiert und innerhalb ihrer Listen scrollbar. Dialog, Karten und Listen
+  begrenzen Breite und Box-Modell, damit Überschriften und Versionsnummern
+  nicht an den Modalrändern abgeschnitten werden.
+- Bei der Prüfung stand `web/public/sw.js` bereits auf `v97`, während
+  `serviceWorkerCache` in `web/public/version.json` noch `v96` auswies. Den
+  Cache nicht nochmals auf `v98` erhöht, sondern die JSON-Angabe samt neuem
+  Verlaufseintrag auf den angeforderten `v97` synchronisiert. Die sichtbare
+  Einstellungsänderung ist als App-Version `v2.91` mit Verlaufseintrag erfasst.
+- Verifikation: `node --test web/tests/*.test.js` (17/17) und
+  `npm run build --prefix web` erfolgreich. Kein Browser-/Gerätetest; keine
+  persönlichen Chat- oder Falldaten in die Übergabe übernommen.
+- Relevante Dateien: `web/src/main.js`, `web/src/style.css`,
+  `web/public/sw.js`, `web/public/version.json`,
+  `web/tests/features.test.js`.
 
 ### 2026-11-25 – Medienansicht und Versionspflege abgeschlossen
 
@@ -825,9 +845,9 @@
    klären.
 7. **GPX und Medien prüfen:** Nach Buchung echte Routen-/GPX-Tracks erstellen
    und die Höhenmeter daraus erneut berechnen. Commons-Bildauswahl und
-   vorhandene Videos sichten. Die Desktop-Galerie, Lightbox und der
-   Service-Worker-Verlauf wurden per Tests, nicht visuell im Browser geprüft;
-   anschließend die iOS-/Android-PWA-Prüfung durchführen.
+   vorhandene Videos sichten. Die Einstellungs-Dialoge und Verlaufslisten
+   wurden per Tests, nicht visuell im Browser geprüft; anschließend die
+   iOS-/Android-PWA-Prüfung durchführen.
 
 ## Relevante Quellen
 

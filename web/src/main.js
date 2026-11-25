@@ -356,11 +356,23 @@ function renderShell() {
           <output id="font-size-value" class="font-size-value" for="font-size-range" aria-live="polite"></output>
         </div>
       </fieldset>
-      <details id="version-history" class="settings-version">
-        <summary>Versionsverlauf <span id="version-current">lädt …</span></summary>
-        <ol class="version-history-list"></ol>
-        <p class="version-history-section-title">Service-Worker- / Cache-Verlauf <span id="service-worker-current">lädt …</span></p>
-        <ol class="version-history-list service-worker-history-list"></ol>
+      <section class="version-current-grid" aria-label="Aktueller Versionsstand">
+        <div class="version-current-card">
+          <span class="version-current-label">App-Version</span>
+          <strong id="version-current">lädt …</strong>
+        </div>
+        <div class="version-current-card">
+          <span class="version-current-label">Service-Worker-Cache</span>
+          <strong id="service-worker-current">lädt …</strong>
+        </div>
+      </section>
+      <details id="app-version-history" class="settings-history">
+        <summary>App-Versionsverlauf</summary>
+        <ol id="app-version-history-list" class="version-history-list"></ol>
+      </details>
+      <details id="service-worker-version-history" class="settings-history">
+        <summary>Service-Worker- / Cache-Verlauf</summary>
+        <ol id="service-worker-history-list" class="version-history-list"></ol>
       </details>
       <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
       <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
@@ -369,11 +381,10 @@ function renderShell() {
 }
 
 async function loadVersionHistory() {
-  const details = document.querySelector('#version-history');
-  const current = details.querySelector('#version-current');
-  const list = details.querySelector('.version-history-list');
-  const serviceWorkerCurrent = details.querySelector('#service-worker-current');
-  const serviceWorkerList = details.querySelector('.service-worker-history-list');
+  const current = document.querySelector('#version-current');
+  const list = document.querySelector('#app-version-history-list');
+  const serviceWorkerCurrent = document.querySelector('#service-worker-current');
+  const serviceWorkerList = document.querySelector('#service-worker-history-list');
 
   try {
     const response = await fetch(`${import.meta.env.BASE_URL}version.json`);

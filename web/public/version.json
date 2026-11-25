@@ -1,7 +1,12 @@
 {
-  "version": "v2.90",
-  "serviceWorkerCache": "v96",
+  "version": "v2.92",
+  "serviceWorkerCache": "v97",
   "serviceWorkerHistory": [
+    {
+      "version": "v97",
+      "date": "2026-11-25",
+      "message": "Versionsverläufe in den Einstellungen kompakt und einklappbar gestaltet"
+    },
     {
       "version": "v96",
       "date": "2026-11-25",
@@ -34,6 +39,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.92",
+      "date": "2026-11-25",
+      "message": "chore: 1400/1440-Metadaten bereinigt, Lightbox scrollbar, v2.89/v96 und Export-Doku aktualisiert"
+    },
+    {
+      "version": "v2.91",
+      "date": "2026-11-25",
+      "message": "Einstellungen: Versionsstände kompakt; Verläufe getrennt einklappbar"
+    },
     {
       "version": "v2.90",
       "date": "2026-11-25",

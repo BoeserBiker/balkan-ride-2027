@@ -143,18 +143,12 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /:root\[data-theme="schalke"\][\s\S]*--bg: #071426;[\s\S]*--accent: #3897f0;/);
   assert.match(styleSource, /:root\[data-theme="bvb"\][\s\S]*--bg: #09090b;[\s\S]*--accent: #fde000;/);
   assert.match(mainSource, /<input id="font-size-range"[^>]*type="range" min="1" max="4" step="1"/);
-  assert.match(mainSource, /<details id="version-history" class="settings-version">/);
-  assert.match(mainSource, /Service-Worker- \/ Cache-Verlauf <span id="service-worker-current"/);
-  assert.match(mainSource, /class="version-history-list service-worker-history-list"/);
-  assert.match(mainSource, /serviceWorkerCurrent\.textContent = data\.serviceWorkerCache/);
-  assert.match(mainSource, /serviceWorkerList\.innerHTML = data\.serviceWorkerHistory\.map/);
   assert.doesNotMatch(mainSource, /version-badge|mobile-stage-route|route-connector|bindRouteScrubber/);
   assert.match(mainSource, /Etappe \$\{String\(day\.frontmatter\.tag\)/);
   assert.match(mainSource, /SETTINGS_KEYS = \{[\s\S]*theme: 'balkan-ride-theme'[\s\S]*fontSize: 'balkan-ride-font-size'/);
   for (const step of [1, 2, 3, 4]) {
     assert.match(styleSource, new RegExp(`:root\\[data-font-size="${step}"\\] \\{ font-size`));
   }
-  assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 200px; overflow-y: auto;[^}]*padding: 0 12px 12px;/);
   assert.match(styleSource, /\.settings-dialog \{[^}]*overflow-y: auto; overscroll-behavior: contain; padding: 24px 24px 40px;/);
   assert.match(styleSource, /\.settings-dialog \{[^}]*padding: 24px clamp\(16px, 4vw, 40px\) calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\);/);
   assert.match(styleSource, /\.settings-dialog \{ padding: 18px 14px calc\(40px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
@@ -178,7 +172,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.day-section h3, \.story-section h3 \{[^}]*font-size: 13px; font-weight: 650; letter-spacing: \.01em;/);
   assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
   assert.match(styleSource, /@media \(max-width: 520px\) \{\n  \.stats-grid > div \{ padding: 0 8px; \}[\s\S]*?white-space: normal;/);
-  assert.match(styleSource, /\.settings-dialog \{ width: min\(460px, calc\(100vw - 32px\)\); max-width: 460px;/);
+  assert.match(styleSource, /\.settings-dialog \{ box-sizing: border-box; width: min\(460px, calc\(100vw - 32px\)\); max-width: 460px;/);
   assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.settings-dialog \{ width: 100vw; max-width: 100vw;/);
   for (const app of ['google', 'apple', 'kurviger']) {
     assert.ok(mainSource.includes(`<option value="${app}">`));
@@ -242,6 +236,27 @@ test('defines a numeric service-worker cache version and runs tests before the P
   assert.match(deployWorkflow, /pull_request:[\s\S]*branches: \[main\]/);
   assert.match(deployWorkflow, /if: github\.event_name != 'pull_request'/);
   assert.match(deployWorkflow, /needs: build/);
+});
+
+test('renders compact collapsible version histories without modal-edge clipping', () => {
+  assert.match(mainSource, /<section class="version-current-grid" aria-label="Aktueller Versionsstand">/);
+  assert.match(mainSource, /<strong id="version-current">lädt …<\/strong>/);
+  assert.match(mainSource, /<strong id="service-worker-current">lädt …<\/strong>/);
+  assert.match(mainSource, /<details id="app-version-history" class="settings-history">\s*<summary>App-Versionsverlauf<\/summary>/);
+  assert.match(mainSource, /<details id="service-worker-version-history" class="settings-history">\s*<summary>Service-Worker- \/ Cache-Verlauf<\/summary>/);
+  assert.doesNotMatch(mainSource, /<details id="(?:app-version-history|service-worker-version-history)"[^>]*\bopen\b/);
+  assert.match(mainSource, /id="app-version-history-list" class="version-history-list"/);
+  assert.match(mainSource, /id="service-worker-history-list" class="version-history-list"/);
+  assert.match(mainSource, /serviceWorkerCurrent\.textContent = data\.serviceWorkerCache/);
+  assert.match(mainSource, /serviceWorkerList\.innerHTML = data\.serviceWorkerHistory\.map/);
+
+  assert.match(styleSource, /\.settings-dialog \{ box-sizing: border-box; width: min\(460px, calc\(100vw - 32px\)\);[^}]*overflow-x: hidden; overflow-y: auto;/);
+  assert.match(styleSource, /\.settings-dialog > \.settings-group,[\s\S]*?box-sizing: border-box;[\s\S]*?width: 100%;[\s\S]*?max-width: 100%;[\s\S]*?min-width: 0;/);
+  assert.match(styleSource, /\.version-current-grid \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(styleSource, /\.version-current-card \{ box-sizing: border-box; display: grid; width: 100%; max-width: 100%; min-width: 0;/);
+  assert.match(styleSource, /\.settings-history \{ box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0;[^}]*border-radius: 5px;/);
+  assert.match(styleSource, /\.settings-history summary \{ box-sizing: border-box; display: flex; width: 100%; max-width: 100%;[^}]*padding: 9px 12px;/);
+  assert.match(styleSource, /\.settings-history \.version-history-list \{ max-height: 180px; overflow-y: auto; overscroll-behavior: contain; \}/);
 });
 
 test('service worker cache version matches version.json and its latest history entry', () => {
