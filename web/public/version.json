@@ -1,6 +1,16 @@
 {
-  "version": "v2.71",
+  "version": "v2.73",
   "history": [
+    {
+      "version": "v2.73",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff: Header-Navigation exakt auf Grundlinie von ROADBOOK 2027 ausgerichtet"
+    },
+    {
+      "version": "v2.72",
+      "date": "2026-11-25",
+      "message": "UI-Feinschliff: Header-Navigation exakt auf Grundlinie von ROADBOOK 2027 ausgerichtet"
+    },
     {
       "version": "v2.71",
       "date": "2026-11-25",
