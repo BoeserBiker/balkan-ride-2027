@@ -275,7 +275,7 @@ test('renders accessible version-card toggles below update button without separa
   assert.match(styleSource, /\.version-current-card:focus-visible \{ outline: 2px solid var\(--marker-highlight\);/);
   assert.match(styleSource, /\.version-current-card:active \{ transform: translateY\(1px\); \}/);
   assert.match(styleSource, /\.version-current-card\[aria-expanded="true"\] \.version-history-indicator \{ transform: rotate\(180deg\); \}/);
-  assert.match(styleSource, /\.settings-history \{ box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; margin: 8px 0 0;/);
+  assert.match(styleSource, /\.settings-history \{ box-sizing: border-box; (?:width: 100%; max-width: 100%; min-width: 0; margin: 8px 0 0;|position: absolute; inset: 0; z-index: 20; min-width: 0; margin: 0; overflow-x: hidden; overflow-y: auto;)/);
   assert.match(styleSource, /\.settings-history \.version-history-list \{ box-sizing: border-box; width: 100%; max-width: 100%;/);
   assert.match(styleSource, /:root\[data-font-size="5"\] \.version-current-card/);
   assert.doesNotMatch(styleSource, /settings-history \.version-history-list \{ max-height:/);

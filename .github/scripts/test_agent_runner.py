@@ -210,6 +210,7 @@ class FileAccessTests(TemporaryRoot):
     def test_allowed_listing_skips_private_system_binary_and_symlinked_files(self):
         for path in (
             "content/tag-01.md", "content/notizen.md", "web/src/a.js", "web/public/icon.png",
+            "web/tests/features.test.js",
             "web/node_modules/x/y.js", "web/dist/z.js", "web/package.json",
             "config/ok.json", "config/commands/plan-item.md", "docs/secret.md",
             "web/scripts/visual-check.mjs", "daten/notiz.md", "export/ARBEITSSTAND.md",
@@ -218,7 +219,7 @@ class FileAccessTests(TemporaryRoot):
         (self.root / "web/src/link.js").symlink_to(self.root / "web/src/a.js")
         self.assertEqual(
             agent_runner.list_allowed_files(),
-            ["config/ok.json", "content/tag-01.md", "web/src/a.js"],
+            ["config/ok.json", "content/tag-01.md", "web/src/a.js", "web/tests/features.test.js"],
         )
 
     def test_new_file_needs_an_existing_directory_and_no_symlink(self):

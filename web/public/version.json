@@ -1,7 +1,12 @@
 {
   "version": "v2.108",
-  "serviceWorkerCache": "v121",
+  "serviceWorkerCache": "v122",
   "serviceWorkerHistory": [
+    {
+      "version": "v122",
+      "date": "2026-11-25",
+      "message": "History-CSS-Test fuer Overlay angepasst"
+    },
     {
       "version": "v121",
       "date": "2026-11-26",
