@@ -117,7 +117,8 @@ a { color: inherit; }
 }
 
 .brand-group { display: flex; align-items: flex-end; gap: 3px; }
-.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand { display: flex; align-items: flex-end; gap: 12px; text-decoration: none; }
+.brand > span { margin-bottom: 2.5px; }
 .brand-mark {
   width: 38px;
   height: 38px;
@@ -129,7 +130,7 @@ a { color: inherit; }
 .brand strong, .brand small { display: block; line-height: 1; }
 .brand strong { font-size: 12px; letter-spacing: .19em; }
 .brand small { margin-top: 4px; color: var(--quiet); font-size: 9px; letter-spacing: .2em; }
-.header-navigation { --nav-pb: 6px; display: flex; flex-direction: row; align-items: center; align-self: flex-end; gap: clamp(12px, 2vw, 24px); padding-bottom: var(--nav-pb); }
+.header-navigation { --nav-pb: 2px; display: flex; flex-direction: row; align-items: center; align-self: flex-end; gap: clamp(12px, 2vw, 24px); padding-bottom: var(--nav-pb); }
 .duration-mobile { display: none; }
 .header-tools { display: flex; align-items: center; gap: 8px; }
 .settings-toggle { position: relative; display: grid; width: 28px; height: 26px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--button-surface); color: var(--accent); font-size: 17px; line-height: 1; cursor: pointer; }
@@ -488,6 +489,7 @@ h1, h2, h3, p { margin-top: 0; }
   .stats-grid dd { font-size: 12px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
   .stats-grid dt { letter-spacing: .04em; }
   .header-navigation { --nav-pb: 1.6px; }
+  .brand > span { margin-bottom: 2px; }
   .site-header { padding: 9px 17px; }
   .brand-mark { width: 34px; height: 34px; }
   .brand strong { font-size: 10px; }
@@ -539,7 +541,7 @@ h1, h2, h3, p { margin-top: 0; }
   .duration-desktop { display: none; }
   .duration-mobile { display: inline; }
   .header-navigation { --nav-pb: 1px; }
-  .brand > span { position: relative; top: 4px; }
+  .brand > span { margin-bottom: 1px; }
   .site-header { z-index: 1000; padding-top: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--line); background: var(--bg); }
   .brand strong { font-size: 12px; letter-spacing: .12em; }
   .brand small { font-size: 12px; letter-spacing: .04em; }
@@ -614,6 +616,7 @@ h1, h2, h3, p { margin-top: 0; }
   .brand-mark { width: 30px; height: 30px; }
   .brand strong { font-size: clamp(9px, 2.6vw, 10px); letter-spacing: .06em; }
   .header-navigation { --nav-pb: 0px; }
+  .brand > span { margin-bottom: .5px; }
   .site-header { gap: 4px; padding-top: 10px; padding-bottom: 10px; }
   .header-navigation { flex: 0 0 auto; gap: 2px; }
   .brand small { margin-top: 2px; font-size: 9px; }

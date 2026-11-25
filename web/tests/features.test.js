@@ -156,7 +156,8 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\[hidden\] \{ display: none !important; \}/);
   assert.match(styleSource, /\.gpx-downloads, \.gpx-downloads \.button,[\s\S]*?min-width: 0; max-width: 100%; box-sizing: border-box;/);
   assert.doesNotMatch(styleSource, /--nav-shift|translateY\(var/);
-  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 1px; \}\n  \.brand > span \{ position: relative; top: 4px; \}/);
+  assert.match(styleSource, /\.brand \{ display: flex; align-items: flex-end;[^}]*\}\n\.brand > span \{ margin-bottom: 2\.5px; \}/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 1px; \}\n  \.brand > span \{ margin-bottom: 1px; \}/);
   assert.match(styleSource, /\.header-navigation \{ --nav-pb: 0px; \}/);
   assert.match(styleSource, /\.site-nav a \{ font-size: 12px; \}/);
   assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 0 0 4px; \}/);
@@ -164,7 +165,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.map-panel \{ margin-top: 0; padding-top: 4px; padding-bottom: 6px; \}/);
   assert.match(styleSource, /\.duration-mobile \{ display: none; \}/);
   assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.duration-desktop \{ display: none; \}\n  \.duration-mobile \{ display: inline; \}/);
-  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 6px; display: flex; flex-direction: row; align-items: center; align-self: flex-end;/);
+  assert.match(styleSource, /\.header-navigation \{ --nav-pb: 2px; display: flex; flex-direction: row; align-items: center; align-self: flex-end;/);
   assert.match(mainSource, /<\/nav>\s*<div class="header-tools">/);
   assert.match(styleSource, /\.day-section h3, \.story-section h3 \{[^}]*font-size: 13px; font-weight: 650; letter-spacing: \.01em;/);
   assert.match(styleSource, /\.elevation-title \{[^}]*font-size: 13px; font-weight: 650; line-height: inherit; letter-spacing: \.01em;/);
