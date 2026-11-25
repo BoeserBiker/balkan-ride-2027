@@ -1,7 +1,22 @@
 {
-  "version": "v2.98",
-  "serviceWorkerCache": "v111",
+  "version": "v2.101",
+  "serviceWorkerCache": "v114",
   "serviceWorkerHistory": [
+    {
+      "version": "v114",
+      "date": "2026-11-25",
+      "message": "Korrigierte Etappendateien (Gruppenansprache ohne fixes Motorradmodell/Gruppengroesse) eingecheckt"
+    },
+    {
+      "version": "v113",
+      "date": "2026-11-25",
+      "message": "Logistik-Inhalt nach web/src/content verschoben"
+    },
+    {
+      "version": "v112",
+      "date": "2026-11-25",
+      "message": "Korrigierte Etappendateien (Gruppenansprache ohne fixes Motorradmodell/Gruppengroesse) eingecheckt"
+    },
     {
       "version": "v111",
       "date": "2026-11-25",
@@ -109,6 +124,21 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.101",
+      "date": "2026-11-25",
+      "message": "Korrigierte Etappendateien (Gruppenansprache ohne fixes Motorradmodell/Gruppengroesse) eingecheckt"
+    },
+    {
+      "version": "v2.100",
+      "date": "2026-11-25",
+      "message": "Logistik-Inhalt nach web/src/content verschoben"
+    },
+    {
+      "version": "v2.99",
+      "date": "2026-11-25",
+      "message": "Korrigierte Etappendateien (Gruppenansprache ohne fixes Motorradmodell/Gruppengroesse) eingecheckt"
+    },
     {
       "version": "v2.98",
       "date": "2026-11-25",
