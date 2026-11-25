@@ -152,8 +152,9 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(styleSource, /\.settings-version \.version-history-list \{ max-height: 240px; overflow-y: auto;/);
   assert.doesNotMatch(styleSource, /route-connector|version-badge|mobile-stage-route/);
   assert.match(styleSource, /\.header-navigation \{ --nav-shift: 7px;[^}]*transform: translateY\(var\(--nav-shift\)\);/);
-  assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 6px 0; \}/);
-  assert.match(styleSource, /#map \{ height: auto; min-height: 300px; flex: 1; \}/);
+  assert.match(styleSource, /\.mobile-map-context \{ display: grid; gap: 2px; margin: 0 0 6px; padding: 0 0 4px; \}/);
+  assert.match(styleSource, /#map \{ height: auto; min-height: 330px; flex: 1; \}/);
+  assert.match(styleSource, /\.map-panel \{ margin-top: 0; padding-top: 4px; padding-bottom: 6px; \}/);
   assert.match(styleSource, /\.duration-mobile \{ display: none; \}/);
   assert.match(styleSource, /@media \(max-width: 768px\) \{[\s\S]*?\.duration-desktop \{ display: none; \}\n  \.duration-mobile \{ display: inline; \}/);
   assert.match(styleSource, /\.header-navigation \{ --nav-shift: 7px; display: flex; flex-direction: row; align-items: center;/);

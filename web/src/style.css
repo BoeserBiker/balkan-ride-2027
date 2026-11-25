@@ -557,19 +557,19 @@ h1, h2, h3, p { margin-top: 0; }
   .map-panel {
     top: auto;
     display: flex;
-    min-height: calc(100vh - 116px - env(safe-area-inset-bottom, 0px));
-    min-height: calc(100svh - 116px - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100vh - 108px - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100svh - 108px - env(safe-area-inset-bottom, 0px));
     flex-direction: column;
   }
-  .map-panel { padding-top: 8px; padding-bottom: 6px; }
+  .map-panel { margin-top: 0; padding-top: 4px; padding-bottom: 6px; }
   .map-content { display: flex; flex: 1; flex-direction: column; }
-  .mobile-map-context { display: grid; gap: 2px; margin: 0 0 6px; padding: 6px 0; }
+  .mobile-map-context { display: grid; gap: 2px; margin: 0 0 6px; padding: 0 0 4px; }
   .mobile-stage-label, .mobile-stage-title { display: block; }
   .mobile-stage-label { color: var(--quiet); font-size: clamp(11px, 3vw, 12px); font-weight: 700; letter-spacing: .08em; }
   .mobile-map-context h2 { min-width: 0; margin: 0; font-size: clamp(17px, 4.7vw, 22px); line-height: 1.2; overflow-wrap: anywhere; }
   .mobile-stage-title { margin-top: 0; }
   .journey-heading, .day-detail > .day-meta, .day-detail > .day-title { display: none; }
-  #map { height: auto; min-height: 300px; flex: 1; }
+  #map { height: auto; min-height: 330px; flex: 1; }
   .mobile-day-navigation[hidden] { display: none; }
   .elevation-content::before { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; content: "Tippen oder ziehen"; }
   .elevation-chart { touch-action: pan-y; }

@@ -1,6 +1,11 @@
 {
-  "version": "v2.64",
+  "version": "v2.65",
   "history": [
+    {
+      "version": "v2.65",
+      "date": "2026-11-25",
+      "message": "UI-Gesamtfeinschliff: Header-Navigation auf Grundlinie, kompakte mobile Abstaende und groessere Karte"
+    },
     {
       "version": "v2.64",
       "date": "2026-11-25",
