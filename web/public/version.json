@@ -1,6 +1,11 @@
 {
-  "version": "v2.85",
+  "version": "v2.86",
   "history": [
+    {
+      "version": "v2.86",
+      "date": "2026-11-25",
+      "message": "Navigation: Etappen, Medien und Logistik als eigene Seiten getrennt"
+    },
     {
       "version": "v2.85",
       "date": "2026-11-25",
