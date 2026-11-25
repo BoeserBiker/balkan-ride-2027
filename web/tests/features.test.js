@@ -229,6 +229,12 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.match(mainSource, /renderMediaGallery\(roadbookDays/);
 });
 
+test('centers the settings dialog heading', () => {
+  assert.match(mainSource, /<h2 id="settings-title">Einstellungen<\/h2>/);
+  assert.match(styleSource, /\.settings-dialog h2 \{[^}]*margin: 0 0 20px;[^}]*text-align: center;/);
+  assert.doesNotMatch(styleSource, /\.settings-dialog h2 \{[^}]*margin: 0 38px 20px 0;/);
+});
+
 test('runs the Node tests before the Pages production build', () => {
   const testCommand = deployWorkflow.indexOf('node --test web/tests/*.test.js');
   const buildCommand = deployWorkflow.indexOf('npm run build --prefix web');
