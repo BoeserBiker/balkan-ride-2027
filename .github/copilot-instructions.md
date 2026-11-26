@@ -8,13 +8,10 @@
 
   Arbeite minimal-invasiv und erfinde keine Routendaten.
 
-## Verbindliche Testpflicht für Web-Änderungen
+## Verbindlicher Web-Closed-Loop
 
-Bei jeder neuen Funktion, Bugfix- oder UI-Änderung in `web/` müssen immer passende automatisierte Tests in `web/tests/` (`node:test`) ergänzt oder aktualisiert werden. Die Tests müssen in GitHub Actions vor dem Produktionsbuild laufen; sie dürfen nicht stillschweigend übersprungen werden.
-
-## Verbindliche Versionspflege für Web-Änderungen
-
-- Bei jeder Änderung an Dateien unter `web/` (einschließlich UI, Styles, Logik, Assets und Service Worker) die numerische Cache-Version in `web/public/sw.js` um genau 1 erhöhen.
-- `web/public/version.json` synchron halten: `serviceWorkerCache` muss dem Cache-Namen in `sw.js` entsprechen; für jede Erhöhung einen neuen Eintrag am Anfang von `serviceWorkerHistory` mit Version, Datum (`YYYY-MM-DD`) und knapper Änderungsbeschreibung ergänzen.
-- Bei sichtbaren oder fachlichen Änderungen der App zusätzlich `version` erhöhen und einen passenden Eintrag am Anfang von `history` ergänzen. Bei rein technischer, nicht sichtbarer Pflege bleibt die App-Version unverändert; die Cache-Version und deren Historie werden trotzdem aktualisiert.
-- `web/tests/` muss die Übereinstimmung von `sw.js`, `serviceWorkerCache` und dem neuesten `serviceWorkerHistory`-Eintrag prüfen.
+Für Test-, Build-, Visual-, Versions- und Daily-Pflichten gilt ausschließlich
+der [Closed-Loop im Lastenheft V5](../docs/master_ablauf_prompt_plan_v5.md)
+(Abschnitte 5–7; `docs/` ist privat und nur lokal verfügbar). Diese Referenz ist verbindlich; die Einzelschritte werden
+hier nicht doppelt gepflegt. Verweise auf das Lastenheft erweitern keine
+Dateizugriffsrechte des unbeaufsichtigten GitHub-Runners.

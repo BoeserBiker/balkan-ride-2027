@@ -21,8 +21,8 @@ Vor jeder Aktualisierung sind die vorhandenen Inhalte zu lesen und fortzuschreib
 
 Aktualisieren bei:
 
-- neuen Bescheiden
-- neuen Analysen
+- neuen Updates
+- neuen Erkenntnissen
 - neuen Berechnungen
 - neuen Widersprüchen
 - geänderten Stammdaten

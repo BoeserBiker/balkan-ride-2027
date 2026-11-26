@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-26): App-Version `v2.111`, Service-Worker-Cache `v124`
+- Web-Stand (Datei-Stand 2026-11-26): App-Version `v2.113`, Service-Worker-Cache `v126`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -164,6 +164,24 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-26 – Tagesabschluss: A02 live abgenommen
+
+- **A02-2 und A02-3:** Live-Abnahme laut BB abgeschlossen. Der Negativtest
+  in [Issue #28](https://github.com/BoeserBiker/balkan-ride-2027/issues/28)
+  blockierte dreimal vor dem Push; kein fehlerhafter Feature-Branch wurde
+  veröffentlicht und Debug-Artefakte wurden hochgeladen. Das Issue bleibt für
+  die mobile CSS-Anpassung bis morgen offen.
+- **Positivtest:** [Issue #29](https://github.com/BoeserBiker/balkan-ride-2027/issues/29)
+  lief mit `/plan` und `/go` erfolgreich bis zum PR inklusive automatischer
+  Vorschau auf `pr-previews`. [PR #30](https://github.com/BoeserBiker/balkan-ride-2027/pull/30)
+  wurde gemergt, Issue #29 geschlossen; der Merge-Stand war `354f459`.
+  Der anschließende Pages-Lauf und die Vorschau-Bereinigung waren erfolgreich.
+- **Visual-Gate:** `VISUAL_GATE_BLOCKING=true` ist auf GitHub gesetzt.
+  Der erfolgreiche Pages-Lauf führte den Visual-Check aus; ob dieser Lauf
+  bereits nach dem Setzen der Variable stattfand, wurde nicht geprüft.
+- **Morgen:** P01/P02 (Tour-Landingpage mit Tourübersicht und Teilnahme-/
+  Kontaktinformationen) sowie Issue #28 abschließen.
 
 ### 2026-11-26 – A02-3 umgesetzt (Kurzbefehle `/plan` + `/go`, PR-Vorschaubilder)
 
@@ -1448,9 +1466,9 @@
    die MCP-Verbindung in der aktiven Sitzung prüfen; danach bei Bedarf
    `VS_CODE_Tools` neu indexieren. Die Watch-Strategie nach Möglichkeit
    prüfen; für die frühere CLI-Sitzung meldete sie `none`.
-4. **GitHub-Automatisierung beobachten:** Der Plan → Freigabe → PR-Ablauf
-   wurde mit PR #2 erfolgreich getestet. Nach weiteren Workflow-Änderungen
-   erneut mit einem Test-Issue prüfen.
+4. **GitHub-Automatisierung beobachten:** A02-2 und A02-3 sind laut
+   Tagesabschluss live abgenommen. Nach weiteren Workflow-Änderungen erneut
+   mit einem Test-Issue prüfen.
 ### V5-Arbeitspakete
 
 Die Kästchen kennzeichnen offene und erledigte Punkte; diese Statuszeilen ersetzen
@@ -1470,24 +1488,19 @@ stehen in den beiden V5-Spezifikationen.
 - [x] **A02-2/A02:** Workflow-Härtung nach
   [Detailplan_A02.md](../docs/V5/Detailplan_A02.md) und
   [Analyse_Agent_Workflow_Haertung.md](../docs/V5/Analyse_Agent_Workflow_Haertung.md)
-  in den Paketen A02-1 und A02-2 umgesetzt und lokal verifiziert; wirksam auf
-  `main` erst nach dem von BB autorisierten Maintainer-Commit (`.github/`,
-  `config/commands/`). Offen bleibt die Live-Abnahme (siehe unten) und die
-  Störungsbehandlung A02-3.
+  in den Paketen A02-1 und A02-2 umgesetzt und live abgenommen. Die separate
+  Störungsbehandlung A02-4 bleibt offen.
   - [x] **A02-1** (Plan-Vollständigkeit, Versionsschritt, robuste Tests):
     auf `origin/main` (`8c4e1bf`).
   - [x] **A02-2** (Commit-Bindung per Bundle, isolierte Prüfung vor dem Push,
     Deploy-Guard, Visual-Gate): lokal umgesetzt (Runner 125/125, Node 20/20,
     Python-Tests Web 2/2 und Skripte 20/20, Build, Visual 100/100,
     `actionlint` ohne Befund); Details in der Chronologie.
-  - [ ] **Live-Abnahme A02-2 – nächster unmittelbarer Schritt:** nach dem
-    Maintainer-Commit zwei Test-Issues (grün und absichtlich rot) durch Plan →
-    Freigabe → Verify → PR führen; im roten Fall darf kein `feature/issue-*`
-    entstehen. Davor keine Implementierungsläufe laufen oder warten lassen.
+  - [x] **Live-Abnahme A02-2:** Negativtest #28 blockierte laut BB dreimal vor
+    dem Push, Positivtest #29 führte zum gemergten PR #30.
   - [x] **A02-3** (Kurzbefehle `/plan` und `/go`, Vorschaubilder im PR,
-    Cleanup-Workflow `cleanup-pr-preview.yml`): lokal umgesetzt (Runner 152/152,
-    `actionlint` ohne Befund); Details in der Chronologie. Wirksam nach dem
-    Maintainer-Commit, Live-Abnahme zusammen mit A02-2.
+    Cleanup-Workflow `cleanup-pr-preview.yml`): auf `main` und zusammen mit
+    A02-2 live abgenommen; `/plan`, `/go` und PR-Vorschaubilder im Positivtest.
   - [ ] **A02-4** (Störungsbehandlung, bisher als A02-3 vorgemerkt):
     SDK/Abhängigkeiten pinnen, Retry-/Timeout-Budget, Token-Vorabschätzung
     (D-11).
@@ -1498,8 +1511,9 @@ stehen in den beiden V5-Spezifikationen.
   (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
   Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
-- [ ] **P01–P02:** Tourübersicht und Teilnahme-/Kontaktanforderungen nach
-  Klärung der zugrunde liegenden Fakten umsetzen.
+- [ ] **P01–P02 – nächster Schritt:** Tour-Landingpage mit Tourübersicht und
+  Teilnahme-/Kontaktinformationen nach Klärung der zugrunde liegenden Fakten
+  umsetzen; daneben Issue #28 mit der mobilen CSS-Anpassung abschließen.
 - [ ] **L01–L05:** Etappenlogistik, Reichweite/Pannen, Fähren/Unterkünfte
   (u. a. Adria- und Koman-Fähre, Villach und Igoumenitsa), Kostenstruktur und
   Reserveplanung quellenbasiert klären.
@@ -1512,13 +1526,12 @@ stehen in den beiden V5-Spezifikationen.
 - [x] **T01:** Visual-Gate (`npm run test:visual --prefix web`) in den
   Workflows eingerichtet: in `implement-verify` blockierend (ohne
   `continue-on-error`, Bericht als Artefakt auch bei Fehler); in
-  `deploy-pages.yml` zweistufig (D-8): solange die Repository-Variable
-  `VISUAL_GATE_BLOCKING` nicht `true` ist, wird der erste Linux-Lauf nur
-  gemessen. **Nachweis offen:** Ein Actions-Lauf mit dem Gate wurde noch nicht
-  ausgeführt; bis dahin darf er nicht als nachgewiesen gelten (Lastenheft §5).
+  `deploy-pages.yml` durch `VISUAL_GATE_BLOCKING=true` scharfgeschaltet.
+  Der Visual-Check lief im erfolgreichen Pages-Lauf nach PR #30; ein Lauf
+  nach dem Setzen der Variable wurde nicht gesondert nachgewiesen.
 - [ ] **T02–T04:** Mobilen Agenten-End-to-End-Lauf, Gesamt- und
-  Live-Abnahme abschließen; der Visual-Check bleibt bis zum nachgewiesenen
-  Actions-Gate lokal verpflichtend.
+  Live-Abnahme abschließen; der lokale Visual-Check bleibt bei UI- und
+  Funktionsänderungen verpflichtend.
 
 ## Relevante Quellen
 
