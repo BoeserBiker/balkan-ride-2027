@@ -52,6 +52,7 @@ videos:
 Ihr reist mit PKW und Anhänger von Recklinghausen in Richtung Oberpfalz; das Motorrad fährt verzurrt auf dem Hänger mit. Vor der Abfahrt und unterwegs Verzurrung sowie Reifen prüfen, Pausen einlegen und ohne Kilometerjagd ankommen. Abends bleibt der Hobel auf dem Hänger, während ihr in Ruhe im Gasthof im Raum Velburg eincheckt.
 
 - **Transport:** PKW + Anhänger.
+- **Tanken:** Der Hobel rollt mit vollem Tank in die Tour, also vor der Abfahrt noch einmal randvoll machen. So startet ihr entspannt in die Etappen und müsst nicht gleich nach der ersten Kehre die nächste Tanke suchen.
 - **Übernachtung:** Hotel oder Gasthof im Raum Velburg; Anhängerstellplatz vorher bestätigen.
 - **Alternative:** Bei Sperrung der aktuellen Verkehrsführung folgen und eine gespanntaugliche Ersatzroute neu prüfen; für sie ist keine feste Ausweichdistanz angegeben.
 

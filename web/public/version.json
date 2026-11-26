@@ -1,7 +1,12 @@
 {
-  "version": "v2.112",
-  "serviceWorkerCache": "v125",
+  "version": "v2.113",
+  "serviceWorkerCache": "v126",
   "serviceWorkerHistory": [
+    {
+      "version": "v126",
+      "date": "2026-11-25",
+      "message": "Tag 1: Hinweis auf Abfahrt mit vollem Tank ergaenzt"
+    },
     {
       "version": "v125",
       "date": "2026-11-25",
@@ -179,6 +184,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.113",
+      "date": "2026-11-25",
+      "message": "Tag 1: Hinweis auf Abfahrt mit vollem Tank ergaenzt"
+    },
     {
       "version": "v2.112",
       "date": "2026-11-25",
