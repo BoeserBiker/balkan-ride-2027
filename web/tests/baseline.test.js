@@ -46,6 +46,14 @@ const baselineChecks = [
       assert.ok(logistics.trim());
     },
   },
+  {
+    name: 'Tag 1 enthaelt den Hinweis auf die Abfahrt mit vollem Tank',
+    async run() {
+      const tag01 = await readFile(new URL('../../content/tag-01.md', import.meta.url), 'utf8');
+      assert.match(tag01, /\*\*Tanken:\*\*/);
+      assert.match(tag01, /vollem Tank/);
+    },
+  },
 ];
 
 for (const { name, run } of baselineChecks) {
