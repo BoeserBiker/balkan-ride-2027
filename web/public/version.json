@@ -1,7 +1,12 @@
 {
-  "version": "v2.111",
-  "serviceWorkerCache": "v124",
+  "version": "v2.112",
+  "serviceWorkerCache": "v125",
   "serviceWorkerHistory": [
+    {
+      "version": "v125",
+      "date": "2026-11-25",
+      "message": "UI: App-Icon oben links vergroessert (Header- und Kartengroesse unveraendert)"
+    },
     {
       "version": "v124",
       "date": "2026-11-25",
@@ -174,6 +179,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.112",
+      "date": "2026-11-25",
+      "message": "UI: App-Icon oben links vergroessert (Header- und Kartengroesse unveraendert)"
+    },
     {
       "version": "v2.111",
       "date": "2026-11-25",
