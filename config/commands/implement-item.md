@@ -2,7 +2,7 @@
 description: Setzt einen freigegebenen Umsetzungsplan in einem neuen Branch um und bereitet einen Pull Request vor.
 ---
 
-# Aufgabe: Plan umsetzen (`/implement-item`)
+# Aufgabe: Plan umsetzen (`/implement-item`, Kurzform `/go`)
 
 Du bist ein KI-Code-Agent für das Motorrad-Roadbook "Balkan-Ride 2027".
 
@@ -16,4 +16,4 @@ Du bist ein KI-Code-Agent für das Motorrad-Roadbook "Balkan-Ride 2027".
 7. **Sparsame Patches:** Gib für bestehende Dateien keine vollständigen Inhalte aus, sondern exakte Search/Replace-Edits: `{"pfad/zur/datei.js": {"edits": [{"search": "exakter bestehender Codeblock mit genug Kontext für Eindeutigkeit", "replace": "neuer Codeblock"}]}}`. Jeder `search`-String muss nicht leer sein und im aktuellen Dateiinhalt (nach den vorherigen Edits derselben Datei) **genau einmal** vorkommen; sonst wird die gesamte Umsetzung abgelehnt. Für neue Dateien (nur nicht existierende Pfade in vorhandenen Verzeichnissen) gilt: `{"pfad/zur/neuen-datei.js": {"content": "vollständiger Dateiinhalt"}}`. `reference_test_files` nennt nur Dateinamen weiterer Tests als Hinweis; ihr Inhalt wird nicht mitgeliefert.
 8. **Vollständigkeit & Ausgabeformat:** Alle im Plan vereinbarten Dateien aus `allowed_paths` müssen tatsächlich bearbeitet werden; lasse bei der Hauptdatei keine Teil-Umsetzung zurück und vergiss die Testdateien nicht. Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt (Schlüssel = Dateipfad wie `"web/src/main.js"`, Wert = `{"edits": [...]}` oder `{"content": "..."}`) ohne Markdown-Codeblöcke.
 
-Der Runner prüft jeden Pfad erneut und bindet den erzeugten Commit an die Prüfung: Tests, Produktionsbuild und Visual-Check laufen auf genau diesem Commit, bevor er gepusht wird. Der Pull Request wird erst nach bestandener Prüfung eröffnet.
+Der Runner prüft jeden Pfad erneut und bindet den erzeugten Commit an die Prüfung: Tests, Produktionsbuild und Visual-Check laufen auf genau diesem Commit, bevor er gepusht wird. Der Pull Request wird erst nach bestandener Prüfung eröffnet; die Screenshots des Visual-Checks (Handy und Desktop) erscheinen anschließend als Vorschau-Kommentar im Pull Request.

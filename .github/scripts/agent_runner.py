@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 from datetime import date
 from pathlib import Path, PurePosixPath
 
@@ -31,12 +32,26 @@ MAX_CONTEXT_BYTES = 600 * 1024
 PLAN_CONTEXT_BYTES = 45000
 MAX_CHANGESET_BYTES = 1024 * 1024
 PLAN_HEADING = "## Umsetzungsplan"
-APPROVAL = "/implement-item"
-APPROVED_MODES = {"implement", "gate", "publish", "report"}
+PLAN_COMMANDS = ("/plan-item", "/plan")
+# Freigabe als eigenständiges Wort: am Zeilenanfang oder nach Leerraum, nicht in Backticks/URLs/Wortteilen.
+APPROVAL_COMMAND = re.compile(r"(?:^|\s)/(?:implement-item|go)(?=$|[\s.!?,;])", re.MULTILINE)
+APPROVED_MODES = {"implement", "gate", "publish", "preview", "report"}
 PLAN_FOOTER = (
-    "*Freigabe erteilen: Kommentiere mit `/implement-item`, "
+    "*Freigabe erteilen: Kommentiere mit `/implement-item` oder `/go`, "
     "um die Umsetzung als Pull Request zu starten.*"
 )
+PREVIEW_BRANCH = "pr-previews"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+PNG_HEADER = PNG_SIGNATURE + b"\x00\x00\x00\rIHDR"
+MAX_PREVIEW_BYTES = 2 * 1024 * 1024
+PREVIEW_PUSH_ATTEMPTS = 3
+# Dateiname im Visual-Bericht (web/scripts/visual-check.mjs) -> Beschriftung im PR-Kommentar.
+PREVIEW_IMAGES = {
+    "iphone-12-mini-main.png": "Mobile Vorschau – Hauptansicht",
+    "iphone-12-mini-settings.png": "Mobile Vorschau – Einstellungen",
+    "desktop-main.png": "Desktop Vorschau – Hauptansicht",
+}
+PREVIEW_MARKER = "<!-- roadbook-preview:{number} -->"
 BOT = "github-actions[bot]"
 TEXT_FIELDS = {"titel", "start", "ziel", "fahrzeit", "gpx_datei"}
 NUMBER_FIELDS = {"kilometer", "hoehenmeter"}
@@ -102,7 +117,7 @@ class PlanIncomplete(ValueError):
             self.missing = list(missing)
             message = (
                 "Der Plan ist unvollständig (fehlend: " + ", ".join(self.missing) + "). "
-                "Er wurde nicht veröffentlicht; bitte `/plan-item` erneut auslösen."
+                "Er wurde nicht veröffentlicht; bitte `/plan-item` oder `/plan` erneut auslösen."
             )
         super().__init__(message)
 
@@ -690,6 +705,38 @@ def write_outputs(values: dict[str, str]) -> None:
             handle.write(f"{key}={value}\n")
 
 
+def comment_command(body: object) -> str | None:
+    """`plan` (`/plan-item` oder `/plan` auf eigener Zeile), `implement` (`/implement-item` oder `/go`) oder None.
+
+    Enthält ein Kommentar beide Arten, ist er mehrdeutig und löst nichts aus.
+    """
+    if not isinstance(body, str):
+        return None
+    plan = any(line.strip() in PLAN_COMMANDS for line in body.splitlines())
+    implement = APPROVAL_COMMAND.search(body) is not None
+    if plan == implement:
+        return None
+    return "plan" if plan else "implement"
+
+
+def route_event(event_name: str, event: dict, allowed_user: str) -> dict[str, str]:
+    """Entscheidet, welche Stufe ein Ereignis auslöst; der Workflow kann Kommandos nicht selbst parsen."""
+    plan = implement = False
+    issue = event.get("issue") or {}
+    if allowed_user and "pull_request" not in issue:
+        if event_name == "issues":
+            plan = (
+                event.get("action") == "opened"
+                and issue.get("user", {}).get("login", "").casefold() == allowed_user
+            )
+        elif event_name == "issue_comment" and event.get("action") == "created":
+            comment = event.get("comment") or {}
+            if comment.get("user", {}).get("login", "").casefold() == allowed_user:
+                command = comment_command(comment.get("body"))
+                plan, implement = command == "plan", command == "implement"
+    return {"plan": str(plan).lower(), "implement": str(implement).lower()}
+
+
 def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, number: int) -> None:
     if not allowed_user or number < 1 or event["issue"]["number"] != number:
         raise ValueError("Ungültige Workflow-Konfiguration.")
@@ -708,7 +755,7 @@ def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, n
             if (
                 event["action"] == "created"
                 and comment["user"]["login"].casefold() == allowed_user
-                and comment["body"].strip() == "/plan-item"
+                and comment_command(comment["body"]) == "plan"
             ):
                 return
         raise ValueError("Keine gültige Planungs-Auslösung.")
@@ -718,7 +765,7 @@ def validate_event(mode: str, event_name: str, event: dict, allowed_user: str, n
         if (
             event["action"] == "created"
             and comment["user"]["login"].casefold() == allowed_user
-            and comment["body"].strip() == APPROVAL
+            and comment_command(comment["body"]) == "implement"
         ):
             return
         raise ValueError("Keine gültige Freigabe.")
@@ -852,13 +899,13 @@ def check_base_fresh(base_sha: str, main_sha: str, changed: list[str]) -> None:
     if main_sha == base_sha:
         return
     if not git_ok("merge-base", "--is-ancestor", base_sha, main_sha):
-        raise ValueError("Der Basisstand ist nicht mehr Teil von main; bitte `/implement-item` erneut auslösen.")
+        raise ValueError("Der Basisstand ist nicht mehr Teil von main; bitte `/implement-item` oder `/go` erneut auslösen.")
     relevant = set(changed) | (set(VERSION_FILES) if requires_version(changed) else set())
     overlap = git_paths("diff", "--name-only", "--no-renames", base_sha, main_sha) & relevant
     if overlap:
         raise ValueError(
             "Basis veraltet: main hat seit der Generierung dieselben Dateien geändert ("
-            + ", ".join(sorted(overlap)) + "). Bitte `/implement-item` erneut auslösen."
+            + ", ".join(sorted(overlap)) + "). Bitte `/implement-item` oder `/go` erneut auslösen."
         )
 
 
@@ -981,6 +1028,137 @@ def publish_verified(
         ensure_agent_only(branch, main_sha)
     push_verified_commit(issue, head_sha, remote)
     return open_pull_request(session, repo_url, issue, base_sha, head_sha, changed)
+
+
+def validated_previews(directory: Path) -> dict[str, bytes]:
+    """Liest das Vorschau-Artefakt; zulässig sind nur bekannte, gültige PNG-Dateien (flach, ohne Links)."""
+    if not directory.is_dir() or directory.is_symlink():
+        raise ValueError("Das Vorschau-Artefakt fehlt.")
+    images: dict[str, bytes] = {}
+    for path in sorted(directory.iterdir()):
+        if path.name not in PREVIEW_IMAGES or path.is_symlink() or not path.is_file():
+            raise ValueError(f"Unzulässiger Eintrag im Vorschau-Artefakt: {path.name}")
+        if path.stat().st_size > MAX_PREVIEW_BYTES:
+            raise ValueError(f"Vorschaubild zu groß: {path.name}")
+        data = path.read_bytes()
+        if not data.startswith(PNG_HEADER):
+            raise ValueError(f"Kein gültiges PNG: {path.name}")
+        images[path.name] = data
+    if not images:
+        raise ValueError("Das Vorschau-Artefakt enthält keine Bilder.")
+    return images
+
+
+def preview_comment(number: int, repository: str, head_sha: str, names: set[str] | list[str]) -> str:
+    base = f"https://raw.githubusercontent.com/{repository}/{PREVIEW_BRANCH}/issue-{number}/{head_sha[:7]}"
+    lines = [f"**Vorschau** für Commit `{head_sha[:7]}` (Screenshots aus dem Visual-Check von `implement-verify`)"]
+    for name, caption in PREVIEW_IMAGES.items():
+        if name in names:
+            lines += ["", f"**{caption}**", "", f"![{caption}]({base}/{name})"]
+    lines += [
+        "", f"*Die Bilder liegen nur auf dem Branch `{PREVIEW_BRANCH}` und werden beim Schließen "
+        "des Pull Requests gelöscht.*", "", PREVIEW_MARKER.format(number=number),
+    ]
+    return "\n".join(lines)
+
+
+def preview_git(*args: str, env: dict[str, str] | None = None, data: bytes | None = None) -> str:
+    result = subprocess.run(
+        ["git", "--no-pager", *args], cwd=ROOT, check=True, capture_output=True,
+        input=data, env={**os.environ, **(env or {})},
+    )
+    return result.stdout.decode("utf-8").strip()
+
+
+def preview_tree(parent: str | None, prefix: str, files: dict[str, bytes]) -> str:
+    """Baut den Baum des Vorschau-Branches mit einem temporären Index; Arbeitsverzeichnis und main bleiben unberührt."""
+    with tempfile.TemporaryDirectory() as directory:
+        env = {"GIT_INDEX_FILE": str(Path(directory) / "index")}
+        preview_git("read-tree", *((parent,) if parent else ("--empty",)), env=env)
+        preview_git("rm", "--cached", "-r", "-q", "-f", "--ignore-unmatch", "--", prefix, env=env)
+        for path, data in sorted(files.items()):
+            blob = preview_git("hash-object", "-w", "--stdin", data=data)
+            preview_git("update-index", "--add", "--cacheinfo", f"100644,{blob},{prefix}/{path}", env=env)
+        return preview_git("write-tree", env=env)
+
+
+def update_preview_branch(number: int, files: dict[str, bytes], message: str) -> bool:
+    """Ersetzt `issue-<nummer>/` im Orphan-Branch pr-previews (leeres `files` löscht den Ordner).
+
+    Nur Fast-Forward-Pushes auf genau diesen Branch, niemals Force; bei einem Wettlauf mit einem
+    anderen Lauf wird neu aufgesetzt. Liefert False, wenn nichts zu ändern war.
+    """
+    prefix = f"issue-{int(number)}"
+    identity = {
+        "GIT_AUTHOR_NAME": AGENT_NAME, "GIT_AUTHOR_EMAIL": AGENT_EMAIL,
+        "GIT_COMMITTER_NAME": AGENT_NAME, "GIT_COMMITTER_EMAIL": AGENT_EMAIL,
+    }
+    for attempt in range(1, PREVIEW_PUSH_ATTEMPTS + 1):
+        parent = None
+        if remote_branch_sha(PREVIEW_BRANCH):
+            tracking = f"refs/remotes/origin/{PREVIEW_BRANCH}"
+            preview_git("fetch", "--no-tags", "origin", f"+refs/heads/{PREVIEW_BRANCH}:{tracking}")
+            parent = preview_git("rev-parse", tracking)
+        elif not files:
+            return False
+        tree = preview_tree(parent, prefix, files)
+        if parent and tree == preview_git("rev-parse", f"{parent}^{{tree}}"):
+            return False
+        commit = preview_git(
+            "commit-tree", tree, *(("-p", parent) if parent else ()), "-m", message, env=identity,
+        )
+        try:
+            preview_git("push", "origin", f"{commit}:refs/heads/{PREVIEW_BRANCH}")
+        except subprocess.CalledProcessError as error:
+            if attempt == PREVIEW_PUSH_ATTEMPTS:
+                raise RuntimeError(
+                    "Push auf pr-previews fehlgeschlagen: " + error.stderr.decode("utf-8", "replace")[:300]
+                ) from error
+            continue
+        return True
+    return False
+
+
+def publish_preview(session: requests.Session, repo_url: str, issue: dict) -> str:
+    """Veröffentlicht die geprüften Screenshots auf pr-previews und verlinkt sie im Pull Request."""
+    number = issue["number"]
+    head_sha = os.environ.get("HEAD_SHA", "")
+    if not SHA1.fullmatch(head_sha):
+        raise ValueError("HEAD_SHA ist ungültig.")
+    images = validated_previews(Path(os.environ.get("PREVIEW_DIR", "")))
+    owner = os.environ["REPOSITORY"].split("/")[0]
+    pulls = api(session, "GET", f"{repo_url}/pulls", params={
+        "head": f"{owner}:{push_branch(issue)}", "base": "main", "state": "open",
+    }).json()
+    if not pulls or pulls[0]["head"]["sha"] != head_sha:
+        raise ValueError("Es gibt keinen offenen Pull Request für den geprüften Commit.")
+    pull = pulls[0]
+    update_preview_branch(
+        number, {f"{head_sha[:7]}/{name}": data for name, data in images.items()},
+        f"Vorschau Issue #{number} ({head_sha[:7]})",
+    )
+    marker = PREVIEW_MARKER.format(number=number)
+    body = preview_comment(number, os.environ["REPOSITORY"], head_sha, set(images))
+    comments_url = f"{repo_url}/issues/{pull['number']}"
+    existing = next((
+        comment for comment in get_comments(session, comments_url)
+        if comment["user"]["login"] == BOT and marker in comment["body"].splitlines()
+    ), None)
+    if existing:
+        api(session, "PATCH", f"{repo_url}/issues/comments/{existing['id']}", json={"body": body})
+    else:
+        api(session, "POST", f"{comments_url}/comments", json={"body": body})
+    return f"Vorschaubilder für `{head_sha[:7]}` im Pull Request #{pull['number']} verlinkt."
+
+
+def cleanup_previews() -> bool:
+    """Entfernt nach dem Schließen eines Feature-Branch-PRs dessen Vorschau-Ordner."""
+    ref = os.environ.get("PR_HEAD_REF", "")
+    if not FEATURE_BRANCH.fullmatch(ref):
+        print(f"Kein Feature-Branch ({ref!r}): nichts zu bereinigen.")
+        return False
+    number = int(ref.rsplit("-", 1)[1])
+    return update_preview_branch(number, {}, f"Vorschau Issue #{number} entfernt")
 
 
 def generate_changes(issue: dict, plan: str, replies: list[str], paths: set[str]) -> None:
@@ -1167,9 +1345,17 @@ def report_body(session: requests.Session, issue_url: str) -> str | None:
 
 def main() -> None:
     mode = os.environ["MODE"]
+    if mode == "cleanup":
+        cleanup_previews()
+        return
     event_name = os.environ["GITHUB_EVENT_NAME"]
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     allowed_user = os.environ["ALLOWED_GITHUB_USER"].casefold()
+    if mode == "route":
+        decision = route_event(event_name, event, allowed_user)
+        print(decision)
+        write_outputs(decision)
+        return
     number = int(os.environ["ISSUE_NUMBER"])
     validate_event(mode, event_name, event, allowed_user, number)
     if mode == "gate":
@@ -1195,6 +1381,13 @@ def main() -> None:
                 raise
         elif mode == "report":
             body = report_body(session, issue_url)
+        elif mode == "preview":
+            # Komfortfunktion: ein Fehler macht weder den Pull Request noch den Lauf ungültig.
+            try:
+                print(publish_preview(session, repo_url, issue))
+            except Exception as error:
+                print(f"::warning::Vorschaubilder nicht veröffentlicht: {error}")
+                raise
         else:
             try:
                 plan, replies = approved_plan(get_comments(session, issue_url), event["comment"]["id"], issue)
@@ -1205,7 +1398,7 @@ def main() -> None:
                 if gaps:
                     raise PlanIncomplete(
                         "Der freigegebene Plan ist unvollständig (fehlend: " + ", ".join(gaps)
-                        + "). Bitte `/plan-item` erneut auslösen und den ergänzten Plan freigeben."
+                        + "). Bitte `/plan-item` oder `/plan` erneut auslösen und den ergänzten Plan freigeben."
                     )
                 if mode == "implement":
                     generate_changes(issue, plan, replies, paths)

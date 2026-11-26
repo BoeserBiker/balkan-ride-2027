@@ -15,7 +15,10 @@ env:
   REPOSITORY: ${{ github.repository }}
 
 jobs:
-  plan-stage:
+  # Das Kommando-Parsing (`/plan`, `/plan-item`, `/implement-item`, `/go` als eigenständige Wörter)
+  # lässt sich in Ausdrücken nicht abbilden; es liegt im getesteten Runner (MODE=route).
+  # Der grobe Filter hält fremde Kommentare und alle Nicht-Kommandos von diesem Job fern.
+  route:
     if: |
       vars.ROADBOOK_AGENT_USER != '' &&
       (
@@ -29,9 +32,38 @@ jobs:
           github.event.action == 'created' &&
           !github.event.issue.pull_request &&
           github.event.comment.user.login == vars.ROADBOOK_AGENT_USER &&
-          contains(github.event.comment.body, '/plan-item')
+          (
+            contains(github.event.comment.body, '/plan') ||
+            contains(github.event.comment.body, '/implement-item') ||
+            contains(github.event.comment.body, '/go')
+          )
         )
       )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      plan: ${{ steps.route.outputs.plan }}
+      implement: ${{ steps.route.outputs.implement }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - run: python -m pip install requests PyYAML
+      - name: Kommando erkennen
+        id: route
+        env:
+          MODE: route
+        run: python .github/scripts/agent_runner.py
+
+  plan-stage:
+    needs: route
+    if: needs.route.outputs.plan == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -57,13 +89,8 @@ jobs:
 
   # Erzeugt nur einen lokalen Commit samt Bundle: kein Push, kein Schreibzugriff auf das Repository.
   implement-generate:
-    if: |
-      github.event_name == 'issue_comment' &&
-      github.event.action == 'created' &&
-      vars.ROADBOOK_AGENT_USER != '' &&
-      github.event.comment.user.login == vars.ROADBOOK_AGENT_USER &&
-      !github.event.issue.pull_request &&
-      contains(github.event.comment.body, '/implement-item')
+    needs: route
+    if: needs.route.outputs.implement == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
@@ -167,6 +194,20 @@ jobs:
         with:
           name: visual-report-issue-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: web/.visual-report/
+          include-hidden-files: true
+          if-no-files-found: warn
+      # Nur ausgewählte Screenshots (PNG) für den Vorschau-Kommentar im Pull Request.
+      - name: Vorschaubilder sichern
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-preview-images-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            web/.visual-report/iphone-12-mini-main.png
+            web/.visual-report/iphone-12-mini-settings.png
+            web/.visual-report/desktop-main.png
+          include-hidden-files: true
+          retention-days: 1
           if-no-files-found: warn
 
   # Pusht genau den geprüften Commit und öffnet den PR. Führt keinen Code aus dem Artefakt aus.
@@ -205,6 +246,23 @@ jobs:
           PLAN_SHA256: ${{ needs.implement-generate.outputs.plan_sha256 }}
           VISUAL_ARTIFACT: visual-report-issue-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: python .github/scripts/agent_runner.py
+      # Ab hier nur Komfort: Fehler lassen den bereits eröffneten Pull Request und den Lauf unberührt.
+      - name: Vorschaubilder laden
+        id: previews
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-preview-images-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/previews
+      - name: Vorschaubilder im Pull Request anzeigen
+        if: steps.previews.outcome == 'success'
+        continue-on-error: true
+        env:
+          MODE: preview
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIEW_DIR: ${{ runner.temp }}/previews
+          HEAD_SHA: ${{ needs.implement-generate.outputs.head_sha }}
+        run: python .github/scripts/agent_runner.py
 
   implement-report:
     needs: [implement-generate, implement-verify, implement-publish]
@@ -235,7 +293,7 @@ jobs:
 
   plan-report:
     needs: [plan-stage]
-    if: ${{ failure() }}
+    if: ${{ always() && needs.plan-stage.result == 'failure' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

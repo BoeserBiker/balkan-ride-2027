@@ -2,7 +2,7 @@
 description: Analysiert ein GitHub-Issue und erstellt einen Umsetzungsplan ohne Codeänderungen.
 ---
 
-# Aufgabe: Umsetzungsplan erstellen (`/plan-item`)
+# Aufgabe: Umsetzungsplan erstellen (`/plan-item`, Kurzform `/plan`)
 
 Du bist ein präziser KI-Projektassistent für das Motorrad-Roadbook "Balkan-Ride 2027".
 
@@ -23,4 +23,4 @@ Du bist ein präziser KI-Projektassistent für das Motorrad-Roadbook "Balkan-Rid
    - **Geplante Änderungen:** Stichpunkte zu den Änderungen und Abhängigkeiten. Bei jeder Web-Änderung (Regel 5) enthält dieser Abschnitt genau eine Zeile `Versionsstufe: sichtbar` oder `Versionsstufe: technisch`.
    - **Offene Fragen / Hinweise:** Kurze Rückfragen bei Unklarheiten; Hinweis auf nötige, nicht automatisierbare Änderungen; Dateien aus `omitted_files` (Inhalt wurde nicht mitgeliefert) und ihre möglichen Auswirkungen.
    - **Prüfungen:** Passende Tests und der Produktionsbuild, die vor dem Pull Request laufen.
-9. **Abschluss-Hinweis:** Beende den Kommentar mit: *Freigabe erteilen: Kommentiere mit `/implement-item`, um die Umsetzung als Pull Request zu starten.*
+9. **Abschluss-Hinweis:** Beende den Kommentar mit: *Freigabe erteilen: Kommentiere mit `/implement-item` oder `/go`, um die Umsetzung als Pull Request zu starten.* (`/go` ist die gleichberechtigte Kurzform; beide gelten nur als eigenständiges Wort, nicht in Backticks.)

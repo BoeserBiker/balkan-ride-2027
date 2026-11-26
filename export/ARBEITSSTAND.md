@@ -1,13 +1,13 @@
 ## Arbeitsstand – Balkan-Ride 2027
 
-**Stand:** 2026-11-25
+**Stand:** 2026-11-26
 
 **Workspace:** `Balkan-Ride-2027`  
 **Leitdokument:** [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md)
 
 ## Aktueller Stand
 
-- Web-Stand 2026-11-25: App-Version `v2.110`, Service-Worker-Cache `v123`
+- Web-Stand (Datei-Stand 2026-11-26): App-Version `v2.111`, Service-Worker-Cache `v124`
   (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
   hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
@@ -164,6 +164,59 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-26 – A02-3 umgesetzt (Kurzbefehle `/plan` + `/go`, PR-Vorschaubilder)
+
+- **Umfang:** nur `.github/workflows/ai-agent-workflow.yml`,
+  `.github/workflows/cleanup-pr-preview.yml` (neu), `.github/scripts/agent_runner.py`,
+  `.github/scripts/test_agent_runner.py`, `config/commands/plan-item.md`,
+  `config/commands/implement-item.md` und dieses Daily. Kein App-Code, daher
+  keine Versionsänderung durch den Agenten (Dateistand `v2.111` / `v124`; der
+  lokale Pre-Commit-Hook erhöht beim Commit).
+- **Namensabgrenzung:** Die bisher als „A02-3“ vorgemerkte Störungsbehandlung
+  (SDK pinnen, Retry-/Timeout-Budget, Token-Vorabschätzung, D-11) heißt ab jetzt
+  **A02-4**; „A02-3“ steht für diese Komfort-Erweiterung.
+- **Kurzbefehle:** `comment_command()` im Runner ist die einzige Stelle, die
+  Kommandos erkennt. Plan: `/plan-item` oder `/plan` auf einer eigenen Zeile (ein
+  Hinweis darüber ist erlaubt). Freigabe: `/implement-item` oder `/go` als
+  eigenständiges Wort (Zeilenanfang oder nach Leerraum; nicht in Backticks, URLs
+  oder Wörtern wie `/going`, `/google`, `/go-live`). Enthält ein Kommentar beide
+  Arten, löst er nichts aus. Weil GitHub-Ausdrücke kein Regex kennen, entscheidet
+  der neue Job `route` (`MODE=route`, nur Leserechte) über die Ausgaben
+  `plan`/`implement`; `plan-stage` und `implement-generate` hängen daran,
+  `validate_event` prüft in jedem Modus erneut. `plan-report` reagiert nur noch
+  auf einen Fehlschlag von `plan-stage`. Plan-Schlusssatz (`PLAN_FOOTER`) und
+  Fehlerhinweise nennen beide Formen; `plan-item.md`/`implement-item.md` sind
+  angepasst. Ohne Schrägstrich (`go`, `google`) passiert nichts.
+- **Vorschaubilder:** `implement-verify` lädt nach dem blockierenden Visual-Check
+  nur `iphone-12-mini-main.png`, `iphone-12-mini-settings.png` und
+  `desktop-main.png` als `pr-preview-images-<run_id>-<attempt>` (1 Tag) hoch
+  (nicht blockierend, `include-hidden-files`, weil `.visual-report` ein
+  Punkt-Ordner ist). `implement-publish` lädt sie nach dem PR (`MODE=preview`,
+  Schritte mit `continue-on-error`: ein Fehler lässt PR und Lauf unberührt),
+  `validated_previews()` lässt nur flache, bekannte, höchstens 2 MB große PNG-Dateien
+  mit gültigem Header zu, prüft, dass der offene PR genau auf `HEAD_SHA` zeigt, und
+  schreibt sie per Git-Plumbing (temporärer Index, `commit-tree`) in den
+  Orphan-Branch `pr-previews` unter `issue-<nr>/<sha7>/`; Fast-Forward-Push mit
+  bis zu 3 Versuchen, nie Force; `main`, `feature/issue-<nr>` und Arbeitsbaum
+  bleiben unberührt. Ein Wiederholungslauf ersetzt nur den eigenen Ordner. Der
+  PR-Kommentar mit `<!-- roadbook-preview:<nr> -->` wird bei Wiederholung
+  aktualisiert (nur eigene Bot-Kommentare) und bettet die Bilder per
+  `raw.githubusercontent.com` ein (Repository ist öffentlich).
+  `cleanup-pr-preview.yml` (`pull_request: closed`, nur gleichnamiges Repository,
+  Checkout von `main`, `contents: write`) löscht `issue-<nr>/` über `MODE=cleanup`.
+- **Tests:** Runner 152/152 (neu: `CommandTests`, `PreviewTests` mit echtem
+  Bare-Remote, erweiterte `WorkflowPolicyTests` inkl. Cleanup-Workflow);
+  `actionlint` ohne Befund. Gegenproben (jeweils zurückgesetzt): Regex ohne
+  Wortgrenze → mehrere Tests rot; PNG-Prüfung entfernt → 4 Tests rot; Ordner-Ersatz im
+  Branch entfernt → 2 Tests rot. Live ungeprüft: `upload-artifact`/`download-artifact`
+  mit den drei Dateien, Rendern der `raw.githubusercontent.com`-Bilder in der
+  GitHub-App und Schreibrechte von `GITHUB_TOKEN` auf `pr-previews` (Branch-Regeln).
+- **Offen:** Maintainer-Commit durch BB (Änderung an `.github/` und
+  `config/commands/`), Live-Abnahme zusammen mit A02-2 (grün/rot, danach
+  `/plan` und `/go` sowie Vorschau im PR). `deploy-pages.yml` lädt
+  `web/.visual-report/` ohne `include-hidden-files` hoch; bei Bedarf in einem
+  eigenen Schritt nachziehen (nicht Teil von A02-3).
 
 ### 2026-11-25 – A02-2 umgesetzt (Commit-Bindung, Vorab-Prüfung, Deploy-Schutz, Visual-Gate)
 
@@ -1431,8 +1484,13 @@ stehen in den beiden V5-Spezifikationen.
     Maintainer-Commit zwei Test-Issues (grün und absichtlich rot) durch Plan →
     Freigabe → Verify → PR führen; im roten Fall darf kein `feature/issue-*`
     entstehen. Davor keine Implementierungsläufe laufen oder warten lassen.
-  - [ ] **A02-3** (Störungsbehandlung): SDK/Abhängigkeiten pinnen,
-    Retry-/Timeout-Budget, Token-Vorabschätzung (D-11).
+  - [x] **A02-3** (Kurzbefehle `/plan` und `/go`, Vorschaubilder im PR,
+    Cleanup-Workflow `cleanup-pr-preview.yml`): lokal umgesetzt (Runner 152/152,
+    `actionlint` ohne Befund); Details in der Chronologie. Wirksam nach dem
+    Maintainer-Commit, Live-Abnahme zusammen mit A02-2.
+  - [ ] **A02-4** (Störungsbehandlung, bisher als A02-3 vorgemerkt):
+    SDK/Abhängigkeiten pinnen, Retry-/Timeout-Budget, Token-Vorabschätzung
+    (D-11).
 - [x] **D-13:** `feature/issue-24` gelöscht und „Branch nach Merge löschen“
   aktiviert (von BB auf GitHub erledigt; per `gh` bestätigt:
   `deleteBranchOnMerge: true`, `feature/issue-24` nicht mehr vorhanden).

@@ -645,12 +645,15 @@ class EventGateTests(unittest.TestCase):
         }
 
     def test_all_approved_modes_need_the_authorized_approval_comment(self):
-        for mode in ("implement", "publish", "report"):
+        for mode in ("implement", "publish", "preview", "report"):
             with self.subTest(mode=mode):
                 agent_runner.validate_event(mode, "issue_comment", self.event(), "boss", 3)
+                for accepted in ("/go", "Passt so, /go", "Danke.\n/go\n"):
+                    agent_runner.validate_event(mode, "issue_comment", self.event(body=accepted), "boss", 3)
                 for bad in (
                     self.event(user="mallory"), self.event(body="/plan-item"),
-                    self.event(body="bitte /implement-item"), self.event(pull_request=True),
+                    self.event(body="/plan"), self.event(body="/going"),
+                    self.event(body="/implement-item\n/plan"), self.event(pull_request=True),
                 ):
                     with self.assertRaises(ValueError):
                         agent_runner.validate_event(mode, "issue_comment", bad, "boss", 3)
@@ -662,6 +665,95 @@ class EventGateTests(unittest.TestCase):
             agent_runner.validate_event("deploy", "issue_comment", self.event(), "boss", 3)
         with self.assertRaises(ValueError):
             agent_runner.validate_event("implement", "issue_comment", self.event(), "boss", 4)
+
+
+class CommandTests(unittest.TestCase):
+    def test_plan_commands_must_stand_on_their_own_line(self):
+        for body in ("/plan", "/plan-item", "  /plan  \n", "Fokus aufs Handy\n/plan",
+                     "Hinweis\r\n/plan-item\r\nDanke"):
+            with self.subTest(body=body):
+                self.assertEqual(agent_runner.comment_command(body), "plan")
+        for body in ("/planning", "bitte /plan", "/plan jetzt", "`/plan`", "plan", "", None, 5):
+            with self.subTest(body=body):
+                self.assertIsNone(agent_runner.comment_command(body))
+
+    def test_go_and_implement_item_work_as_standalone_words(self):
+        for body in ("/implement-item", "/go", "Ok, /go", "/go!", "Super.\n/go\nDanke",
+                     "/implement-item bitte", "alles klar /go."):
+            with self.subTest(body=body):
+                self.assertEqual(agent_runner.comment_command(body), "implement")
+
+    def test_words_that_merely_contain_go_do_not_trigger(self):
+        for body in ("google", "going", "/going", "/google", "go", "https://example.org/go",
+                     "`/go`", "/gopher", "/go-live", "/implement-items", "Ich gehe los",
+                     "Quelle: https://example.org/implement-item"):
+            with self.subTest(body=body):
+                self.assertIsNone(agent_runner.comment_command(body))
+
+    def test_a_comment_with_both_kinds_of_commands_is_ambiguous(self):
+        self.assertIsNone(agent_runner.comment_command("/plan\n/go"))
+
+    def test_plan_mode_accepts_the_short_form_and_rejects_approvals(self):
+        def event(body, user="boss"):
+            return {"action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
+                    "comment": {"user": {"login": user}, "body": body}}
+
+        for body in ("/plan", "Nur Handy beachten\n/plan", "/plan-item"):
+            agent_runner.validate_event("plan", "issue_comment", event(body), "boss", 3)
+        for body in ("/go", "/implement-item", "bitte /plan", "/planung"):
+            with self.assertRaises(ValueError):
+                agent_runner.validate_event("plan", "issue_comment", event(body), "boss", 3)
+        with self.assertRaises(ValueError):
+            agent_runner.validate_event("plan", "issue_comment", event("/plan", "mallory"), "boss", 3)
+
+    def test_routing_decides_which_stage_starts(self):
+        def comment(body, user="boss", action="created", pull_request=False):
+            issue = {"number": 3, "user": {"login": "boss"}}
+            if pull_request:
+                issue["pull_request"] = {}
+            return {"action": action, "issue": issue, "comment": {"user": {"login": user}, "body": body}}
+
+        route = agent_runner.route_event
+        plan, go, none = ({"plan": "true", "implement": "false"},
+                          {"plan": "false", "implement": "true"},
+                          {"plan": "false", "implement": "false"})
+        self.assertEqual(route("issues", {"action": "opened", "issue": {"number": 3, "user": {"login": "Boss"}}}, "boss"), plan)
+        self.assertEqual(route("issues", {"action": "opened", "issue": {"number": 3, "user": {"login": "x"}}}, "boss"), none)
+        self.assertEqual(route("issue_comment", comment("/plan"), "boss"), plan)
+        self.assertEqual(route("issue_comment", comment("Mehr Kontrast\n/plan-item"), "boss"), plan)
+        self.assertEqual(route("issue_comment", comment("/go"), "boss"), go)
+        self.assertEqual(route("issue_comment", comment("/implement-item"), "boss"), go)
+        for body, kwargs in (("going", {}), ("google", {}), ("/go", {"user": "mallory"}),
+                             ("/go", {"pull_request": True}), ("/go", {"action": "edited"}),
+                             ("/plan\n/go", {})):
+            with self.subTest(body=body, kwargs=kwargs):
+                self.assertEqual(route("issue_comment", comment(body, **kwargs), "boss"), none)
+        self.assertEqual(route("issue_comment", comment("/go"), ""), none)
+
+    def test_route_mode_reports_the_decision_as_outputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            event = Path(directory) / "event.json"
+            event.write_text(json.dumps({
+                "action": "created", "issue": {"number": 3, "user": {"login": "boss"}},
+                "comment": {"user": {"login": "boss"}, "body": "/go"},
+            }), encoding="utf-8")
+            output = Path(directory) / "output"
+            environment = {
+                "MODE": "route", "GITHUB_EVENT_NAME": "issue_comment", "GITHUB_EVENT_PATH": str(event),
+                "ALLOWED_GITHUB_USER": "Boss", "ISSUE_NUMBER": "3", "GITHUB_OUTPUT": str(output),
+            }
+            with patch.dict(os.environ, environment):
+                agent_runner.main()
+            self.assertEqual(output.read_text(encoding="utf-8").splitlines(),
+                             ["plan=false", "implement=true"])
+
+    def test_footer_and_error_hints_mention_the_short_forms(self):
+        self.assertIn("`/implement-item` oder `/go`", agent_runner.PLAN_FOOTER)
+        self.assertIn("`/plan-item` oder `/plan`", str(agent_runner.PlanIncomplete(["web/public/sw.js"])))
+        commands = Path(__file__).resolve().parents[2] / "config" / "commands"
+        self.assertIn(agent_runner.PLAN_FOOTER.strip("*"), (commands / "plan-item.md").read_text(encoding="utf-8"))
+        self.assertIn("`/plan`", (commands / "plan-item.md").read_text(encoding="utf-8"))
+        self.assertIn("`/go`", (commands / "implement-item.md").read_text(encoding="utf-8"))
 
 
 BASE_SHA = "a" * 40
@@ -1431,6 +1523,210 @@ class PublishTests(GitFixture):
         self.assertEqual(self.remote_sha("feature/issue-3"), head)
 
 
+PNG = agent_runner.PNG_HEADER + b"\x00" * 24
+
+
+class PreviewTests(GitFixture):
+    HEAD = "b" * 40
+
+    def preview_dir(self, files=None, name="previews"):
+        directory = self.base / name
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir()
+        for name in (files if files is not None else agent_runner.PREVIEW_IMAGES):
+            (directory / name).write_bytes(PNG)
+        return directory
+
+    def tree(self, ref="pr-previews"):
+        return self.sh(self.base, "--git-dir", str(self.remote), "ls-tree", "-r", "--name-only", f"refs/heads/{ref}").splitlines()
+
+    def update(self, clone, number=3, sha="b" * 7, names=("desktop-main.png",)):
+        with patch.object(agent_runner, "ROOT", clone):
+            return agent_runner.update_preview_branch(
+                number, {f"{sha}/{name}": PNG for name in names}, f"Vorschau {number}")
+
+    def test_only_valid_known_png_files_are_accepted(self):
+        images = agent_runner.validated_previews(self.preview_dir())
+        self.assertEqual(set(images), set(agent_runner.PREVIEW_IMAGES))
+        directory = self.preview_dir(["desktop-main.png"])
+        self.assertEqual(set(agent_runner.validated_previews(directory)), {"desktop-main.png"})
+        for label, prepare in {
+            "kein PNG": lambda d: (d / "desktop-main.png").write_bytes(b"<html>nope</html>"),
+            "nur Signatur": lambda d: (d / "desktop-main.png").write_bytes(agent_runner.PNG_SIGNATURE + b"x" * 30),
+            "zu groß": lambda d: (d / "desktop-main.png").write_bytes(
+                PNG + b"\0" * agent_runner.MAX_PREVIEW_BYTES),
+            "fremder Name": lambda d: (d / "evil.png").write_bytes(PNG),
+            "Skript": lambda d: (d / "run.sh").write_text("echo hi"),
+            "Unterordner": lambda d: (d / "iphone-12-mini-main.png").mkdir(),
+            "Symlink": lambda d: ((d / "iphone-12-mini-main.png").symlink_to("/etc/hosts")),
+        }.items():
+            with self.subTest(label):
+                directory = self.preview_dir(["desktop-main.png"])
+                prepare(directory)
+                with self.assertRaises(ValueError):
+                    agent_runner.validated_previews(directory)
+        with self.assertRaisesRegex(ValueError, "keine Bilder"):
+            agent_runner.validated_previews(self.preview_dir([]))
+        with self.assertRaisesRegex(ValueError, "fehlt"):
+            agent_runner.validated_previews(self.base / "gibt-es-nicht")
+
+    def test_comment_embeds_the_images_and_carries_the_issue_marker(self):
+        body = agent_runner.preview_comment(3, "o/r", "b" * 40, set(agent_runner.PREVIEW_IMAGES))
+        base = "https://raw.githubusercontent.com/o/r/pr-previews/issue-3/bbbbbbb"
+        self.assertIn(f"![Mobile Vorschau – Hauptansicht]({base}/iphone-12-mini-main.png)", body)
+        self.assertIn(f"![Desktop Vorschau – Hauptansicht]({base}/desktop-main.png)", body)
+        self.assertEqual(body.splitlines()[-1], "<!-- roadbook-preview:3 -->")
+        partial = agent_runner.preview_comment(3, "o/r", "b" * 40, {"desktop-main.png"})
+        self.assertNotIn("iphone", partial)
+
+    def test_previews_go_to_an_isolated_orphan_branch_and_leave_other_branches_alone(self):
+        before = self.remote_refs()
+        clone = self.clone("publish")
+        self.assertTrue(self.update(clone, names=("desktop-main.png", "iphone-12-mini-main.png")))
+        self.assertEqual(self.tree(), ["issue-3/bbbbbbb/desktop-main.png", "issue-3/bbbbbbb/iphone-12-mini-main.png"])
+        self.assertEqual(self.sh(self.base, "--git-dir", str(self.remote), "rev-list", "--max-parents=0",
+                                 "refs/heads/pr-previews"), self.remote_sha("pr-previews"))
+        shared = subprocess.run(["git", "--git-dir", str(self.remote), "merge-base",
+                                 "refs/heads/main", "refs/heads/pr-previews"], capture_output=True)
+        self.assertNotEqual(shared.returncode, 0)
+        self.assertEqual([line for line in self.remote_refs().splitlines() if "pr-previews" not in line],
+                         before.splitlines())
+        self.assertEqual(self.sh(clone, "status", "--porcelain"), "")
+
+    def test_a_rerun_replaces_only_its_own_issue_folder(self):
+        clone = self.clone("publish")
+        self.update(clone, number=4, sha="1" * 7)
+        self.update(clone, number=3, sha="a" * 7)
+        self.assertTrue(self.update(clone, number=3, sha="b" * 7))
+        self.assertEqual(self.tree(), ["issue-3/bbbbbbb/desktop-main.png", "issue-4/1111111/desktop-main.png"])
+        tip = self.remote_sha("pr-previews")
+        self.assertFalse(self.update(clone, number=3, sha="b" * 7))
+        self.assertEqual(self.remote_sha("pr-previews"), tip)
+
+    def test_cleanup_removes_only_the_closed_issue_and_ignores_other_branches(self):
+        clone = self.clone("cleanup")
+        self.update(clone, number=3)
+        self.update(clone, number=4, sha="1" * 7)
+        with patch.object(agent_runner, "ROOT", clone):
+            for ref in ("main", "feature/issue-03", "feature/issue-3/../x", "feature/issue-", "copilot/fix-3"):
+                with patch.dict(os.environ, {"PR_HEAD_REF": ref}):
+                    self.assertFalse(agent_runner.cleanup_previews(), ref)
+            self.assertEqual(len(self.tree()), 2)
+            with patch.dict(os.environ, {"PR_HEAD_REF": "feature/issue-3"}):
+                self.assertTrue(agent_runner.cleanup_previews())
+                self.assertFalse(agent_runner.cleanup_previews())
+        self.assertEqual(self.tree(), ["issue-4/1111111/desktop-main.png"])
+
+    def test_cleanup_without_a_preview_branch_creates_nothing(self):
+        before = self.remote_refs()
+        with patch.object(agent_runner, "ROOT", self.clone("cleanup")), \
+                patch.dict(os.environ, {"PR_HEAD_REF": "feature/issue-3"}):
+            self.assertFalse(agent_runner.cleanup_previews())
+        self.assertEqual(self.remote_refs(), before)
+
+    def test_a_concurrent_push_is_rebased_never_forced(self):
+        clone = self.clone("publish")
+        self.update(clone, number=4, sha="1" * 7)
+        real, raced = agent_runner.preview_git, []
+
+        def racing(*args, **kwargs):
+            if args[0] == "push" and not raced:
+                raced.append(True)
+                other = self.clone("racer")
+                self.sh(other, "switch", "-q", "-c", "work", "origin/pr-previews")
+                self.put(other, "issue-5/x/desktop-main.png", "fremd")
+                self.commit(other, "anderer Lauf")
+                self.sh(other, "push", "-q", "origin", "HEAD:refs/heads/pr-previews")
+            return real(*args, **kwargs)
+
+        with patch.object(agent_runner, "preview_git", racing):
+            self.assertTrue(self.update(clone, number=3))
+        self.assertEqual(self.tree(), ["issue-3/bbbbbbb/desktop-main.png", "issue-4/1111111/desktop-main.png",
+                                       "issue-5/x/desktop-main.png"])
+
+    def test_a_persistent_push_failure_is_reported(self):
+        clone = self.clone("publish")
+        real = agent_runner.preview_git
+
+        def denied(*args, **kwargs):
+            if args[0] == "push":
+                raise subprocess.CalledProcessError(1, "git", stderr=b"denied")
+            return real(*args, **kwargs)
+
+        with patch.object(agent_runner, "preview_git", denied):
+            with self.assertRaisesRegex(RuntimeError, "pr-previews fehlgeschlagen: denied"):
+                self.update(clone)
+        self.assertNotIn("pr-previews", self.remote_refs())
+
+    def publish_preview(self, directory, *, pulls=None, comments=()):
+        calls = []
+
+        def api(session, method, url, **kwargs):
+            calls.append((method, url, kwargs))
+            if method == "GET":
+                return Mock(json=Mock(return_value=pulls if pulls is not None
+                                      else [{"number": 7, "head": {"sha": self.HEAD}}]))
+            return Mock(json=Mock(return_value={}))
+
+        environment = {"PREVIEW_DIR": str(directory), "HEAD_SHA": self.HEAD}
+        with patch.object(agent_runner, "ROOT", self.clone("publish")), patch.dict(os.environ, environment), \
+                patch.object(agent_runner, "api", api), \
+                patch.object(agent_runner, "get_comments", Mock(return_value=list(comments))):
+            result = agent_runner.publish_preview(Mock(), "https://api.github.com/repos/o/r", self.ISSUE)
+        return result, calls
+
+    def test_preview_comment_is_posted_after_the_images_are_published(self):
+        _, calls = self.publish_preview(self.preview_dir())
+        self.assertEqual(len(self.tree()), 3)
+        post = next(kwargs for method, url, kwargs in calls if method == "POST")
+        self.assertTrue(next(url for method, url, _ in calls if method == "POST").endswith("/issues/7/comments"))
+        self.assertIn("raw.githubusercontent.com/o/r/pr-previews/issue-3/bbbbbbb/desktop-main.png", post["json"]["body"])
+        self.assertIn("<!-- roadbook-preview:3 -->", post["json"]["body"])
+
+    def test_a_repeated_run_updates_the_marker_comment_instead_of_adding_one(self):
+        marker = "Alt\n\n<!-- roadbook-preview:3 -->"
+        own = {"id": 41, "user": {"login": agent_runner.BOT}, "body": marker}
+        _, calls = self.publish_preview(self.preview_dir(), comments=[own])
+        methods = [(method, url.rsplit("/", 2)[-2:]) for method, url, _ in calls]
+        self.assertIn(("PATCH", ["comments", "41"]), methods)
+        self.assertNotIn("POST", [method for method, _ in methods])
+
+    def test_a_foreign_comment_with_the_marker_is_never_edited(self):
+        forged = {"id": 42, "user": {"login": "mallory"}, "body": "<!-- roadbook-preview:3 -->"}
+        _, calls = self.publish_preview(self.preview_dir(), comments=[forged])
+        self.assertEqual([method for method, _, _ in calls], ["GET", "POST"])
+
+    def test_invalid_images_or_a_mismatching_pr_publish_nothing(self):
+        broken = self.preview_dir(["desktop-main.png"], "broken")
+        (broken / "desktop-main.png").write_bytes(b"GIF89a")
+        for label, directory, pulls in (
+            ("kein PNG", broken, None),
+            ("anderer Commit", self.preview_dir(), [{"number": 7, "head": {"sha": "c" * 40}}]),
+            ("kein offener PR", self.preview_dir(), []),
+        ):
+            with self.subTest(label), self.assertRaises(ValueError):
+                self.publish_preview(directory, pulls=pulls)
+        self.assertNotIn("pr-previews", self.remote_refs())
+
+    def test_preview_mode_failures_warn_but_are_raised_for_the_step_log(self):
+        issue = dict(self.ISSUE)
+        event = {"action": "created", "issue": issue, "comment": {"id": 20, "user": {"login": "boss"}, "body": "/go"}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "event.json"
+            path.write_text(json.dumps(event), encoding="utf-8")
+            environment = {
+                "MODE": "preview", "GITHUB_EVENT_NAME": "issue_comment", "GITHUB_EVENT_PATH": str(path),
+                "ALLOWED_GITHUB_USER": "boss", "ISSUE_NUMBER": "3", "GITHUB_TOKEN": "t",
+                "HEAD_SHA": self.HEAD, "PREVIEW_DIR": str(self.base / "fehlt"),
+            }
+            with patch.dict(os.environ, environment), \
+                    patch.object(agent_runner, "api", Mock(return_value=Mock(json=Mock(return_value=issue)))), \
+                    patch("builtins.print") as printed:
+                with self.assertRaisesRegex(ValueError, "Vorschau-Artefakt fehlt"):
+                    agent_runner.main()
+        self.assertTrue(any("::warning::" in str(call.args[0]) for call in printed.call_args_list))
+
+
 WORKFLOW_DIRECTORY = Path(__file__).resolve().parents[1] / "workflows"
 
 
@@ -1520,7 +1816,8 @@ class WorkflowPolicyTests(unittest.TestCase):
     def test_visual_gate_is_blocking_and_the_report_is_kept_on_failure(self):
         job = self.jobs["implement-verify"]
         for step in job["steps"]:
-            self.assertNotIn("continue-on-error", step)
+            if step.get("name") != "Vorschaubilder sichern":
+                self.assertNotIn("continue-on-error", step)
         upload = next(step for step in job["steps"]
                       if str(step.get("uses", "")).startswith("actions/upload-artifact"))
         self.assertEqual(upload["if"], "always()")
@@ -1560,6 +1857,94 @@ class WorkflowPolicyTests(unittest.TestCase):
                 for step in job.get("steps", []):
                     self.assertNotIn("${{", step.get("run", ""), f"{name}: {step.get('name')}")
                     self.assertNotIn("${{", step.get("with", {}).get("script", ""), f"{name}: {step.get('name')}")
+
+    def test_commands_are_routed_by_the_tested_runner_not_by_substring_checks(self):
+        route = self.jobs["route"]
+        self.assertEqual(route["permissions"], {"contents": "read"})
+        self.assertEqual(set(route["outputs"]), {"plan", "implement"})
+        step = next(step for step in route["steps"] if step.get("id") == "route")
+        self.assertEqual(step["env"], {"MODE": "route"})
+        checkout = route["steps"][0]
+        self.assertEqual(checkout["with"]["ref"], "main")
+        self.assertIs(checkout["with"]["persist-credentials"], False)
+        for command in ("/plan", "/implement-item", "/go"):
+            self.assertIn(f"contains(github.event.comment.body, '{command}')", route["if"])
+        self.assertIn("vars.ROADBOOK_AGENT_USER", route["if"])
+        self.assertIn("!github.event.issue.pull_request", route["if"])
+        plan, generate = self.jobs["plan-stage"], self.jobs["implement-generate"]
+        self.assertEqual(plan["needs"], "route")
+        self.assertEqual(plan["if"], "needs.route.outputs.plan == 'true'")
+        self.assertEqual(generate["needs"], "route")
+        self.assertEqual(generate["if"], "needs.route.outputs.implement == 'true'")
+        for stage in (plan, generate):
+            self.assertNotIn("github.event.comment", stage["if"])
+
+    def test_reports_ignore_routing_and_only_react_to_their_own_stages(self):
+        self.assertNotIn("route", self.jobs["implement-report"]["needs"])
+        self.assertNotIn("implement-publish-preview", self.jobs)
+        plan_report = self.jobs["plan-report"]
+        self.assertEqual(plan_report["needs"], ["plan-stage"])
+        self.assertIn("needs.plan-stage.result == 'failure'", plan_report["if"])
+        self.assertIn("always()", plan_report["if"])
+
+    def test_verify_uploads_only_the_selected_png_previews_without_blocking(self):
+        job = self.jobs["implement-verify"]
+        upload = next(step for step in job["steps"] if step.get("name") == "Vorschaubilder sichern")
+        self.assertTrue(upload["uses"].startswith("actions/upload-artifact"))
+        self.assertEqual(upload["with"]["name"], "pr-preview-images-${{ github.run_id }}-${{ github.run_attempt }}")
+        self.assertEqual(upload["with"]["retention-days"], 1)
+        self.assertIs(upload["continue-on-error"], True)
+        self.assertEqual(
+            upload["with"]["path"].split(),
+            [f"web/.visual-report/{name}" for name in agent_runner.PREVIEW_IMAGES],
+        )
+        self.assertTrue(all(path.endswith(".png") for path in upload["with"]["path"].split()))
+        visual = step_index(job, lambda step: "npm run test:visual --prefix web" in step.get("run", ""), "visual")
+        self.assertLess(visual, job["steps"].index(upload))
+
+    def test_preview_images_exist_in_the_visual_check(self):
+        source = (Path(__file__).resolve().parents[2] / "web" / "scripts" / "visual-check.mjs").read_text(encoding="utf-8")
+        for name in agent_runner.PREVIEW_IMAGES:
+            slug, suffix = name.removesuffix(".png").rsplit("-", 1)
+            self.assertIn(f"slug: '{slug}'", source, name)
+            self.assertIn(f"'{suffix}'", source, name)
+
+    def test_publish_shows_previews_only_after_the_pr_and_without_failing_the_run(self):
+        job = self.jobs["implement-publish"]
+        publish = step_index(job, lambda step: step.get("env", {}).get("MODE") == "publish", "publish")
+        download = step_index(job, lambda step: str(step.get("uses", "")).startswith("actions/download-artifact")
+                              and step["with"]["name"].startswith("pr-preview-images-"), "download")
+        show = step_index(job, lambda step: step.get("env", {}).get("MODE") == "preview", "preview")
+        self.assertLess(publish, download)
+        self.assertLess(download, show)
+        self.assertNotIn("continue-on-error", job["steps"][publish])
+        self.assertIs(job["steps"][download]["continue-on-error"], True)
+        self.assertIs(job["steps"][show]["continue-on-error"], True)
+        self.assertEqual(job["steps"][show]["if"], f"steps.{job['steps'][download]['id']}.outcome == 'success'")
+        env = job["steps"][show]["env"]
+        self.assertEqual(env["HEAD_SHA"], "${{ needs.implement-generate.outputs.head_sha }}")
+        self.assertEqual(env["PREVIEW_DIR"], job["steps"][download]["with"]["path"])
+        self.assertEqual(job["steps"][show]["run"], "python .github/scripts/agent_runner.py")
+        self.assertEqual(job["steps"][download]["with"]["name"],
+                         "pr-preview-images-${{ github.run_id }}-${{ github.run_attempt }}")
+        # Der Checkout bleibt main; der Vorschau-Branch wird nie ausgecheckt.
+        for step in job["steps"]:
+            self.assertNotEqual(step.get("with", {}).get("ref"), "pr-previews")
+
+    def test_cleanup_workflow_deletes_the_preview_folder_when_a_feature_pr_closes(self):
+        workflow = load_workflow("cleanup-pr-preview.yml")
+        trigger = workflow.get("on", workflow.get(True))
+        self.assertEqual(trigger, {"pull_request": {"types": ["closed"]}})
+        job = workflow["jobs"]["cleanup"]
+        self.assertEqual(job["permissions"], {"contents": "write"})
+        self.assertIn("startsWith(github.event.pull_request.head.ref, 'feature/issue-')", job["if"])
+        self.assertIn("github.event.pull_request.head.repo.full_name == github.repository", job["if"])
+        checkout = job["steps"][0]
+        self.assertEqual(checkout["with"]["ref"], "main")
+        runner = next(step for step in job["steps"] if step.get("env", {}).get("MODE") == "cleanup")
+        self.assertEqual(runner["env"]["PR_HEAD_REF"], "${{ github.event.pull_request.head.ref }}")
+        for step in job["steps"]:
+            self.assertNotIn("${{", step.get("run", ""))
 
     def test_all_workflows_start_without_default_permissions_or_with_read_only(self):
         self.assertEqual(self.agent["permissions"], {})
