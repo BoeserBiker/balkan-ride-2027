@@ -4,14 +4,16 @@ import { marked } from 'marked';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
 import roadbookDays from 'virtual:roadbook-content';
+import tourInfo from 'virtual:tour-info';
 import logisticsMarkdown from './content/logistik.md?raw';
-import { createRoadbookMap } from './map.js';
+import { createRoadbookMap, createTourMap } from './map.js';
 import { renderDayContent, renderMediaGallery } from './roadbook.js';
 import { buildRouteTrack } from './route-scrubber.js';
 import {
   bindElevationProfile, buildElevationProfile, buildPoiPositions, renderElevationProfile,
 } from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
+import { bindHeaderHeight, bindSelfCheck, buildTourOverview, createTourScrollMemory, renderTourOverview } from './tour-overview.js';
 import {
   directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
 } from './html.js';
@@ -213,7 +215,7 @@ function renderShell() {
   app.innerHTML = `
     <header class="site-header flex items-center justify-between">
       <div class="brand-group">
-        <a class="brand" href="#top" aria-label="Balkan-Ride 2027 Startseite">
+        <a class="brand" href="#start" data-view-link aria-label="Balkan-Ride 2027 Startseite">
           <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
           <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
         </a>
@@ -231,8 +233,11 @@ function renderShell() {
     </header>
 
     <main id="top">
+      <section id="start" class="tour-start" aria-labelledby="tour-title"></section>
+
       <section id="roadbook" class="roadbook-layout mx-auto max-w-[1680px]" aria-label="Tour-Roadbook">
         <section class="map-panel" aria-label="Etappenkarte">
+          <a class="overview-link overview-link-mobile" href="#start" data-view-link>‹ Tourübersicht</a>
           <div class="mobile-map-context" aria-live="polite">
             <h2><span class="mobile-stage-label" id="mobile-stage-label"></span><span class="mobile-stage-title" id="mobile-stage-title"></span></h2>
           </div>
@@ -262,7 +267,10 @@ function renderShell() {
           </div>
 
           <nav class="day-picker" aria-label="Etappe auswählen">
-            <div class="day-picker-label">ETAPPEN</div>
+            <div class="day-picker-head">
+              <div class="day-picker-label">ETAPPEN</div>
+              <a class="overview-link" href="#start" data-view-link>‹ Tourübersicht</a>
+            </div>
             <div class="day-picker-controls">
               <button id="day-picker-previous" class="day-scroll" type="button" aria-label="Vorherige Etappe auswählen" aria-controls="day-list">‹</button>
               <ol id="day-list" class="day-list"></ol>
@@ -447,12 +455,28 @@ function renderApp() {
 
   renderShell();
   const navigationLinks = [...document.querySelectorAll('.site-nav a')];
-  const viewIds = ['roadbook', 'media', 'logistics'];
+  const viewIds = ['start', 'roadbook', 'media', 'logistics'];
   const viewSections = viewIds.map((id) => document.getElementById(id));
+  const startSection = document.getElementById('start');
+  startSection.innerHTML = renderTourOverview(buildTourOverview(roadbookDays, tourInfo), tourInfo);
+  bindSelfCheck(startSection);
+  bindHeaderHeight(document.querySelector('.site-header'));
   let onRoadbookShown = () => {};
+  let onStartShown = () => {};
+  let activeView = 'start';
+  const tourScrollPosition = createTourScrollMemory();
+  history.scrollRestoration = 'manual';
+  const mobileDayNavigation = document.querySelector('#mobile-day-navigation');
+  const mobileViewport = window.matchMedia('(max-width: 768px)');
+  // Die Tagesleiste (←/→) gehört zum Roadbook und stört auf der Tourübersicht.
+  const syncMobileDayNavigation = () => {
+    mobileDayNavigation.hidden = !mobileViewport.matches || activeView === 'start';
+  };
   const showView = (id) => {
-    const active = viewIds.includes(id) ? id : 'roadbook';
+    const active = viewIds.includes(id) ? id : 'start';
+    activeView = active;
     viewSections.forEach((section) => { section.hidden = section.id !== active; });
+    syncMobileDayNavigation();
     navigationLinks.forEach((link) => {
       const isActive = link.hash === `#${active}`;
       link.classList.toggle('active', isActive);
@@ -464,20 +488,36 @@ function renderApp() {
     });
     if (active === 'roadbook') {
       onRoadbookShown();
+    } else if (active === 'start') {
+      onStartShown();
     }
   };
   const viewFromHash = () => location.hash.replace('#', '');
-  navigationLinks.forEach((link) => link.addEventListener('click', (event) => {
-    event.preventDefault();
-    const id = link.hash.replace('#', '');
+  const navigate = (id, { brand = false } = {}) => {
+    const target = viewIds.includes(id) ? id : 'start';
+    const scrollY = tourScrollPosition(activeView, target, window.scrollY, brand);
+    showView(target);
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+  };
+  const goToView = (id, options) => {
     if (viewFromHash() !== id) {
       history.pushState(null, '', `#${id}`);
     }
-    showView(id);
-    window.scrollTo(0, 0);
-  }));
-  window.addEventListener('hashchange', () => { showView(viewFromHash()); window.scrollTo(0, 0); });
-  window.addEventListener('popstate', () => showView(viewFromHash()));
+    navigate(id, options);
+  };
+  [...navigationLinks, ...document.querySelectorAll('a[data-view-link]')].forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      goToView(link.hash.replace('#', ''), { brand: link.classList.contains('brand') });
+    });
+  });
+  const syncHistoryView = () => {
+    const id = viewFromHash();
+    const target = viewIds.includes(id) ? id : 'start';
+    if (target !== activeView) navigate(target);
+  };
+  window.addEventListener('hashchange', syncHistoryView);
+  window.addEventListener('popstate', syncHistoryView);
   showView(viewFromHash());
 
   const mediaGallery = document.querySelector('#media-gallery');
@@ -491,8 +531,6 @@ function renderApp() {
   const nextDayButton = document.querySelector('#day-picker-next');
   const mobilePreviousDay = document.querySelector('#mobile-previous-day');
   const mobileNextDay = document.querySelector('#mobile-next-day');
-  const mobileDayNavigation = document.querySelector('#mobile-day-navigation');
-  const mobileViewport = window.matchMedia('(max-width: 768px)');
   const lightbox = document.querySelector('#lightbox');
   const lightboxImage = lightbox.querySelector('img');
   const lightboxVideo = lightbox.querySelector('video');
@@ -505,8 +543,18 @@ function renderApp() {
   const map = createRoadbookMap(
     L, roadbookDays, document.querySelector('#map-status'), document.querySelector('#gpx-download'),
   );
+  const tourMap = createTourMap(L, roadbookDays, document.querySelector('#tour-map-status'));
+  map.setTourTrackHandler(tourMap.updateDay);
+  onStartShown = () => requestAnimationFrame(() => tourMap.resize());
+  if (activeView === 'start') onStartShown();
   settings.setThemeChangeHandler(map.setTheme);
-  onRoadbookShown = () => requestAnimationFrame(() => map.resize());
+  // Startet die App auf der Tourübersicht, hatte die Karte keine Größe und wird beim ersten Anzeigen neu eingepasst.
+  let mapFitted = !document.getElementById('roadbook').hidden;
+  onRoadbookShown = () => {
+    map.resize({ fitActiveDay: mobileViewport.matches, fitAll: !mapFitted && !mobileViewport.matches });
+    mapFitted = true;
+    requestAnimationFrame(() => map.resize());
+  };
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   let activeIndex = 0;
   let activeProfileController = null;
@@ -572,8 +620,9 @@ function renderApp() {
   }
 
   function syncMobileViewport() {
-    mobileDayNavigation.hidden = !mobileViewport.matches;
+    syncMobileDayNavigation();
     requestAnimationFrame(() => map.resize({ fitActiveDay: mobileViewport.matches }));
+    if (activeView === 'start') requestAnimationFrame(() => tourMap.resize());
   }
 
   mobileViewport.addEventListener('change', syncMobileViewport);
@@ -699,6 +748,16 @@ function renderApp() {
     if (button) {
       selectDay(Number(button.dataset.dayIndex));
     }
+  });
+
+  startSection.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-open-day]');
+    if (!link) {
+      return;
+    }
+    event.preventDefault();
+    goToView('roadbook');
+    selectDay(Number(link.dataset.openDay));
   });
 
   dayDetail.addEventListener('click', (event) => {

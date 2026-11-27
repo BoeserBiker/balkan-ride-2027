@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { zipSync } from 'fflate';
 import matter from 'gray-matter';
+import { validateTourInfo } from './src/tour-overview.js';
 
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = path.resolve(webDirectory, '..');
@@ -12,6 +13,8 @@ const contentDirectory = path.resolve(webDirectory, '../content');
 const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
 const virtualModuleId = 'virtual:roadbook-content';
 const resolvedVirtualModuleId = `\0${virtualModuleId}`;
+const tourModuleId = 'virtual:tour-info';
+const resolvedTourModuleId = `\0${tourModuleId}`;
 const base = '/balkan-ride-2027/';
 const zipName = 'balkan-ride-2027-alle-etappen.zip';
 
@@ -99,16 +102,22 @@ function roadbookContentPlugin() {
   return {
     name: 'roadbook-content',
     resolveId(id) {
-      return id === virtualModuleId ? resolvedVirtualModuleId : null;
+      if (id === virtualModuleId) return resolvedVirtualModuleId;
+      return id === tourModuleId ? resolvedTourModuleId : null;
     },
     async load(id) {
-      if (id !== resolvedVirtualModuleId) {
+      if (id !== resolvedVirtualModuleId && id !== resolvedTourModuleId) {
         return null;
       }
 
       const files = (await readdir(contentDirectory))
         .filter((name) => /^tag-\d{2}\.md$/.test(name))
         .sort();
+      if (id === resolvedTourModuleId) {
+        const source = await readFile(path.join(contentDirectory, 'tour.md'), 'utf8');
+        const dayTags = files.map((name) => Number(name.slice(4, 6)));
+        return `export default ${JSON.stringify(validateTourInfo(matter(source).data, dayTags))};`;
+      }
       const days = await Promise.all(files.map(async (fileName) => {
         const source = await readFile(path.join(contentDirectory, fileName), 'utf8');
         const parsed = matter(source);
@@ -123,14 +132,17 @@ function roadbookContentPlugin() {
       return `export default ${JSON.stringify(days)};`;
     },
     handleHotUpdate({ file, server }) {
-      if (path.dirname(file) !== contentDirectory || !/^tag-\d{2}\.md$/.test(path.basename(file))) {
+      const name = path.basename(file);
+      if (path.dirname(file) !== contentDirectory || !(/^tag-\d{2}\.md$/.test(name) || name === 'tour.md')) {
         return;
       }
-      const module = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
-      if (module) {
-        server.moduleGraph.invalidateModule(module);
+      const modules = [resolvedVirtualModuleId, resolvedTourModuleId]
+        .map((moduleId) => server.moduleGraph.getModuleById(moduleId))
+        .filter(Boolean);
+      if (modules.length) {
+        modules.forEach((module) => server.moduleGraph.invalidateModule(module));
         server.ws.send({ type: 'full-reload' });
-        return [module];
+        return modules;
       }
     },
     configureServer(server) {

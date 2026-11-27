@@ -91,6 +91,106 @@ export function formatDayMapLabel(day) {
   return `Tag ${tag} · ${start} → ${ziel}`;
 }
 
+export function ferryConnections(days, data) {
+  return days.flatMap((day, index) => {
+    const transport = /\*\*Transport:\*\*\s*([^\n]+)/.exec(day.body ?? '')?.[1] ?? '';
+    const current = data[index];
+    const before = data[index - 1];
+    const after = data[index + 1];
+    if (!/(?:^|[\s+])Fähre(?=$|[\s.,;+])/i.test(transport)
+      || current?.state !== 'loaded' || current.profileSegments.length
+      || before?.state !== 'loaded' || after?.state !== 'loaded'
+      || !before.profileSegments.length || !after.profileSegments.length) return [];
+    const lastSegment = before.profileSegments.at(-1);
+    const firstSegment = after.profileSegments[0];
+    return [[lastSegment.at(-1).slice(0, 2), firstSegment[0].slice(0, 2)]];
+  });
+}
+
+// Grobe Orientierungslinie über das offene Wasser der Adria, damit die Fähre nicht quer über das Festland läuft.
+// Kein Fahrplan und keine Seekarte; Start und Ende bleiben die Endpunkte der benachbarten GPX-Tracks.
+const ADRIA_WAYPOINTS = [[40.15, 19.10], [41.80, 17.20], [43.30, 14.40], [44.40, 13.20], [45.30, 12.50]];
+
+export function ferryRoute([start, end]) {
+  const fromIgoumenitsa = Math.abs(start[0] - 39.49) < 0.3 && Math.abs(start[1] - 20.26) < 0.3;
+  return fromIgoumenitsa && end[0] > 44.5 ? [start, ...ADRIA_WAYPOINTS, end] : [start, end];
+}
+
+export function tourFitOptions(mobile) {
+  return { paddingTopLeft: [14, 14], paddingBottomRight: [14, mobile ? 34 : 14], animate: false };
+}
+
+export function createTourMap(L, days, statusElement) {
+  // zoomSnap 0.25: fitBounds rastet sonst auf ganze Zoomstufen und lässt bis zur Hälfte der Karte leer.
+  const map = L.map('tour-map', { zoomControl: false, scrollWheelZoom: false, zoomSnap: 0.25 });
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map);
+  const bounds = L.latLngBounds([]);
+  const states = days.map(() => 'loading');
+  let tileError = false;
+  const tracks = days.map(() => []);
+  const trackData = days.map(() => ({ state: 'loading' }));
+  const ferryLayer = L.layerGroup().addTo(map);
+  const ferryLegend = document.getElementById('tour-ferry-legend');
+  const updateStatus = () => {
+    const loading = states.filter((state) => state === 'loading').length;
+    const errors = states.filter((state) => state === 'error').length;
+    statusElement.textContent = [
+      loading ? `Tourkarte: ${loading} Tages-GPX werden geladen.` : 'Tourkarte: vorläufige Planungsdaten, keine geprüfte Navigation.',
+      errors ? `${errors} Tages-GPX nicht verfügbar; Start- und Zielpunkte bleiben sichtbar.` : '',
+      tileError ? 'Kartenhintergrund nicht verfügbar; eine Internetverbindung ist erforderlich.' : '',
+    ].filter(Boolean).join(' ');
+  };
+  tiles.on('tileerror', () => { tileError = true; updateStatus(); });
+  days.forEach(({ frontmatter }) => {
+    [frontmatter.koordinaten_start, frontmatter.koordinaten_ziel].forEach((point) => {
+      bounds.extend(point);
+      L.circleMarker(point, {
+        radius: 2.5, color: '#101513', weight: 1, fillColor: '#f0a94c', fillOpacity: 1, interactive: false,
+        className: 'tour-map-point',
+      }).addTo(map);
+    });
+  });
+  const resize = () => {
+    map.invalidateSize();
+    if (bounds.isValid()) map.fitBounds(bounds, tourFitOptions(window.matchMedia('(max-width: 767px)').matches));
+  };
+  const updateDay = (index, data) => {
+    states[index] = data.state;
+    trackData[index] = data;
+    tracks[index].forEach((layer) => layer.remove());
+    tracks[index] = [];
+    if (data.state === 'loaded') {
+      data.profileSegments.forEach((segment) => {
+        const points = segment.map(([lat, lon]) => [lat, lon]);
+        const layer = L.polyline(points, { color: '#f0a94c', weight: 3, opacity: 0.9, interactive: false, className: 'tour-map-track' }).addTo(map);
+        tracks[index].push(layer);
+        bounds.extend(layer.getBounds());
+      });
+      data.waypoints.forEach(({ latitude, longitude }) => bounds.extend([latitude, longitude]));
+    }
+    ferryLayer.clearLayers();
+    const connections = ferryConnections(days, trackData);
+    connections.map(ferryRoute).forEach((points) => {
+      L.polyline(points, {
+        color: '#12151b', weight: 9, opacity: 0.95, smoothFactor: 0, interactive: false, className: 'tour-map-ferry-outline',
+      }).addTo(ferryLayer);
+      L.polyline(points, {
+        color: '#ffc64a', weight: 5, opacity: 0.95, smoothFactor: 0, dashArray: '9 7', className: 'tour-map-ferry',
+      }).bindTooltip('Fährverbindung (ca. Linie)').addTo(ferryLayer);
+    });
+    ferryLegend.hidden = connections.length === 0;
+    updateStatus();
+    if (!document.getElementById('start').hidden) resize();
+  };
+  updateStatus();
+  resize();
+  return { resize, updateDay };
+}
+
 export function createRoadbookMap(L, days, statusElement, downloadElement) {
   const map = L.map('map', {
     zoomControl: false,
@@ -109,6 +209,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
   const dayGpx = [];
   let activeIndex = 0;
   let trackLoadHandler;
+  let tourTrackHandler;
   let livePositionMarkers = null;
   let highlightedWaypoint = null;
 
@@ -227,6 +328,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       const { points, segments, profileSegments } = parseGpx(text);
       dayGpx[index] = { state: 'loaded', points, segments, profileSegments };
       trackLoadHandler?.(index);
+      tourTrackHandler?.(index, getTrackData(index));
       segments.forEach((segment) => {
         const layer = L.polyline(segment).addTo(map);
         trackLayers[index].push(layer);
@@ -253,6 +355,7 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
       console.error(`GPX-Datei für Tag ${frontmatter.tag} konnte nicht geladen werden.`, error);
       dayGpx[index].state = 'error';
       trackLoadHandler?.(index);
+      tourTrackHandler?.(index, getTrackData(index));
       selectDay(activeIndex, { moveMap: false });
     });
   });
@@ -341,9 +444,12 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
     }
   }
 
-  function resize({ fitActiveDay = false } = {}) {
+  // fitAll: Gesamtansicht neu einpassen, z. B. wenn die Karte beim Start verborgen war und keine Größe hatte.
+  function resize({ fitActiveDay = false, fitAll = false } = {}) {
     map.invalidateSize();
-    if (fitActiveDay && dayBounds[activeIndex].isValid()) {
+    if (fitAll && allBounds.isValid()) {
+      map.fitBounds(allBounds.pad(0.14), { animate: false });
+    } else if (fitActiveDay && dayBounds[activeIndex].isValid()) {
       map.fitBounds(dayBounds[activeIndex], { padding: [24, 24], maxZoom: 11, animate: false });
     }
   }
@@ -357,6 +463,12 @@ export function createRoadbookMap(L, days, statusElement, downloadElement) {
         if (gpx.state !== 'loading') {
           trackLoadHandler(index);
         }
+      });
+    },
+    setTourTrackHandler(handler) {
+      tourTrackHandler = handler;
+      dayGpx.forEach((gpx, index) => {
+        if (gpx.state !== 'loading') handler(index, getTrackData(index));
       });
     },
     setLivePosition,

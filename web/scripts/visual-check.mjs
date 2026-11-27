@@ -9,6 +9,7 @@ const webDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const reportDirectory = path.join(webDirectory, '.visual-report');
 const BASE_PATH = '/balkan-ride-2027/';
 const PAGES = [
+  { id: 'start', label: 'Tourübersicht', trigger: '.brand' },
   { id: 'roadbook', label: 'Etappen' },
   { id: 'media', label: 'Galerie' },
   { id: 'logistics', label: 'Logistik' },
@@ -16,6 +17,7 @@ const PAGES = [
 const VIEWPORTS = [
   { slug: 'iphone-12-mini', name: 'iPhone 12 mini', width: 375, height: 812, mobile: true },
   { slug: 'android-6-4', name: 'Android 6,4 Zoll', width: 412, height: 915, mobile: true },
+  { slug: 'boundary-767', name: 'Grenze 767', width: 767, height: 1024, mobile: false },
   { slug: 'tablet-768', name: 'Tablet', width: 768, height: 1024, mobile: false },
   { slug: 'desktop', name: 'Desktop', width: 1280, height: 800, mobile: false },
 ];
@@ -284,6 +286,522 @@ function collectFontStepAlignment() {
   };
 }
 
+// Läuft im Browser: Text, der im eigenen Kasten abgeschnitten wird (Bereichsvariante für die Tourübersicht).
+function collectTextClipping(scopeSelector) {
+  const scope = document.querySelector(scopeSelector);
+  const selector = 'h1,h2,h3,h4,h5,h6,p,figcaption,a,button,label,strong,small,time,li,dt,dd,span,legend';
+  const hasDirectText = (element) => [...element.childNodes].some(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
+  );
+  const offenders = [];
+  for (const element of scope.querySelectorAll(selector)) {
+    if (!hasDirectText(element) || element.closest('.visually-hidden,[aria-hidden="true"]')) continue;
+    const style = getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.display === 'inline'
+      || style.textOverflow === 'ellipsis' || style.webkitLineClamp !== 'none'
+      || (style.whiteSpace === 'nowrap' && style.overflowX !== 'visible')) continue;
+    if (element.clientWidth === 0 || element.clientHeight === 0) continue;
+    if (element.scrollWidth > element.clientWidth + 2 || element.scrollHeight > element.clientHeight + 2) {
+      offenders.push(`${element.tagName.toLowerCase()}${typeof element.className === 'string' && element.className.trim() ? `.${element.className.trim().split(/\s+/).join('.')}` : ''} "${element.textContent.trim().replace(/\s+/g, ' ').slice(0, 45)}" (scroll=${element.scrollWidth}×${element.scrollHeight}, client=${element.clientWidth}×${element.clientHeight})`);
+    }
+  }
+  return { offenders: offenders.slice(0, 10), total: offenders.length };
+}
+
+// Läuft im Browser: Kontrast aller sichtbaren Texte (WCAG: 4,5:1, große Schrift 3:1) gegen den tatsächlichen Hintergrund.
+function collectContrast(scopeSelector) {
+  const parse = (value) => {
+    const match = /^rgba?\(([^)]+)\)$/.exec(value);
+    if (!match) return null;
+    const [r, g, b, a = 1] = match[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+    return { r, g, b, a };
+  };
+  const over = (top, bottom) => ({
+    r: top.r * top.a + bottom.r * (1 - top.a),
+    g: top.g * top.a + bottom.g * (1 - top.a),
+    b: top.b * top.a + bottom.b * (1 - top.a),
+    a: 1,
+  });
+  const background = (element) => {
+    const layers = [];
+    for (let node = element; node; node = node.parentElement) {
+      const color = parse(getComputedStyle(node).backgroundColor);
+      if (color && color.a > 0) layers.push(color);
+      if (color && color.a >= 1) break;
+    }
+    let result = layers.length && layers[layers.length - 1].a >= 1 ? layers.pop() : { r: 255, g: 255, b: 255, a: 1 };
+    while (layers.length) result = over(layers.pop(), result);
+    return result;
+  };
+  const luminance = ({ r, g, b }) => {
+    const channel = (value) => {
+      const unit = value / 255;
+      return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const scope = document.querySelector(scopeSelector);
+  const hasDirectText = (element) => [...element.childNodes].some(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
+  );
+  let minimum = Infinity;
+  let checked = 0;
+  const offenders = [];
+  for (const element of scope.querySelectorAll('h1,h2,h3,p,li,a,button,label,dt,dd,small,span,legend')) {
+    if (!hasDirectText(element)) continue;
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    if (style.display === 'none' || style.visibility === 'hidden' || rect.width === 0 || rect.height === 0) continue;
+    const foreground = parse(style.color);
+    if (!foreground) continue;
+    const surface = background(element);
+    const text = over({ ...foreground, a: foreground.a * Number(style.opacity) }, surface);
+    const [light, dark] = [luminance(text), luminance(surface)].sort((a, b) => b - a);
+    const ratio = (light + 0.05) / (dark + 0.05);
+    const large = parseFloat(style.fontSize) >= 24 || (parseFloat(style.fontSize) >= 18.66 && Number(style.fontWeight) >= 700);
+    checked += 1;
+    minimum = Math.min(minimum, ratio);
+    if (ratio < (large ? 3 : 4.5)) {
+      offenders.push(`${element.tagName.toLowerCase()}${typeof element.className === 'string' && element.className.trim() ? `.${element.className.trim().split(/\s+/).join('.')}` : ''} "${element.textContent.trim().replace(/\s+/g, ' ').slice(0, 30)}" ${ratio.toFixed(2)}:1`);
+    }
+  }
+  return { checked, minimum: Number.isFinite(minimum) ? minimum : 0, offenders: offenders.slice(0, 5), total: offenders.length };
+}
+
+// Läuft im Browser: Größe der angegebenen Bedienelemente (nur sichtbare).
+function collectTargetSizes(selectors) {
+  const sizes = [];
+  for (const selector of selectors) {
+    for (const element of document.querySelectorAll(selector)) {
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      sizes.push({ selector, width: rect.width, height: rect.height });
+    }
+  }
+  const small = sizes.filter(({ width, height }) => width < 44 - 0.5 || height < 44 - 0.5);
+  return {
+    count: sizes.length,
+    smallest: sizes.length ? Math.min(...sizes.map(({ width, height }) => Math.min(width, height))) : 0,
+    small: small.slice(0, 5).map(({ selector, width, height }) => `${selector} ${width.toFixed(1)}×${height.toFixed(1)}`),
+    smallTotal: small.length,
+  };
+}
+
+async function setFontStep(page, step) {
+  await page.locator('#font-size-range').evaluate((slider, value) => {
+    slider.value = value;
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+  }, String(step));
+  await page.waitForFunction((value) => document.documentElement.dataset.fontSize === value, String(step));
+}
+
+async function openView(page, id) {
+  await page.waitForFunction((view) => !document.getElementById(view).hidden, id);
+  await page.waitForTimeout(150);
+}
+
+const roadbookState = () => ({
+  hash: location.hash,
+  startHidden: document.getElementById('start').hidden,
+  roadbookVisible: !document.getElementById('roadbook').hidden,
+  activeDay: [...document.querySelectorAll('#day-list .day-link')].findIndex((button) => button.getAttribute('aria-current') === 'step'),
+  map: (() => {
+    const rect = document.querySelector('#map').getBoundingClientRect();
+    const visiblePins = [...document.querySelectorAll('.day-map-pin')].filter((pin) => {
+      const box = pin.getBoundingClientRect();
+      const x = box.left + box.width / 2;
+      const y = box.top + box.height / 2;
+      return x > rect.left && x < rect.right && y > rect.top && y < rect.bottom;
+    }).length;
+    return { width: Math.round(rect.width), height: Math.round(rect.height), visiblePins };
+  })(),
+});
+
+// Einstiegsseite: Inhalte, Einstieg ins Roadbook, Rücksprung, Touch-Ziele, Kontrast und rein informativer Selbstcheck.
+async function runLandingChecks(page, record, shot) {
+  const recordChange = (check, pass, detail) => record(check, pass, detail, 'Aktueller Änderungs-Check');
+  await page.click('.brand');
+  await openView(page, 'start');
+
+  const content = await page.evaluate(() => {
+    const start = document.getElementById('start');
+    const contact = start.querySelector('a.tour-contact');
+    return {
+      headings: start.querySelectorAll('h1').length,
+      facts: [...start.querySelectorAll('.tour-facts dt')].map((term) => term.textContent.trim()),
+      factsFilled: [...start.querySelectorAll('.tour-facts dd')].every((value) => /\d/.test(value.textContent)),
+      countries: start.querySelectorAll('.tour-chips li').length,
+      highlights: start.querySelectorAll('.tour-card-list a[data-open-day]').length,
+      itinerary: start.querySelectorAll('.tour-itinerary a[data-open-day]').length,
+      days: document.querySelectorAll('#day-list li').length,
+      selfCheck: start.querySelectorAll('input[data-selfcheck]').length,
+      contactSecure: Boolean(contact) && contact.href.startsWith('https://')
+        && contact.rel.includes('noopener') && contact.target === '_blank',
+      contactLast: Boolean(contact) && Boolean(start.querySelector('.tour-contact-footer'))
+        && contact.closest('.tour-join') === null
+        && start.lastElementChild === contact.closest('.tour-contact-footer')
+        && Boolean(start.querySelector('.tour-selfcheck .tour-note')?.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING)
+        && Boolean(start.querySelector('.tour-itinerary')?.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING),
+      status: start.querySelectorAll('.tour-status-list li').length,
+      badges: [...start.querySelectorAll('.tour-card-list li')].every((card) => card.querySelector('.tour-country')?.textContent.trim()),
+      info: [...start.querySelectorAll('.tour-info-link')].every((link) => link.hostname === 'de.wikipedia.org'
+        && link.target === '_blank' && link.rel.includes('noopener') && link.rel.includes('noreferrer')
+        && !link.closest('a[data-open-day]')),
+      personal: /Dein Überblick/.test(start.textContent) && !/\b(Euer|Eure|Euch|wir|uns)\b/i.test(start.textContent),
+      booking: /Fährverbindungen werden vorab gebucht/.test(start.textContent)
+        && /Basislager bei Villach.*letzte Hotel bei Igoumenitsa.*voraussichtlich ebenfalls vorgebucht/s.test(start.textContent),
+    };
+  });
+  recordChange('Tourübersicht: Pflichtinhalte aus den Projektdaten vorhanden',
+    content.headings === 1 && content.facts.length >= 3 && content.factsFilled && content.countries > 0
+      && content.highlights > 0 && content.itinerary === content.days && content.itinerary > 0
+      && content.contactSecure && content.contactLast && content.selfCheck > 0 && content.status > 0
+      && content.badges && content.info && content.personal && content.booking,
+    `Kennzahlen=${content.facts.join('/')}; Länder=${content.countries}; Highlights=${content.highlights}; `
+      + `Reiseverlauf=${content.itinerary}/${content.days} Etappen; Kontakt https=${content.contactSecure}, letztes Element nach Selbstcheck=${content.contactLast}; `
+      + `Selbstcheck=${content.selfCheck}; Planungshinweise=${content.status}; Länder/Infos=${content.badges}/${content.info}; Du=${content.personal}; Buchungen=${content.booking}`);
+
+  const breakdown = await page.evaluate(() => {
+    const visible = [...document.querySelectorAll('#start .tour-breakdown')].filter((block) => block.getBoundingClientRect().width > 0);
+    const block = visible[0];
+    const rect = block?.getBoundingClientRect();
+    const subtitle = document.querySelector('.tour-intro-mobile');
+    return {
+      blocks: visible.length,
+      lines: [...(block?.querySelectorAll('p') ?? [])].map((line) => line.textContent.trim()),
+      inside: Boolean(rect) && rect.left >= 0 && rect.right <= window.innerWidth + 1,
+      mobileSubtitle: getComputedStyle(subtitle).display === 'none' ? null : subtitle.textContent.trim(),
+      oldSubtitle: /Deine Tour\. Dein Abenteuer\./.test(document.getElementById('start').textContent),
+    };
+  });
+  recordChange('Tourübersicht: Kilometer- und Etappenaufschlüsselung sowie Untertitel',
+    breakdown.blocks === 1 && breakdown.inside && breakdown.lines.length === 2 && !breakdown.oldSubtitle
+      && breakdown.lines[0] === 'ca. 4.825 km gesamt · ca. 2.823 km Motorrad · Fähre ohne Kilometerangabe · ca. 2.002 km Auto mit Anhänger'
+      && breakdown.lines[1] === '22 Etappen · 4 Auto · 17 Motorrad · 1 Fähre'
+      && (page.viewportSize().width >= 768 || breakdown.mobileSubtitle === 'Unsere Tour, dein Abenteuer!'),
+    `${breakdown.lines.join(' | ')}; Untertitel mobil=${breakdown.mobileSubtitle ?? 'ausgeblendet (Desktop)'}`);
+  const firstScreen = await page.evaluate(() => {
+    const rect = (selector) => {
+      const element = document.querySelector(selector);
+      const box = element.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right, height: box.height };
+    };
+    const hero = document.querySelector('.tour-hero');
+    const main = document.querySelector('.tour-hero-main');
+    const facts = document.querySelector('.tour-facts-block');
+    const map = document.querySelector('.tour-map-panel');
+    return {
+      viewport: window.innerHeight,
+      scrollY: window.scrollY,
+      header: rect('.site-header'),
+      hero: rect('.tour-hero'),
+      heroMinHeight: parseFloat(getComputedStyle(hero).minHeight),
+      headerVariable: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')),
+      topPadding: parseFloat(getComputedStyle(document.querySelector('.tour-start')).getPropertyValue('--tour-start-top')),
+      main: rect('.tour-hero-main'),
+      facts: rect('.tour-facts-block'),
+      factsVisible: getComputedStyle(facts).display !== 'none' && facts.getBoundingClientRect().width > 0,
+      copy: rect('.tour-hero-copy'),
+      map: rect('.tour-map-panel'),
+      mapVisible: getComputedStyle(map).display !== 'none' && map.getBoundingClientRect().width > 0,
+      cta: rect('.tour-cta-row'),
+      join: rect('.tour-join'),
+      heroDisplay: getComputedStyle(hero).display,
+      heroDirection: getComputedStyle(hero).flexDirection,
+      heroJustify: getComputedStyle(hero).justifyContent,
+      heroBoxSizing: getComputedStyle(hero).boxSizing,
+      heroBottomPadding: parseFloat(getComputedStyle(hero).paddingBottom),
+      mainAreas: getComputedStyle(main).gridTemplateAreas,
+    };
+  });
+  recordChange('Tourübersicht: Hero füllt den ersten Viewport unter dem Header; Mitfahren beginnt danach',
+    firstScreen.scrollY === 0
+      && firstScreen.heroDisplay === 'flex' && firstScreen.heroDirection === 'column'
+      && firstScreen.heroJustify === 'space-between' && firstScreen.heroBoxSizing === 'border-box'
+      && firstScreen.heroBottomPadding === 16
+      && Math.abs(firstScreen.heroMinHeight - (firstScreen.viewport - firstScreen.headerVariable - firstScreen.topPadding)) <= 1
+      && firstScreen.cta.bottom <= firstScreen.viewport && firstScreen.cta.bottom >= firstScreen.viewport - 40
+      && firstScreen.join.top >= firstScreen.viewport
+      && (page.viewportSize().width < 768
+        ? firstScreen.mainAreas.includes('highlights') && firstScreen.mainAreas.includes('map')
+          && firstScreen.factsVisible === false && firstScreen.mapVisible
+        : firstScreen.factsVisible && firstScreen.mapVisible
+          && firstScreen.facts.right <= firstScreen.map.left + 1
+          && firstScreen.facts.top >= firstScreen.copy.bottom - 1),
+    `Hero=${Math.round(firstScreen.hero.height)}px/min ${Math.round(firstScreen.heroMinHeight)}px; Main=${Math.round(firstScreen.main.height)}px; Facts=${Math.round(firstScreen.facts.height)}px; Karte=${Math.round(firstScreen.map.height)}px; CTA unten=${Math.round(firstScreen.cta.bottom)}/${firstScreen.viewport}px; Mitfahren oben=${Math.round(firstScreen.join.top)}px; Header=${Math.round(firstScreen.header.height)}px; Kennzahlen sichtbar=${firstScreen.factsVisible}`);
+
+  await page.waitForFunction(() => !document.querySelector('#tour-map-status').textContent.includes('werden geladen'));
+  const tourMap = await page.evaluate(async () => {
+    const hero = document.querySelector('.tour-hero-copy').getBoundingClientRect();
+    const map = document.querySelector('#tour-map').getBoundingClientRect();
+    const highlight = document.querySelector('.tour-mobile-highlights').getBoundingClientRect();
+    const summary = document.querySelector('.tour-mobile-summary').getBoundingClientRect();
+    const points = [...document.querySelectorAll('#tour-map .tour-map-point')];
+    const attribution = document.querySelector('#tour-map .leaflet-control-attribution').getBoundingClientRect();
+    const visiblePoints = points.filter((point) => {
+      const rect = point.getBoundingClientRect();
+      const x = (rect.left + rect.right) / 2;
+      const y = (rect.top + rect.bottom) / 2;
+      const covered = x >= attribution.left && x <= attribution.right && y >= attribution.top && y <= attribution.bottom;
+      return x >= map.left && x <= map.right && y >= map.top && y <= map.bottom && !covered;
+    }).length;
+    const days = document.querySelectorAll('#day-list li').length;
+    const expectedTracks = (await Promise.all(Array.from({ length: days }, async (_, index) => {
+      const response = await fetch(`${location.pathname}assets/gpx/tag-${String(index + 1).padStart(2, '0')}.gpx`);
+      if (!response.ok) throw new Error(`GPX-Prüfung: HTTP ${response.status}`);
+      const xml = new DOMParser().parseFromString(await response.text(), 'application/xml');
+      return [...xml.getElementsByTagNameNS('*', 'trkseg')]
+        .filter((segment) => segment.getElementsByTagNameNS('*', 'trkpt').length > 1).length;
+    }))).reduce((sum, count) => sum + count, 0);
+    return {
+      width: map.width, height: map.height, left: map.left, top: map.top, heroRight: hero.right, heroBottom: hero.bottom,
+      copyBottom: document.querySelector('.tour-hero-copy').getBoundingClientRect().bottom,
+      mapBottom: document.querySelector('.tour-map-panel').getBoundingClientRect().bottom,
+      highlight: { left: highlight.left, right: highlight.right, top: highlight.top, bottom: highlight.bottom },
+      summary: { top: summary.top, bottom: summary.bottom },
+      cta: (() => { const r = document.querySelector('.tour-cta').getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }; })(),
+      heroRightEdge: document.querySelector('.tour-hero').getBoundingClientRect().right,
+      mobileInfo: [...document.querySelectorAll('.tour-mobile-highlights li')].map((row) => {
+        const links = [...row.querySelectorAll('a')].map((a) => {
+          const r = a.getBoundingClientRect();
+          return { left: r.left, right: r.right, width: r.width, height: r.height, target: a.target, rel: a.rel,
+            host: a.hostname, protocol: a.protocol, text: a.textContent.trim().replace(/\s+/g, ' '), underlined: getComputedStyle(a).textDecorationLine.includes('underline') };
+        });
+        return { links, text: row.textContent.trim().replace(/\s+/g, ' ') };
+      }),
+      route: (() => {
+        const element = document.querySelector('.tour-mobile-route');
+        const r = element.getBoundingClientRect();
+        const row = getComputedStyle(document.querySelector('.tour-cta-row'));
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, visible: r.width > 0 && getComputedStyle(element).display !== 'none',
+          text: element.textContent.trim(), display: row.display, align: row.alignItems, justify: row.justifyContent, gap: row.columnGap };
+      })(),
+      pointSizes: [...new Set(points.map((point) => Math.round(point.getBoundingClientRect().width)))],
+      pointSpread: (() => {
+        const centres = points.map((point) => { const r = point.getBoundingClientRect(); return [(r.left + r.right) / 2, (r.top + r.bottom) / 2]; });
+        const xs = centres.map(([x]) => x); const ys = centres.map(([, y]) => y);
+        return { spanX: (Math.max(...xs) - Math.min(...xs)) / map.width, spanY: (Math.max(...ys) - Math.min(...ys)) / map.height,
+          marginLeft: Math.min(...xs) - map.left, marginTop: Math.min(...ys) - map.top, marginRight: map.right - Math.max(...xs) };
+      })(),
+      summaryText: document.querySelector('.tour-mobile-summary').textContent,
+      ctaText: document.querySelector('.tour-cta').innerText.trim().replace(/\s+/g, ' '),
+      zoomVisible: document.querySelector('#tour-map .leaflet-control-zoom').getBoundingClientRect().width > 0,
+      points: points.length, visiblePoints, expectedTracks,
+      tracks: document.querySelectorAll('#tour-map .tour-map-track').length,
+      ferry: (() => {
+        const path = document.querySelector('#tour-map .tour-map-ferry');
+        const rect = path?.getBoundingClientRect();
+        return { count: document.querySelectorAll('#tour-map .tour-map-ferry').length,
+          vertices: (path?.getAttribute('d') ?? '').match(/[ML]/g)?.length ?? 0,
+          dash: path?.getAttribute('stroke-dasharray'), width: rect?.width, height: rect?.height,
+          stroke: path?.getAttribute('stroke'), strokeWidth: path?.getAttribute('stroke-width'), opacity: path?.getAttribute('stroke-opacity'),
+          outline: document.querySelector('#tour-map .tour-map-ferry-outline')?.getAttribute('stroke'),
+          outlineWidth: document.querySelector('#tour-map .tour-map-ferry-outline')?.getAttribute('stroke-width'),
+          legendColor: getComputedStyle(document.querySelector('#tour-ferry-legend span'), '::after').backgroundImage,
+          legendHeight: getComputedStyle(document.querySelector('#tour-ferry-legend span'), '::after').height,
+          legend: !document.querySelector('#tour-ferry-legend').hidden && document.querySelector('#tour-ferry-legend').textContent.trim() };
+      })(),
+      days,
+      status: document.querySelector('#tour-map-status').textContent,
+    };
+  });
+  recordChange('Tourkarte: alle Tagespunkte und verfügbaren Tracks im responsiven Hero',
+    tourMap.width >= (page.viewportSize().width < 768 ? 130 : 200) && tourMap.height >= 160 && tourMap.points === 2 * tourMap.days
+      && tourMap.visiblePoints === tourMap.points && tourMap.tracks === tourMap.expectedTracks && tourMap.tracks > 0
+      && (page.viewportSize().width >= 768 ? tourMap.left >= tourMap.heroRight : tourMap.top >= tourMap.heroBottom)
+      && /vorläufige Planungsdaten/.test(tourMap.status),
+    `Karte=${Math.round(tourMap.width)}×${Math.round(tourMap.height)}px; sichtbare Punkte=${tourMap.visiblePoints}/${2 * tourMap.days}; Tracks=${tourMap.tracks}/${tourMap.expectedTracks}; ${tourMap.status}`);
+
+  recordChange('Tourübersicht: kompakter mobiler Einstieg und Desktop-Layout',
+    page.viewportSize().width < 768
+      ? tourMap.cta.top >= tourMap.summary.bottom && tourMap.summary.top >= Math.max(tourMap.mapBottom, tourMap.highlight.bottom)
+        && tourMap.highlight.right <= tourMap.left && Math.abs(tourMap.cta.right - tourMap.heroRightEdge) <= 1
+        && tourMap.cta.width < page.viewportSize().width / 2 && tourMap.ctaText === 'Zur Tour →'
+        && tourMap.height >= 170 && tourMap.height <= 200 && !tourMap.zoomVisible
+        && tourMap.mobileInfo.length === 6 && tourMap.mobileInfo.every(({ links, text }) => links.length === 1 && !/Wiki\b/.test(text)
+          && /^\d{2} \S/.test(links[0].text) && links[0].text === text && links[0].target === '_blank' && links[0].rel.includes('noopener') && links[0].rel.includes('noreferrer')
+          && links[0].protocol === 'https:' && links[0].host === 'de.wikipedia.org' && links[0].underlined
+          && links[0].width >= 44 && links[0].height >= 44)
+        && tourMap.route.visible && tourMap.route.text === 'Recklinghausen ↔ Recklinghausen'
+        && tourMap.route.display === 'flex' && tourMap.route.align === 'center' && tourMap.route.justify === 'space-between' && tourMap.route.gap === '12px'
+        && tourMap.route.right <= tourMap.cta.left && tourMap.route.left < tourMap.cta.left - 40
+        && tourMap.route.top < tourMap.cta.bottom && tourMap.route.bottom > tourMap.cta.top
+        && tourMap.route.top >= tourMap.summary.bottom - 1 && !/Recklinghausen/.test(tourMap.summaryText)
+        && /September 2027/.test(tourMap.summaryText) && /22 Tage/.test(tourMap.summaryText)
+        && /4\.825 km gesamt/.test(tourMap.summaryText) && /2\.823 km Motorrad/.test(tourMap.summaryText)
+        && /9 Länder/.test(tourMap.summaryText)
+        && (page.viewportSize().width > 412 || tourMap.cta.bottom <= page.viewportSize().height)
+      : tourMap.cta.top >= tourMap.copyBottom && tourMap.cta.left < tourMap.left && tourMap.height >= 290 && !tourMap.route.visible,
+    `Karte=${Math.round(tourMap.width)}×${Math.round(tourMap.height)}; Highlights=${tourMap.mobileInfo.length} (Titel=Wikipedia-Link); Route=${tourMap.route.text} (${Math.round(tourMap.route.left)}–${Math.round(tourMap.route.right)}) neben Button=${tourMap.ctaText} (${Math.round(tourMap.cta.left)}–${Math.round(tourMap.cta.right)}, unten ${Math.round(tourMap.cta.bottom)}px); Zoom=${tourMap.zoomVisible}`);
+  recordChange('Tourkarte: enger Ausschnitt mit 14 px Rand und feinen Punkten (r=2,5)',
+    tourMap.pointSizes.length === 1 && tourMap.pointSizes[0] <= 6
+      && Math.max(tourMap.pointSpread.spanX, tourMap.pointSpread.spanY) >= 0.6
+      && tourMap.pointSpread.marginLeft >= 10 && tourMap.pointSpread.marginTop >= 10 && tourMap.pointSpread.marginRight >= 10,
+    `Punktbreite=${tourMap.pointSizes}px; Ausdehnung=${Math.round(tourMap.pointSpread.spanX * 100)}%×${Math.round(tourMap.pointSpread.spanY * 100)}%; Rand links/oben/rechts=${Math.round(tourMap.pointSpread.marginLeft)}/${Math.round(tourMap.pointSpread.marginTop)}/${Math.round(tourMap.pointSpread.marginRight)}px`);
+  recordChange('Tourkarte: gestrichelte Fährverbindung mit Legende',
+    tourMap.ferry.count === 1 && tourMap.ferry.vertices === 7 && Boolean(tourMap.ferry.dash) && tourMap.ferry.width > 5 && tourMap.ferry.height > 5
+      && tourMap.ferry.legend === 'Fährverbindung (ca. Linie)' && tourMap.ferry.stroke === '#ffc64a'
+      && tourMap.ferry.strokeWidth === '5' && tourMap.ferry.opacity === '0.95'
+      && tourMap.ferry.outline === '#12151b' && tourMap.ferry.outlineWidth === '9'
+      && tourMap.ferry.legendColor.includes('rgb(255, 198, 74)') && tourMap.ferry.legendHeight === '5px',
+    `Linien=${tourMap.ferry.count}; Adria-Stützpunkte=${tourMap.ferry.vertices}; Striche=${tourMap.ferry.dash}; Vordergrund=${tourMap.ferry.stroke}/${tourMap.ferry.strokeWidth}px; Kontur=${tourMap.ferry.outline}/${tourMap.ferry.outlineWidth}px; Legende=${tourMap.ferry.legend}`);
+
+  const targets = await page.evaluate(collectTargetSizes, [
+    '#start .tour-cta', '#start .tour-contact', '#start .tour-card-list a', '#start .tour-mobile-highlights a', '#start .tour-itinerary a', '#start .tour-check', '#tour-map .leaflet-control-zoom a',
+  ]);
+  recordChange('Tourübersicht: Bedienelemente mindestens 44 × 44 px',
+    targets.count > 0 && targets.smallTotal === 0,
+    `${targets.count} Elemente; kleinste Kantenlänge=${targets.smallest.toFixed(1)}px${targets.small.length ? `; zu klein: ${targets.small.join('; ')}` : ''}`);
+
+  const themes = [];
+  for (const theme of ['default', 'schalke', 'bvb']) {
+    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    themes.push({ theme, ...(await page.evaluate(collectContrast, '#start')) });
+  }
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'default'; });
+  recordChange('Tourübersicht: Textkontrast mindestens 4,5:1 (3:1 bei großer Schrift) in allen Farbschemata',
+    themes.every((entry) => entry.checked > 0 && entry.total === 0),
+    themes.map((entry) => `${entry.theme}: ${entry.checked} Texte, min. ${entry.minimum.toFixed(2)}:1${entry.offenders.length ? ` (${entry.offenders.join('; ')})` : ''}`).join(' | '));
+
+  await page.locator('.tour-cta').scrollIntoViewIfNeeded();
+  if (await page.evaluate(() => window.scrollY) === 0) {
+    await page.evaluate(() => window.scrollTo({ top: 60, behavior: 'instant' }));
+  }
+  const ctaScroll = await page.evaluate(() => window.scrollY);
+  await page.click('.tour-cta');
+  await openView(page, 'roadbook');
+  const entered = await page.evaluate(roadbookState);
+  recordChange('Tourübersicht: Einstieg führt in die Roadbook-Tage mit sichtbarer Karte',
+    entered.hash === '#roadbook' && entered.startHidden && entered.roadbookVisible && entered.activeDay === 0
+      && entered.map.width >= 200 && entered.map.height >= 160 && entered.map.visiblePins >= 1,
+    `hash=${entered.hash}; Etappe=${entered.activeDay + 1}; Karte=${entered.map.width}×${entered.map.height}px; Pins im Ausschnitt=${entered.map.visiblePins}`);
+
+  const backTargets = await page.evaluate(collectTargetSizes, ['.overview-link']);
+  recordChange('Roadbook: Rücksprung zur Tourübersicht sichtbar und mindestens 44 px hoch',
+    backTargets.count === 1 && backTargets.smallTotal === 0,
+    `${backTargets.count} sichtbarer Link; Größe=${backTargets.smallest.toFixed(1)}px`);
+  await page.locator('.overview-link:visible').click();
+  await openView(page, 'start');
+  const back = await page.evaluate(roadbookState);
+  const backMap = await page.locator('#tour-map').boundingBox();
+  const ctaReturn = await page.evaluate(() => window.scrollY);
+  recordChange('Roadbook: Rücksprung zeigt die Tourübersicht',
+    back.hash === '#start' && !back.startHidden && !back.roadbookVisible && backMap.width >= (page.viewportSize().width < 768 ? 130 : 200) && backMap.height >= 160,
+    `hash=${back.hash}; Tourkarte=${Math.round(backMap.width)}×${Math.round(backMap.height)}px`);
+
+  const itineraryLink = page.locator('.tour-itinerary a[data-open-day="10"]');
+  await itineraryLink.scrollIntoViewIfNeeded();
+  const itineraryScroll = await page.evaluate(() => window.scrollY);
+  await itineraryLink.click();
+  await openView(page, 'roadbook');
+  const opened = await page.evaluate(roadbookState);
+  await page.goBack();
+  await openView(page, 'start');
+  const historyScroll = await page.evaluate(() => window.scrollY);
+  const history = await page.evaluate(roadbookState);
+  await page.goForward();
+  await openView(page, 'roadbook');
+  await page.goBack();
+  await openView(page, 'start');
+  const repeatedHistoryScroll = await page.evaluate(() => window.scrollY);
+  // Mobil sind die Highlight-Titel Wikipedia-Links; die Etappe öffnet dort über den Reiseverlauf.
+  const highlightLink = page.locator('.tour-card-list a[data-open-day]:visible, .tour-itinerary a[data-open-day]:visible').first();
+  const expectedHighlightDay = Number(await highlightLink.getAttribute('data-open-day'));
+  await highlightLink.scrollIntoViewIfNeeded();
+  if (await page.evaluate(() => window.scrollY) === 0) {
+    await page.evaluate(() => window.scrollTo({ top: 60, behavior: 'instant' }));
+  }
+  const highlightScroll = await page.evaluate(() => window.scrollY);
+  await highlightLink.click();
+  await openView(page, 'roadbook');
+  const highlight = { expected: expectedHighlightDay, ...(await page.evaluate(roadbookState)) };
+  recordChange('Tourübersicht: Reiseverlauf und Highlights öffnen die gewählte Etappe; Zurück-Taste führt zur Übersicht',
+    opened.hash === '#roadbook' && opened.activeDay === 10 && history.hash === '#start' && !history.startHidden
+      && highlight.activeDay === highlight.expected,
+    `Etappe 11 geöffnet=${opened.activeDay === 10}; Zurück→${history.hash}; Highlight geöffnet=${highlight.activeDay === highlight.expected}`);
+  await page.locator('.overview-link:visible').click();
+  await openView(page, 'start');
+  const highlightReturn = await page.evaluate(() => window.scrollY);
+  recordChange('Tourübersicht: Scrollposition bei CTA, Reiseverlauf und Highlight wiederhergestellt',
+    [ctaScroll, itineraryScroll, highlightScroll].every((value) => value > 0)
+      && Math.abs(ctaScroll - ctaReturn) <= 2 && Math.abs(itineraryScroll - historyScroll) <= 2
+      && Math.abs(itineraryScroll - repeatedHistoryScroll) <= 2
+      && Math.abs(highlightScroll - highlightReturn) <= 2,
+    `CTA ${Math.round(ctaScroll)}→${Math.round(ctaReturn)}; Browser-Zurück/Vor/Zurück ${Math.round(itineraryScroll)}→${Math.round(historyScroll)}→${Math.round(repeatedHistoryScroll)}; Highlight ${Math.round(highlightScroll)}→${Math.round(highlightReturn)} px`);
+  await page.locator('.brand').evaluate((element) => element.click());
+  await openView(page, 'start');
+  const brandScroll = await page.evaluate(() => window.scrollY);
+  recordChange('Tourübersicht: Header-Logo führt nach oben', brandScroll <= 2, `scrollY=${Math.round(brandScroll)}px`);
+
+  // Selbstcheck: rein informativ (F03) – ein Haken ändert nichts am Einstieg und wird nur lokal gemerkt.
+  const firstCheck = page.locator('#start .tour-check').first();
+  await firstCheck.click();
+  const afterTick = await page.evaluate(() => ({
+    checked: document.querySelector('#start input[data-selfcheck]').checked,
+    ctaDisabled: document.querySelector('#start .tour-cta').hasAttribute('aria-disabled'),
+  }));
+  await page.click('.tour-cta');
+  await openView(page, 'roadbook');
+  const enteredWithTick = await page.evaluate(roadbookState);
+  await page.click('.brand');
+  await openView(page, 'start');
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector('#start .tour-facts', { state: 'attached' });
+  const persisted = await page.evaluate(() => document.querySelector('#start input[data-selfcheck]').checked);
+  await page.locator('#start .tour-check').first().click();
+  const cleared = await page.evaluate(() => !document.querySelector('#start input[data-selfcheck]').checked);
+  recordChange('Tourübersicht: Selbstcheck ist rein informativ, blockiert den Einstieg nicht und wird lokal gemerkt',
+    afterTick.checked && !afterTick.ctaDisabled && enteredWithTick.roadbookVisible && persisted && cleared,
+    `Haken gesetzt=${afterTick.checked}; Einstieg trotz Haken=${enteredWithTick.roadbookVisible}; nach Neuladen gemerkt=${persisted}; zurückgesetzt=${cleared}`);
+  await page.locator('#start .tour-join').scrollIntoViewIfNeeded();
+  await shot('start-selfcheck', 'Tourübersicht: Mitfahren und Selbstcheck');
+  await page.locator('#start .tour-contact').scrollIntoViewIfNeeded();
+  const contactFooter = await page.evaluate(() => {
+    const contact = document.querySelector('#start .tour-contact');
+    const footer = document.querySelector('#start .tour-contact-footer');
+    const note = document.querySelector('#start .tour-selfcheck .tour-note');
+    return {
+      contactText: contact.textContent.trim().replace(/\s+/g, ' '),
+      footerIsLast: document.querySelector('#start').lastElementChild === footer,
+      outsideJoin: contact.closest('.tour-join') === null,
+      followsSelfCheck: Boolean(note.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING),
+      followsItinerary: Boolean(document.querySelector('#start .tour-itinerary').compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING),
+      targetHeight: contact.getBoundingClientRect().height,
+    };
+  });
+  recordChange('Tourübersicht: Instagram-Kontakt als letzter Abschluss nach Selbstcheck und Reiseverlauf',
+    contactFooter.footerIsLast && contactFooter.outsideJoin && contactFooter.followsSelfCheck
+      && contactFooter.followsItinerary && contactFooter.targetHeight >= 44
+      && contactFooter.contactText === 'Kontakt aufnehmen · Instagram: @boeser_biker',
+    `${contactFooter.contactText}; letzter Bereich=${contactFooter.footerIsLast}; nach Selbstcheck/Reiseverlauf=${contactFooter.followsSelfCheck}/${contactFooter.followsItinerary}; Höhe=${contactFooter.targetHeight}px`);
+  await shot('start-contact-footer', 'Tourübersicht: Kontakt-Button als Seitenabschluss');
+
+  const fallback = await page.context().newPage();
+  try {
+    await fallback.route('**/assets/gpx/tag-03.gpx', (route) => route.fulfill({ status: 503, body: 'unavailable' }));
+    await fallback.route('**/assets/gpx/tag-19.gpx', (route) => route.fulfill({ status: 503, body: 'unavailable' }));
+    await fallback.route('https://tile.openstreetmap.org/**', (route) => route.fulfill({ status: 503, body: 'unavailable' }));
+    await fallback.goto(page.url().split('#')[0], { waitUntil: 'networkidle' });
+    await fallback.waitForFunction(() => {
+      const text = document.querySelector('#tour-map-status')?.textContent ?? '';
+      return text.includes('Tages-GPX nicht verfügbar') && text.includes('Kartenhintergrund nicht verfügbar');
+    }, null, { timeout: 10000 });
+    const failed = await fallback.evaluate(() => ({
+      text: document.querySelector('#tour-map-status').textContent,
+      points: document.querySelectorAll('#tour-map .tour-map-point').length,
+      days: document.querySelectorAll('#day-list li').length,
+      ferry: document.querySelectorAll('#tour-map .tour-map-ferry').length,
+      legendHidden: document.querySelector('#tour-ferry-legend').hidden,
+    }));
+    recordChange('Tourkarte: fehlende GPX und Kartenkacheln zeigen verständlichen Fallback',
+      failed.points === 2 * failed.days && /Start- und Zielpunkte bleiben sichtbar/.test(failed.text)
+        && failed.ferry === 0 && failed.legendHidden,
+      `${failed.points} Punkte; Fährlinie bei fehlender GPX=${failed.ferry}; ${failed.text}`);
+  } finally {
+    await fallback.close();
+  }
+}
+
 async function runCurrentChangeChecks(page, record, shot) {
   const recordChange = (check, pass, detail) => record(
     check, pass, detail, 'Aktueller Änderungs-Check',
@@ -462,14 +980,15 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
   };
 
   await page.goto(`${origin}${BASE_PATH}`, { waitUntil: 'networkidle' });
-  await page.waitForSelector('#day-list li', { timeout: 15000 });
+  await page.waitForSelector('#start .tour-facts', { state: 'attached', timeout: 15000 });
+  await page.waitForSelector('#day-list li', { state: 'attached', timeout: 15000 });
   const header = await page.evaluate(collectHeaderGeometry);
   record('Header: Einstellungen rechtsbündig und an Galerie ausgerichtet',
     header.bottomDelta <= 1.5 && header.withinHeaderPadding && header.noOverlap && header.noHeaderOverflow,
     `Button ${header.buttonGeometry}; Galerie-Unterkante=${header.linkBottom}px; Delta=${header.bottomDelta.toFixed(1)}px`);
 
   for (const view of PAGES) {
-    await page.click(`.site-nav a[href="#${view.id}"]`);
+    await page.click(view.trigger ?? `.site-nav a[href="#${view.id}"]`);
     await page.waitForFunction((id) => !document.getElementById(id).hidden, view.id);
     await page.waitForTimeout(300);
     const metrics = await page.evaluate(() => ({
@@ -485,6 +1004,26 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     record(`${view.label}: keine Textkollisionen`, collisions.total === 0,
       collisions.total === 0 ? 'keine Überschneidungen' : `${collisions.total} Treffer: ${collisions.collisions.join('; ')}`);
     await shot(view.id === 'roadbook' ? 'main' : view.id, view.id === 'roadbook' ? 'Hauptansicht (Etappen)' : `Ansicht ${view.label}`);
+    if (view.id === 'start') {
+      const baselineClip = await page.evaluate(collectTextClipping, '#start');
+      record('Tourübersicht: Text bei Standardschriftstufe nicht abgeschnitten', baselineClip.total === 0,
+        baselineClip.total === 0 ? 'kein abgeschnittener Text' : `${baselineClip.total} Treffer: ${baselineClip.offenders.join('; ')}`);
+      await setFontStep(page, 5);
+      await page.waitForTimeout(100);
+      const largestOverflow = await page.evaluate(collectRightOverflow);
+      record('Tourübersicht: kein Element über dem rechten Rand bei Schriftstufe 5/5', largestOverflow.total === 0,
+        largestOverflow.total === 0 ? `alle rect.right <= ${largestOverflow.limit}` : `${largestOverflow.total} Treffer: ${largestOverflow.offenders.join('; ')}`);
+      const largestScroll = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
+      record('Tourübersicht: kein horizontaler Überlauf bei Schriftstufe 5/5', largestScroll.scrollWidth <= largestScroll.innerWidth,
+        `scrollWidth=${largestScroll.scrollWidth}, innerWidth=${largestScroll.innerWidth}`);
+      const largestClip = await page.evaluate(collectTextClipping, '#start');
+      record('Tourübersicht: Text bei Schriftstufe 5/5 nicht abgeschnitten', largestClip.total === 0,
+        largestClip.total === 0 ? 'kein abgeschnittener Text' : `${largestClip.total} Treffer: ${largestClip.offenders.join('; ')}`);
+      const largestCollisions = await page.evaluate(collectTextCollisions, '#start');
+      record('Tourübersicht: keine Textkollisionen bei Schriftstufe 5/5', largestCollisions.total === 0,
+        largestCollisions.total === 0 ? 'keine Überschneidungen' : `${largestCollisions.total} Treffer: ${largestCollisions.collisions.join('; ')}`);
+      await setFontStep(page, 2);
+    }
     if (view.id === 'media') {
       const baseline = await page.evaluate(collectMediaTextOverflow);
       record('Galerie: Text bei Standardschriftstufe nicht abgeschnitten',
@@ -514,6 +1053,8 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
       await page.waitForFunction(() => document.documentElement.dataset.fontSize === '2');
     }
   }
+
+  await runLandingChecks(page, record, shot);
 
   await page.click('.site-nav a[href="#roadbook"]');
   await page.click('#settings-toggle');
@@ -605,7 +1146,7 @@ function renderReport(results, screenshots, startedAt) {
     `- **Viewports:** ${VIEWPORTS.map((v) => `${v.name} (${v.width} × ${v.height})`).join(', ')}`,
     `- **Seiten:** ${PAGES.map((p) => `${p.label} (#${p.id})`).join(', ')}`,
     '- **Hinweis:** Externe Ressourcen (Kartenkacheln, Fotos, Videovorschauen) werden durch ein transparentes Pixel ersetzt; der Service Worker ist blockiert.',
-    '- **Zusatzprüfungen:** Header-Ausrichtung in allen Viewports; Textkollisionen in Etappen, Galerie und Logistik; Galerie-Textüberlauf und Medienrahmen bei Standardschrift (2/5) sowie größter Schriftstufe (5/5). Bewusste Overlay-Badges und der Play-Button sind ausgenommen.',
+    '- **Zusatzprüfungen:** Header-Ausrichtung in allen Viewports; Textkollisionen in Tourübersicht, Etappen, Galerie und Logistik; Tourübersicht: Pflichtinhalte, Einstieg und Rücksprung, Touch-Ziele (44 px), Kontrast in allen Farbschemata, Schriftstufe 5/5, rein informativer Selbstcheck; Galerie-Textüberlauf und Medienrahmen bei Standardschrift (2/5) sowie größter Schriftstufe (5/5). Bewusste Overlay-Badges und der Play-Button sind ausgenommen.',
   ];
   for (const suite of ['Basis-Checks', 'Aktueller Änderungs-Check']) {
     lines.push(

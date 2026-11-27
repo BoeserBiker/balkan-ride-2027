@@ -1,30 +1,34 @@
 ## Arbeitsstand – Balkan-Ride 2027
 
-**Stand:** 2026-11-26
+**Stand:** 2026-11-27
 
 **Workspace:** `Balkan-Ride-2027`  
 **Leitdokument:** [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md)
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-26): App-Version `v2.113`, Service-Worker-Cache `v126`
-  (synchron laut `web/public/version.json` und `web/public/sw.js`). Die App
-  hat getrennte Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.114`, Service-Worker-Cache `v127`
+  (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
+  Änderungen noch nicht committet). Die App
+  startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
+  die 22 Roadbook-Tage und hat daneben die Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
   Aktualisierungsbutton liegen und ihre jeweilige Historie exklusiv öffnen.
   Die Tests trennen wiederverwendbare Basisprüfungen von issue-spezifischen
-  Regressionen. Roadbook und UI sprechen die Reisegruppe
-  in der Mehrzahl an; ein konkretes Motorradmodell und eine Gruppengröße
-  bleiben offen. Der
-  zuletzt dokumentierte Playwright-Closed-Loop prüfte vier Viewports
-  (375, 412, 768 und 1280 px): 100/100 PASS, 24 Screenshots in
+  Regressionen. Die Tourübersicht spricht persönlich mit „Du“ an; die
+  Etappen bleiben unverändert. Ein konkretes Motorradmodell und eine Gruppengröße
+  sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
+  `content/tour.md`. Der
+  zuletzt dokumentierte Playwright-Closed-Loop prüfte fünf Viewports
+  (375, 412, 767, 768 und 1280 px): 255/255 PASS (am 2026-11-27 mit dem
+  finalen Landingpage-Layout), Screenshots in
   `web/.visual-report/REPORT.md`. Die gemessene Unterkantenabweichung des
   Einstellungsbuttons zur „Galerie“-Beschriftung betrug bei allen vier
   Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
   Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
-  oder vertikalen Inhaltsüberlauf exklusiv öffnen. 19/19 Node-Tests und
-  Produktionsbuild damals erfolgreich; die Prüfergebnisse sind kein neuer
-  Nachweis für den aktuellen Versionsstand. Die fünf Zahlenmarken des
+  oder vertikalen Inhaltsüberlauf exklusiv öffnen. Am 2026-11-27: 48/48
+  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; die
+  Prüfergebnisse sind kein Nachweis für spätere Stände. Die fünf Zahlenmarken des
   Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
   unter den Soll-Rastpunkten 0/25/50/75/100 %.
   Dies ist keine reale Geräte-/Offline- oder fachliche V5-Abnahme.
@@ -164,6 +168,242 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – P01/P02: Kontakt-Abschluss und finale Verifikation (lokal)
+
+- Der Instagram-Kontaktbutton ist aus dem Abschnitt „Mitfahren“ herausgenommen
+  und steht jetzt als eigener Footer ganz am Ende der Landingpage: nach dem
+  Selbstcheck samt Orientierungshinweis, Planungsstand und 22-zeiligem
+  Reiseverlauf. Der Test sichert die DOM-Reihenfolge und die Visual-Prüfung
+  HTTPS, neuen Tab, Mindesthöhe und Position als letztes Landingpage-Element.
+- Finale Prüfungen nach dieser Änderung: `node --test web/tests/*.test.js`
+  48/48, `npm run build --prefix web` erfolgreich und
+  `npm run test:visual --prefix web` 255/255 über iPhone 12 mini, Android,
+  767 px, Tablet 768 px und Desktop. Visual-Check bestätigt für alle fünf
+  Viewports, dass der CTA im ersten Viewport nahe dem unteren Rand bleibt und
+  „Mitfahren“ erst darunter beginnt; Tablet-Kennzahlen sind zweispaltig
+  verdichtet. Kontakt-Abschluss: `web/.visual-report/*-start-contact-footer.png`.
+  `git diff --check` ohne Befund. Echte Geräte, echte Kacheln und Offline-PWA
+  sind nicht geprüft. Kein Commit/Push.
+
+### 2026-11-27 – P01/P02: Layout-Fix erster Bildschirm (Zwischenstand, danach final visuell geprüft)
+
+- Der Hero (`.tour-hero`) ist jetzt eine Flex-Spalte (`space-between`) mit
+  `min-height: calc(100dvh - var(--header-height, 64px) - var(--tour-start-top))`
+  und 16 px Innenabstand unten: Route und „Zur Tour →“ stehen unten am ersten
+  Bildschirm, „Mitfahren“ beginnt darunter. `--header-height` wird in
+  `web/src/main.js` über `bindHeaderHeight` (ResizeObserver) gesetzt, da der
+  sticky Header Platz im Layout belegt.
+- Der Kennzahlen-Block (Karten plus Kilometer-/Etappenzeilen) steht ab 768 px im
+  Hero links unter dem Intro, die Karte füllt rechts die volle Höhe; mobil
+  (≤ 767 px) bleibt die kompakte Reihenfolge Titel/Untertitel, Highlights | Karte,
+  Zusammenfassung, unten Route | Button.
+- In diesem Zwischenstand waren nur Node-Tests (48/48) und Build ausgeführt;
+  die anschließend erfolgte finale Visual-Verifikation samt Ergebnissen steht
+  im Chronologie-Eintrag direkt darüber. Kein Commit/Push.
+
+### 2026-11-27 – P01/P02: Untertitel und Kilometer-/Etappen-Aufschlüsselung (lokal)
+
+- Der mobile Untertitel lautet jetzt „Unsere Tour, dein Abenteuer!“. Der längere
+  Desktop-Introtext („Dein Überblick …“) blieb unverändert.
+- Kennzahlen-Block (Desktop unter den Karten, mobil in der Zusammenfassung) mit
+  zwei Zeilen, beim Laden aus den 22 `content/tag-*.md` abgeleitet (`kilometer`
+  und Zeile `**Transport:**`, keine festen Zahlen im Code): aktuell
+  „ca. 4.825 km gesamt · ca. 2.823 km Motorrad · Fähre ohne Kilometerangabe ·
+  ca. 2.002 km Auto mit Anhänger“ und „22 Etappen · 4 Auto · 17 Motorrad · 1 Fähre“.
+  Auto = Transport mit PKW (Tag 1, 2, 21, 22), Fähre = nur Fähre (Tag 19);
+  Mischtage wie Tag 13 („Fähre als Fußpassagiere, anschließend Motorrad“) und
+  Tag 18 („Motorrad + geplante Fähre“) zählen als Motorrad. Die mobile Zeile
+  „18 Tourtage“ entfällt; die Desktop-Karte „Tourtage 18“ bleibt (17 + 1).
+- **Abweichung zum Änderungswunsch:** Tag 19 führt `kilometer: 0.0`, die Etappendaten
+  enthalten also keine Fährstrecke. „ca. 0 km Fähre“ wäre irreführend, eine Distanz
+  wird nicht erfunden; angezeigt wird „Fähre ohne Kilometerangabe“. Sobald eine
+  Fähretappe Kilometer führt, erscheint automatisch „ca. X km Fähre“ (per Test
+  abgedeckt). Offen: BB entscheidet, ob eine Fährdistanz ergänzt werden soll.
+- Lokal: 47/47 Node-Tests, Build, 245/245 Playwright-Prüfungen (fünf Viewports);
+  mobiler CTA-Unterkante 624 px im Viewport. Echte Geräte, Kacheln und Offline-PWA
+  ungeprüft. Version unverändert `v2.114`/`v127`. Kein Commit/Push.
+
+### 2026-11-27 – P01/P02: Abschluss-Feinschliff Einstieg, Karte, Highlight-Links (lokal)
+
+- **Mobil:** Start/Ziel („Recklinghausen ↔ Recklinghausen“) steht links neben
+  „Zur Tour →“ in einer Flex-Zeile (`space-between`, 12 px Abstand); die Zeile
+  ist nicht mehr Teil der Zusammenfassung. Die Highlight-Titel (Tag-Nr. + Kurztitel)
+  sind selbst der deutsche Wikipedia-Link (neuer Tab, `noopener noreferrer`,
+  ≥ 44 px, unterstrichen); das separate „Wiki“-Label entfällt. Folge: Mobil
+  öffnen Highlights keine Etappe mehr, dafür der 22-zeilige Reiseverlauf; die
+  Desktop-Karten behalten Etappen- und Wikipedia-Link.
+- **Karte:** `fitBounds` ohne Zusatzrand, Padding 14 px (mobil unten 34 px für
+  die Attribution), `zoomSnap: 0.25` (sonst Ganzzahl-Zoom mit bis zur Hälfte
+  leerer Karte), Tagespunkte `radius: 2.5`. Ab 768 px füllt die Karte die rechte
+  Spalte (`min-height: 290px`, aktuell 300 px).
+- **Fährlinie:** Die Linie läuft über sieben Stützpunkte durch die Adria statt
+  quer über Italien (Igoumenitsa-Track-Ende → [40.15, 19.10] → [41.80, 17.20]
+  → [43.30, 14.40] → [44.40, 13.20] → [45.30, 12.50] → Fusina-Track-Anfang). Es
+  ist eine grobe Orientierungslinie, keine Seekarte oder Route der Reederei.
+  **Abweichung zum Änderungswunsch:** Die Projektdaten (`content/tag-19.md`,
+  `content/tag-20.md`) nennen Fusina, nicht Ancona; die Linie endet deshalb an
+  den vorhandenen GPX-Endpunkten. Die ersten Stützpunkte bis [41.80, 17.20]
+  stammen aus dem Änderungswunsch, die nördlichen wurden bis Fusina ergänzt
+  und sind nicht gegen eine Seekarte geprüft. Keine GPX-/Etappendatei geändert.
+- Lokal: 46/46 Node-Tests, Build und 240/240 Playwright-Prüfungen in fünf
+  Viewports (inkl. 767/768 px) erfolgreich; neu geprüft: Route neben Button,
+  Titel-Links, Kartenausschnitt/Punktgröße, sieben Fährstützpunkte, Desktop-Höhe.
+  Mobiler Highlight-Test öffnet Etappen über den Reiseverlauf. Externe Kacheln
+  sind im Visual-Check ersetzt; echte Geräte, Kacheln und Offline-PWA bleiben
+  ungeprüft. Version unverändert `v2.114`/`v127` (ein Schritt gegenüber `main`).
+  Kein Commit/Push.
+
+### 2026-11-27 – P01/P02: kompakter mobiler Einstieg und Fährlinie (lokal)
+
+- Unter 768 px stehen sechs kurze Highlights mit getrennten Etappen- und
+  Wikipedia-Links neben einer 180 px hohen Gesamtkarte; Zeitraum, Strecken,
+  Länder und Route sowie der rechtsbündige Button „Zur Tour →“ folgen darunter.
+  Ab 768 px bleibt der zweispaltige Desktop-Einstieg erhalten. Kurztexte und
+  Werte stammen aus `content/tour.md` und den vorhandenen Etappendaten.
+- Die ungefähre Fährlinie hat eine dunkle Kontur (9 px) und einen
+  amberfarbenen Strich (5 px); die Legende übernimmt Farbe und Strichstärke.
+  Auf Mobilgeräten bleibt die Route oberhalb der Kartenattribution sichtbar.
+  Grundlage sind die benachbarten GPX-Trackenden; der Projektstand nennt
+  Igoumenitsa–Fusina, nicht Ancona. Keine GPX- oder Etappendaten geändert.
+- Lokal: 44/44 Node-Tests, Produktionsbuild und 235/235 Playwright-Prüfungen
+  erfolgreich. Geprüft wurden fünf Viewports einschließlich 767/768 px,
+  First-Screen, Touch-Ziele, Textüberlauf, Kontrast, Scroll-Rücksprung und
+  Fährlinie; keine Konsolen- oder Laufzeitfehler. Screenshots und Messwerte:
+  `web/.visual-report/REPORT.md`. Externe Kartenkacheln werden im Visual-Check
+  ersetzt, der Service Worker ist blockiert: reale Geräte, echte Kacheln und
+  Offline-Nutzung sind damit nicht geprüft. Version weiterhin `v2.114`/`v127`
+  für die gemeinsamen lokalen Änderungen gegenüber `main`. Kein Commit/Push.
+
+### 2026-11-27 – P01/P02: Scroll-Rücksprung und Fährlinie (lokal)
+
+- Die Tourübersicht merkt beim Verlassen ihre Scrollposition; Rücksprung und
+  Browser-Zurück/Vor stellen sie wieder her. Das Header-Logo führt nach oben.
+  Der Einstiegsknopf steht mobil unter der Gesamtkarte, am Desktop links neben
+  ihr unter dem Intro.
+- Eine gestrichelte Orientierungslinie verbindet bei einer geladenen
+  Fähretappe ohne Track die Track-Endpunkte der benachbarten Tage. Die Linie
+  ist als ungefähre Fährverbindung gekennzeichnet und kein See-GPX. Fehlende
+  oder fehlerhafte GPX-Dateien werden nicht als tracklose Fährfahrt interpretiert.
+  Quellen: `content/tag-18.md` bis `content/tag-20.md` und die zugehörigen
+  Tages-GPX. **Abweichung zum Änderungswunsch:** Der vorhandene Tourstand
+  nennt Igoumenitsa–Fusina, nicht Ancona; die Karte folgt den Projektdaten,
+  ohne den Hafen eigenmächtig zu ändern.
+- Lokal: 43/43 Node-Tests, Build erfolgreich, 188/188 Playwright-Prüfungen.
+  Scrollpositionen und Reihenfolge wurden in vier Viewports, die Fährlinie
+  samt Legende sowie der Fehlerfall ohne Fähr-GPX geprüft. Externe Kacheln
+  sind im Visual-Check ersetzt; echte Geräte und Offline-PWA bleiben ungeprüft.
+  Version bleibt `v2.114`/`v127`, da beide lokalen Feinschliffe zusammen den
+  einen Versionsschritt gegenüber `main` bilden. Kein Commit oder Push.
+
+### 2026-11-27 – P01/P02: Feinschliff der Tourübersicht (lokal)
+
+- Persönliche Du-Ansprache, sechs Länder-Badges und getrennte Wikipedia-Links
+  für die Kern-Highlights sowie Hinweise zur Vorabbuchung der Fähren und
+  voraussichtlich des Basislagers bei Villach und gegebenenfalls des letzten
+  Hotels bei Igoumenitsa. Die Buchungen bleiben unbestätigt. Quellen:
+  `content/tour.md` und die Etappen 3, 5, 9, 11, 15 und 17. Die dort
+  verlinkten sechs deutschen Wikipedia-Seiten waren am 2026-11-27 über HTTPS
+  erreichbar; die Länder beziehen sich auf das Highlight, nicht zwingend auf
+  die gesamte Etappe. Offener Widerspruch: `content/tag-17.md` nennt ein
+  bestätigtes Meerblickzimmer; die Etappendatei wurde auftragsgemäß nicht
+  geändert, der Buchungsstatus muss geklärt werden.
+- Gesamtkarte im Hero: 44 Start-/Zielpunkte und alle 21 vorhandenen
+  Tracksegmente; Tag 19 besitzt keinen Track. Die bereits für die Etappenkarte
+  geladenen GPX-Daten werden wiederverwendet, beide Karten beim Ansichtswechsel
+  eingepasst. Fehlende GPX und Kacheln werden angezeigt; Kartendaten sind
+  vorläufig und keine geprüfte Navigation.
+- Versionsschritt gegenüber `main`: `v2.113`/`v126` → `v2.114`/`v127`;
+  Historien und Service Worker synchron. Achtung: Der bestehende Pre-Commit-Hook
+  erhöht beide Versionen beim späteren Commit erneut; vor einem Commit den
+  korrekten Versionsschritt gegenüber `main` sicherstellen.
+- Lokal: Node-Tests 40/40, Produktionsbuild erfolgreich, Playwright 172/172
+  PASS in vier Viewports, 44/44 Punkte sichtbar, 21/21 Tracksegmente, kleinste
+  geprüfte Touch-Fläche 44 px, Textkontrast mindestens 5,25:1. Simulierte
+  GPX- und Kachelausfälle zeigen den Fallback; keine Laufzeitfehler im
+  regulären Prüflauf. Der erste Lauf fand unzureichenden Kontrast der
+  Kartenquellenangabe; nach Korrektur wurde der gesamte Closed-Loop wiederholt.
+  Bericht: `web/.visual-report/REPORT.md`.
+- Nicht nachgewiesen: echte Geräte, reale Offline-PWA und echte
+  Kartenkacheln; der Visual-Check ersetzt externe Ressourcen und blockiert den
+  Service Worker. Kein Commit oder Push.
+
+### 2026-11-26 – P01/P02 Tour-Landingpage umgesetzt (lokal, nicht committet)
+
+- **Stand der Abnahme von heute (BB, siehe Tagesabschluss oben):** A02-2 und
+  A02-3 sind live abgenommen (Negativtest #28 dreimal vor dem Push blockiert,
+  Positivtest #29 / PR #30 mit `/plan`, `/go` und Vorschau-Bildern gemergt,
+  `main` danach `354f459`); `VISUAL_GATE_BLOCKING=true` ist gesetzt. Darauf
+  aufbauend wurden `P01`/`P02` interaktiv umgesetzt. **Kein Commit, kein Push**;
+  BB prüft das Ergebnis am 2026-11-27.
+- **Einstieg (P01):** Die App öffnet auf `#start` (Tourübersicht). Die
+  Hauptnavigation bleibt unverändert (Etappen · Galerie · Logistik), damit die
+  Header-Checks gelten. Direkteinstieg: Button „Zu den 22 Etappen“, Kern-
+  Highlights und der Reiseverlauf (22 Zeilen) öffnen die gewählte Etappe.
+  Rücksprung: Logo/Titel im Header, „‹ Tourübersicht“ in der Etappenwahl
+  (Desktop) bzw. über der Karte (mobil, 44 px hoch) und die Zurück-Taste des
+  Browsers. `#roadbook`, `#media`, `#logistics` funktionieren als Direktlinks
+  wie zuvor; alles andere (z. B. alter Anker `#top`) landet auf der
+  Tourübersicht. Die Tagesleiste (←/→) ist auf der Tourübersicht ausgeblendet.
+  Weil die Karte beim Start verborgen ist, passt `map.resize({ fitAll })` sie
+  beim ersten Anzeigen neu ein.
+- **Inhalte (P01/P02), ohne Erfindungen:** Zeitraum (08.–29. September 2027,
+  22 Kalendertage), Gesamtstrecke (ca. 4.825 km, davon ca. 2.823 km auf dem
+  Motorrad und 4 Gespanntage mit ca. 2.002 km), Tourtage (18, Tag 3–20) und
+  Reiseverlauf werden zur Laufzeit aus `content/tag-01.md` bis `tag-22.md`
+  berechnet (Gespanntag = „PKW“ in der Zeile `**Transport:**`). Alles, was sich
+  daraus nicht ableiten lässt, steht in der neuen Datei
+  [`content/tour.md`](../content/tour.md) (Länder, Kern-Highlights als
+  Etappennummern, Teilnahme, Kontakt, Selbstcheck, Planungshinweise); sie wird
+  beim Build gegen die Etappen geprüft (`validateTourInfo`, nur https-Kontakt,
+  bekannte Etappen, unbekannte Felder verboten) und über das virtuelle Modul
+  `virtual:tour-info` geladen (`web/vite.config.js`). Teilnahme/Kontakt aus F03:
+  „Bis zu 5 Motorräder“, „Solo-Fahrer sind willkommen“, Kontakt
+  `https://www.instagram.com/boeser_biker`; fehlt ein Feld in `tour.md`, entfällt
+  die Angabe (keine Gruppengröße, kein Motorradmodell im Code). Der Selbstcheck ist
+  rein informativ (F03): kein Filter, blockiert den Einstieg nicht, Haken nur auf
+  dem Gerät (`localStorage`). „Stand der Planung“ nennt vorläufige Planwerte,
+  nicht geprüfte GPX-Tracks, nicht vollständig bestätigte Fähren/Unterkünfte und
+  Netzbedarf von Karte und Videos. Zusätzlich wurde in
+  `web/src/content/logistik.md` der widersprüchliche Punkt „Maximal 4 bis 6
+  Motorräder“ durch einen Verweis auf die Tourübersicht ersetzt.
+- **Dateien:** neu `content/tour.md`, `web/src/tour-overview.js`,
+  `web/tests/issue-tour-landing.test.js`, `web/tests/helpers/content.js`;
+  geändert `web/src/main.js`, `web/src/map.js`, `web/src/style.css`,
+  `web/src/virtual-roadbook-content.d.ts`, `web/vite.config.js`,
+  `web/src/content/logistik.md`, `web/scripts/visual-check.mjs`,
+  `web/tests/baseline.test.js`, dieses Daily. Die Dateinamen der Screenshots für
+  die PR-Vorschau (`iphone-12-mini-main.png`, `iphone-12-mini-settings.png`,
+  `desktop-main.png`) bleiben unverändert; neu: `*-start.png` und
+  `*-start-selfcheck.png`.
+- **Verifikation (lokal, 2026-11-26):** `node --test web/tests/*.test.js` 38/38;
+  `npm run build --prefix web` erfolgreich; `npm run test:visual --prefix web`
+  164/164 PASS (4 Viewports: iPhone 12 mini 375, Android 6,4 Zoll 412, Tablet
+  768, Desktop 1280; Header-Checks unverändert grün). Neu im Visual-Check:
+  Pflichtinhalte, Touch-Ziele ≥ 44 px, Textkontrast ≥ 4,5:1 in allen drei
+  Farbschemata (kleinster Wert 5,25:1), Schriftstufe 5/5 ohne Überlauf oder
+  abgeschnittenen Text, Einstieg/Rücksprung/Zurück-Taste, sichtbare Karte nach
+  dem Einstieg, informativer Selbstcheck. Außerdem Runner-Tests 152/152 sowie
+  Python-Tests `web/tests` 2/2 und `scripts` 20/20. Gegenproben (jeweils
+  zurückgesetzt, jeweils rot): Karte nicht neu eingepasst; Reiseverlauf öffnet
+  immer Etappe 1; Label-Farbe `#4a524c` (Kontrast 2,16:1); Zeilenhöhe 30 px
+  (Visual-Check und Unit-Test). Das erste Visual-Ergebnis war rot (Überschrift
+  mit Zeilenhöhe 1 schnitt Glyphen an); behoben mit `line-height: 1.2`.
+- **Nicht nachgewiesen:** Lauf auf GitHub (Linux-Chromium im Gate), reale
+  iOS-/Android-Geräte, Offline-Verhalten. Das PR-Vorschaubild
+  `iphone-12-mini-main.png` zeigt jetzt die Etappenansicht mit dem neuen
+  Rücksprung-Link.
+- **Zur Prüfung durch BB:** (1) „Bis zu 5 Motorräder“ steht als Datum aus F03 in
+  `content/tour.md` – falls auf der Seite gar keine Zahl erscheinen soll, Feld
+  `teilnahme.max_motorraeder` entfernen. (2) Länderliste und die sechs Kern-
+  Highlights (Tag 3, 5, 9, 11, 15, 17) sind redaktionell aus Etappenorten/-titeln
+  abgeleitet. (3) Die vier Selbstcheck-Sätze sind aus der Logistik-Checkliste
+  paraphrasiert. (4) `content/tour.md`, `web/vite.config.js` und
+  `web/scripts/` kann der Issue-Runner nicht ändern (Allowlist) – Pflege
+  also nur interaktiv/Maintainer. (5) `logistik.md` nennt weiterhin ein
+  konkretes Motorradfabrikat („BMW“) – nicht Teil von P01/P02, bleibt offen.
+  (6) Die später ausgeführte Versionspflege ist im Eintrag vom 2026-11-27
+  dokumentiert; der Hook erhöht beim Commit nochmals.
 
 ### 2026-11-26 – Tagesabschluss: A02 live abgenommen
 
@@ -1511,9 +1751,13 @@ stehen in den beiden V5-Spezifikationen.
   (47/47 Runner-Tests); die eigenständige Zuordnung bleibt zu klären.
 - [ ] **D01–D08:** Verbindliche Quellen abgleichen, Datenmodell migrieren und
   Höhen-, Distanz-, Zeit-, GPX- und Adressprüfungen durchführen.
-- [ ] **P01–P02 – nächster Schritt:** Tour-Landingpage mit Tourübersicht und
-  Teilnahme-/Kontaktinformationen nach Klärung der zugrunde liegenden Fakten
-  umsetzen; daneben Issue #28 mit der mobilen CSS-Anpassung abschließen.
+- [x] **P01–P02:** Tour-Landingpage (Tourübersicht als Startseite mit
+  Direkteinstieg in die 22 Tage, Rücksprung, Teilnahme/Kontakt aus F03 und rein
+  informativem Selbstcheck) lokal umgesetzt und verifiziert (Node 38/38, Build,
+  Visual 164/164); **nicht committet**. Nächster Schritt: Prüfung durch BB am
+  2026-11-27, danach Maintainer-Commit und Auswertung des Gates auf GitHub. Die
+  fachlichen Prüfpunkte stehen in der Chronologie. Daneben bleibt Issue #28
+  (mobile CSS-Anpassung) offen.
 - [ ] **L01–L05:** Etappenlogistik, Reichweite/Pannen, Fähren/Unterkünfte
   (u. a. Adria- und Koman-Fähre, Villach und Igoumenitsa), Kostenstruktur und
   Reserveplanung quellenbasiert klären.

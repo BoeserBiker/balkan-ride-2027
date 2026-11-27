@@ -1,7 +1,17 @@
 {
-  "version": "v2.113",
-  "serviceWorkerCache": "v126",
+  "version": "v2.115",
+  "serviceWorkerCache": "v128",
   "serviceWorkerHistory": [
+    {
+      "version": "v128",
+      "date": "2026-11-27",
+      "message": "docs: Tagesabschluss und A02-Live-Abnahme dokumentieren"
+    },
+    {
+      "version": "v127",
+      "date": "2026-11-27",
+      "message": "Tourübersicht mit Gesamtkarte, Fährlinie und Scroll-Rücksprung"
+    },
     {
       "version": "v126",
       "date": "2026-11-25",
@@ -184,6 +194,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.115",
+      "date": "2026-11-27",
+      "message": "docs: Tagesabschluss und A02-Live-Abnahme dokumentieren"
+    },
+    {
+      "version": "v2.114",
+      "date": "2026-11-27",
+      "message": "Tourübersicht mit Gesamtkarte, Fährlinie und Scroll-Rücksprung"
+    },
     {
       "version": "v2.113",
       "date": "2026-11-25",

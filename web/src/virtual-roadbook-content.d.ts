@@ -21,3 +21,15 @@ declare module 'virtual:roadbook-content' {
   }>;
   export default days;
 }
+
+declare module 'virtual:tour-info' {
+  const info: {
+    laender: string[];
+    kern_highlights: Array<{ tag: number; kurz: string; land: string; info_url: string }>;
+    teilnahme: { max_motorraeder: number | null; solo: boolean | null } | null;
+    kontakt: { label: string; url: string } | null;
+    selbstcheck: string[];
+    hinweise: string[];
+  };
+  export default info;
+}

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { buildTourOverview } from '../src/tour-overview.js';
+import { loadDays, loadTourInfo } from './helpers/content.js';
 
 const serviceWorkerSource = await readFile(new URL('../public/sw.js', import.meta.url), 'utf8');
 const versionData = JSON.parse(await readFile(new URL('../public/version.json', import.meta.url), 'utf8'));
@@ -52,6 +54,18 @@ const baselineChecks = [
       const tag01 = await readFile(new URL('../../content/tag-01.md', import.meta.url), 'utf8');
       assert.match(tag01, /\*\*Tanken:\*\*/);
       assert.match(tag01, /vollem Tank/);
+    },
+  },
+  {
+    name: 'tour overview data is valid and derives from all stage files',
+    async run() {
+      const days = await loadDays();
+      assert.ok(days.length > 0);
+      const overview = buildTourOverview(days, await loadTourInfo(days));
+      assert.equal(overview.dayCount, days.length);
+      assert.equal(overview.unknownDays, 0, 'jede Etappe nennt ihren Transport');
+      const mainSource = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+      assert.match(mainSource, /from\s+(['"])virtual:tour-info\1/);
     },
   },
 ];

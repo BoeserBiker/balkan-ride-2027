@@ -15,7 +15,7 @@
 
 ## 4. Recruiting & Gruppenpsychologie
 * [ ] **Klare Filter-Funktion in den Texten:** Im Web-Roadbook unmissverständlich kommunizieren, dass es sich um eine anspruchsvolle Kurven- und Abenteuertour handelt, um die passenden Mitfahrer anzuziehen.
-* [ ] **Gruppengröße:** Maximal 4 bis 6 Motorräder, um an Grenzen, Tankstellen und Hotels reibungslos agieren zu können.
+* [ ] **Gruppengröße:** Die Obergrenze für Motorräder steht in der Tourübersicht unter „Mitfahren“. Eine kleine Gruppe hilft, an Grenzen, Tankstellen und Hotels reibungslos zu agieren.
 
 ## 5. Final-Plan V7: Buchungen und feste Entscheidungspunkte
 * [ ] **Adriafähre am 25.09.2027:** Igoumenitsa–Fusina für zwei Personen, BMW 800 GS und Kabine verbindlich beim Betreiber bestätigen. Der V7-Stand vom 19.11.2026 weist den September-Fahrplan noch nicht nach; Abfahrt, Ankunft und Check-in-Frist vor den Hotelbuchungen prüfen. Nur eine frühe Ankunft am 26.09. kann den Reservetag zurückbringen.
