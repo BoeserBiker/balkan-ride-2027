@@ -1,7 +1,17 @@
 {
-  "version": "v2.143",
-  "serviceWorkerCache": "v156",
+  "version": "v2.145",
+  "serviceWorkerCache": "v158",
   "serviceWorkerHistory": [
+    {
+      "version": "v158",
+      "date": "2026-11-27",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v157",
+      "date": "2026-11-27",
+      "message": "iOS PWA: Apple-Metadaten und Safari-Slideshow-Kompatibilitaet"
+    },
     {
       "version": "v156",
       "date": "2026-11-27",
@@ -334,6 +344,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.145",
+      "date": "2026-11-27",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v2.144",
+      "date": "2026-11-27",
+      "message": "iOS PWA: Apple-Metadaten und Safari-Slideshow-Kompatibilitaet"
+    },
     {
       "version": "v2.143",
       "date": "2026-11-27",

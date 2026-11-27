@@ -15,7 +15,7 @@ import {
 import { renderLogisticsChecklist } from './logistics.js';
 import {
   bindHeaderHeight, bindSelfCheck, buildHighlightSlides, buildTourOverview, createSlideshowController, createTourScrollMemory,
-  readSlideshowSettings, renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS,
+  listenMediaQuery, readSlideshowSettings, renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS,
 } from './tour-overview.js';
 import {
   directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
@@ -543,7 +543,7 @@ function renderApp() {
     }
   };
   slideshow.querySelector('.tour-slideshow-close').addEventListener('click', () => slideshowController.showBento());
-  [slideshowViewport, reducedMotion].forEach((query) => query.addEventListener('change', syncSlideshow));
+  [slideshowViewport, reducedMotion].forEach((query) => listenMediaQuery(query, syncSlideshow));
   document.addEventListener('visibilitychange', syncSlideshow);
   const showView = (id) => {
     const active = viewIds.includes(id) ? id : 'start';
@@ -703,7 +703,7 @@ function renderApp() {
     if (activeView === 'start') requestAnimationFrame(() => tourMap.resize());
   }
 
-  mobileViewport.addEventListener('change', syncMobileViewport);
+  listenMediaQuery(mobileViewport, syncMobileViewport);
   syncMobileViewport();
 
   function updateElevationProfile(index) {

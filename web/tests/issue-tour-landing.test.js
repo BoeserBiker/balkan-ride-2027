@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   bindSelfCheck, buildHighlightSlides, buildTourOverview, createSlideshowController, createTourScrollMemory, formatDateRange, readSlideshowSettings,
-  renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS, SLIDESHOW_STORAGE_KEY, transportKind, validateTourInfo,
+  listenMediaQuery, renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS, SLIDESHOW_STORAGE_KEY, transportKind, validateTourInfo,
 } from '../src/tour-overview.js';
 import { ferryConnections, ferryRoute, tourFitOptions } from '../src/map.js';
 import { loadDays, loadTourInfo } from './helpers/content.js';
@@ -413,6 +413,16 @@ test('slideshow starts hidden over the bento grid and offers a 44 px way back', 
   assert.equal(css.declarations('.tour-mobile-summary.is-slideshow .tour-bento', mobile).visibility, 'hidden', 'Bento hält die Höhe');
   assert.equal(css.declarations('.tour-slideshow-close', mobile).width, '44px');
   assert.equal(css.declarations('.tour-slideshow-close', mobile).height, '44px');
+});
+
+test('media-query changes work with modern and older Safari listener APIs', () => {
+  const calls = [];
+  const callback = () => calls.push('changed');
+  listenMediaQuery({ addEventListener(type, handler) { assert.equal(type, 'change'); handler(); } }, callback);
+  listenMediaQuery({ addListener(handler) { handler(); } }, callback);
+  assert.deepEqual(calls, ['changed', 'changed']);
+  assert.match(mainSource, /listenMediaQuery\(query, syncSlideshow\)/);
+  assert.match(mainSource, /listenMediaQuery\(mobileViewport, syncMobileViewport\)/);
 });
 
 test('slideshow settings use defaults, clamp to limits and persist all four values', () => {

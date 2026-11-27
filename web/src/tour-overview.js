@@ -368,6 +368,14 @@ function shuffle(items, random) {
   return copy;
 }
 
+export function listenMediaQuery(query, callback) {
+  if (typeof query.addEventListener === 'function') {
+    query.addEventListener('change', callback);
+  } else {
+    query.addListener(callback);
+  }
+}
+
 // Wählt je Kern-Highlight höchstens perHighlight vorhandene Etappenfotos zufällig aus und mischt die Gesamtfolge.
 export function buildHighlightSlides(highlights, days, urls, perHighlight, random = Math.random) {
   const limit = clampSetting('photosPerHighlight', perHighlight);

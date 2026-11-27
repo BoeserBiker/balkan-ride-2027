@@ -560,7 +560,7 @@ h1, h2, h3, p { margin-top: 0; }
 .tour-check:focus-within { outline: 2px solid var(--marker-highlight); outline-offset: 2px; }
 .tour-start { --tour-start-top: 56px; width: 100%; max-width: 1120px; margin-inline: auto; padding: var(--tour-start-top) clamp(16px, 5vw, 64px) 64px; }
 /* Der erste Bildschirm endet exakt am unteren Rand; „Mitfahren“ beginnt erst darunter. */
-.tour-hero { display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: calc(100dvh - var(--header-height, 64px) - var(--tour-start-top)); padding-bottom: 16px; margin-bottom: 2rem; }
+.tour-hero { display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: calc(100vh - var(--header-height, 64px) - var(--tour-start-top)); min-height: calc(100dvh - var(--header-height, 64px) - var(--tour-start-top)); padding-bottom: 16px; margin-bottom: 2rem; }
 .tour-hero-main { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "copy map" "facts map"; grid-template-rows: auto minmax(0, 1fr); align-items: start; column-gap: 2rem; row-gap: 1.25rem; min-width: 0; min-height: 0; }
 .tour-facts-block { grid-area: facts; min-width: 0; }
 .tour-hero-copy { grid-area: copy; min-width: 0; }

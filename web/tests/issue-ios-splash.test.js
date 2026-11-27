@@ -11,11 +11,19 @@ const sizes = [[750, 1334, 2], [828, 1792, 2], [1080, 2340, 3], [1125, 2436, 3],
 test('iOS startup links point to existing PNGs with matching portrait dimensions and Pages paths', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const document = parseDocument(html);
-  for (const [name, content] of [['apple-mobile-web-app-capable', 'yes'], ['apple-mobile-web-app-status-bar-style', 'black-translucent']]) {
+  for (const [name, content] of [['apple-mobile-web-app-capable', 'yes'], ['mobile-web-app-capable', 'yes'],
+    ['apple-mobile-web-app-status-bar-style', 'black-translucent'], ['apple-mobile-web-app-title', 'Balkan-Ride 2027']]) {
     assert.equal(document.querySelector(`meta[name="${name}"]`).getAttribute('content'), content);
     assert.ok(html.indexOf(`name="${name}"`) < html.indexOf('rel="apple-touch-startup-image"'));
   }
-  assert.equal(document.querySelector('link[rel="apple-touch-icon"]').getAttribute('href'), '%BASE_URL%apple-touch-icon.png');
+  const icon = document.querySelector('link[rel="apple-touch-icon"]');
+  assert.equal(icon.getAttribute('href'), '%BASE_URL%apple-touch-icon.png');
+  assert.equal(icon.getAttribute('sizes'), '180x180');
+  const png = await readFile(new URL('../public/apple-touch-icon.png', import.meta.url));
+  assert.equal(png.readUInt32BE(16), 180);
+  assert.equal(png.readUInt32BE(20), 180);
+  const manifest = JSON.parse(await readFile(new URL('../public/manifest.json', import.meta.url)));
+  assert.match(document.querySelector('style').textContent, new RegExp(`background:\\s*${manifest.background_color}`));
   const links = [...document.querySelectorAll('link[rel="apple-touch-startup-image"]')];
   assert.equal(links.length, sizes.length);
   for (const [width, height, dpr] of sizes) {

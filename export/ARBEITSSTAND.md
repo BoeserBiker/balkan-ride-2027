@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.142`, Service-Worker-Cache `v155`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.144`, Service-Worker-Cache `v157`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -21,7 +21,7 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 279/279 PASS nach dem PWA-Fix,
+  (375, 412, 767, 768 und 1280 px): 279/279 PASS nach der iOS-Anpassung,
   Screenshots und Messwerte in
   `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
   ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
@@ -34,7 +34,7 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-27: 60/60 Node-Tests und Produktionsbuild erfolgreich, jeweils
+  Am 2026-11-27: 61/61 Node-Tests und Produktionsbuild erfolgreich, jeweils
   lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
   (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
@@ -181,6 +181,25 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – iOS-PWA-Kompatibilität (lokal)
+
+- Apple-Touch-Icon mit 180 × 180 px deklariert, Web-App-Metatags ergänzt
+  und den HTML-Hintergrund vor dem Laden des Stylesheets auf die
+  Manifestfarbe gesetzt. Vorhandene iPhone-Splashbilder und Android-Icons
+  bleiben unverändert.
+- Die Startseiten-Slideshow verwendet Fotos, keine Autoplay-Videos. Für ältere
+  Safari-Versionen nutzen ihre Media-Query-Listener bei Bedarf `addListener`;
+  ein `vh`-Fallback ergänzt das vorhandene `dvh`-Layout. Reduzierte Bewegung,
+  mobile Ansicht und Slideshow-Einstellungen bleiben berücksichtigt.
+- App `v2.144`, Service-Worker-Cache `v157`; lokal 61/61 Node-Tests,
+  Produktionsbuild und 279/279 Chromium-Visual-Prüfungen bestanden.
+  Playwright-WebKit prüfte im iPhone-Profil den Bildwechsel und die
+  Rückkehr zum Bento sowohl mit moderner als auch simulierter älterer
+  Media-Query-Listener-API. Bei diesem Lauf lag der CTA bei 727 px und damit
+  außerhalb des gemessenen Viewports von 629 px.
+  Kein Test auf einem echten iPhone; iOS-Homescreen-Icon, nativer Splash und
+  tatsächliches Geräteverhalten bleiben gesondert zu prüfen.
 
 ### 2026-11-27 – PWA-Manifest und iOS-Startbilder (lokal)
 
