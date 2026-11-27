@@ -483,14 +483,20 @@ async function runLandingChecks(page, record, shot) {
       inside: Boolean(rect) && rect.left >= 0 && rect.right <= window.innerWidth + 1,
       mobileSubtitle: getComputedStyle(subtitle).display === 'none' ? null : subtitle.textContent.trim(),
       oldSubtitle: /Deine Tour\. Dein Abenteuer\./.test(document.getElementById('start').textContent),
+      bento: [...document.querySelectorAll('.tour-bento > div')].filter((tile) => tile.getBoundingClientRect().width > 0)
+        .map((tile) => [tile.querySelector('span'), tile.querySelector('strong')].filter(Boolean).map((part) => part.textContent.trim()).join(' ')),
+      splitParts: [...document.querySelectorAll('.tour-bento-split-part')].filter((part) => part.getBoundingClientRect().width > 0).length,
     };
   });
   recordChange('Tourübersicht: Kilometer- und Etappenaufschlüsselung sowie Untertitel',
-    breakdown.blocks === 1 && breakdown.inside && breakdown.lines.length === 2 && !breakdown.oldSubtitle
-      && breakdown.lines[0] === 'ca. 4.825 km gesamt · ca. 2.823 km Motorrad · Fähre ohne Kilometerangabe · ca. 2.002 km Auto mit Anhänger'
-      && breakdown.lines[1] === '22 Etappen · 4 Auto · 17 Motorrad · 1 Fähre'
-      && (page.viewportSize().width >= 768 || breakdown.mobileSubtitle === 'Unsere Tour, dein Abenteuer!'),
-    `${breakdown.lines.join(' | ')}; Untertitel mobil=${breakdown.mobileSubtitle ?? 'ausgeblendet (Desktop)'}`);
+    !breakdown.oldSubtitle && (page.viewportSize().width >= 768
+      ? breakdown.blocks === 1 && breakdown.inside && breakdown.lines.length === 2
+        && breakdown.lines[0] === '4.825 km gesamt · 2.823 km Motorrad · Fähre ohne Kilometerangabe · 2.002 km Auto mit Anhänger'
+        && breakdown.lines[1] === '22 Etappen · 4 Auto · 17 Motorrad · 1 Fähre'
+      : breakdown.blocks === 0 && breakdown.bento.length === 4 && breakdown.bento[0] === 'Strecke gesamt 4.825 km'
+        && breakdown.bento[1] === 'Motorrad 2.823 km' && breakdown.bento[2] === 'Auto 2.002 km' && breakdown.splitParts === 2
+        && breakdown.mobileSubtitle === 'Unsere Tour, dein Abenteuer!'),
+    `${breakdown.lines.join(' | ') || breakdown.bento.join(' | ')}; Balkenteile=${breakdown.splitParts}; Untertitel mobil=${breakdown.mobileSubtitle ?? 'ausgeblendet (Desktop)'}`);
   const firstScreen = await page.evaluate(() => {
     const rect = (selector) => {
       const element = document.querySelector(selector);
@@ -610,25 +616,32 @@ async function runLandingChecks(page, record, shot) {
           outlineWidth: document.querySelector('#tour-map .tour-map-ferry-outline')?.getAttribute('stroke-width'),
           legendColor: getComputedStyle(document.querySelector('#tour-ferry-legend span'), '::after').backgroundImage,
           legendHeight: getComputedStyle(document.querySelector('#tour-ferry-legend span'), '::after').height,
-          legend: !document.querySelector('#tour-ferry-legend').hidden && document.querySelector('#tour-ferry-legend').textContent.trim() };
+          legend: !document.querySelector('#tour-ferry-legend').hidden && document.querySelector('#tour-ferry-legend').innerText.trim() };
       })(),
       days,
       status: document.querySelector('#tour-map-status').textContent,
+      heading: document.querySelector('.tour-map-panel h2'),
+      singleLine: ['#tour-map-status', '#tour-ferry-legend'].map((selector) => {
+        const element = document.querySelector(selector);
+        const style = getComputedStyle(element);
+        const lineHeight = Number.parseFloat(style.lineHeight) || Number.parseFloat(style.fontSize) * 1.2;
+        return { selector, lines: Math.round(element.getBoundingClientRect().height / lineHeight) };
+      }),
     };
   });
   recordChange('Tourkarte: alle Tagespunkte und verfügbaren Tracks im responsiven Hero',
     tourMap.width >= (page.viewportSize().width < 768 ? 130 : 200) && tourMap.height >= 160 && tourMap.points === 2 * tourMap.days
       && tourMap.visiblePoints === tourMap.points && tourMap.tracks === tourMap.expectedTracks && tourMap.tracks > 0
       && (page.viewportSize().width >= 768 ? tourMap.left >= tourMap.heroRight : tourMap.top >= tourMap.heroBottom)
-      && /vorläufige Planungsdaten/.test(tourMap.status),
+      && tourMap.status.trim() === 'Vorläufige Tourkarte · keine Navigation',
     `Karte=${Math.round(tourMap.width)}×${Math.round(tourMap.height)}px; sichtbare Punkte=${tourMap.visiblePoints}/${2 * tourMap.days}; Tracks=${tourMap.tracks}/${tourMap.expectedTracks}; ${tourMap.status}`);
 
   recordChange('Tourübersicht: kompakter mobiler Einstieg und Desktop-Layout',
     page.viewportSize().width < 768
       ? tourMap.cta.top >= tourMap.summary.bottom && tourMap.summary.top >= Math.max(tourMap.mapBottom, tourMap.highlight.bottom)
-        && tourMap.highlight.right <= tourMap.left && Math.abs(tourMap.cta.right - tourMap.heroRightEdge) <= 1
+        && tourMap.highlight.right <= tourMap.left && tourMap.cta.right <= tourMap.heroRightEdge && tourMap.heroRightEdge - tourMap.cta.right <= 8
         && tourMap.cta.width < page.viewportSize().width / 2 && tourMap.ctaText === 'Zur Tour →'
-        && tourMap.height >= 170 && tourMap.height <= 200 && !tourMap.zoomVisible
+        && tourMap.height >= 180 && !tourMap.zoomVisible && tourMap.top < tourMap.highlight.bottom
         && tourMap.mobileInfo.length === 6 && tourMap.mobileInfo.every(({ links, text }) => links.length === 1 && !/Wiki\b/.test(text)
           && /^\d{2} \S/.test(links[0].text) && links[0].text === text && links[0].target === '_blank' && links[0].rel.includes('noopener') && links[0].rel.includes('noreferrer')
           && links[0].protocol === 'https:' && links[0].host === 'de.wikipedia.org' && links[0].underlined
@@ -638,12 +651,15 @@ async function runLandingChecks(page, record, shot) {
         && tourMap.route.right <= tourMap.cta.left && tourMap.route.left < tourMap.cta.left - 40
         && tourMap.route.top < tourMap.cta.bottom && tourMap.route.bottom > tourMap.cta.top
         && tourMap.route.top >= tourMap.summary.bottom - 1 && !/Recklinghausen/.test(tourMap.summaryText)
-        && /September 2027/.test(tourMap.summaryText) && /22 Tage/.test(tourMap.summaryText)
-        && /4\.825 km gesamt/.test(tourMap.summaryText) && /2\.823 km Motorrad/.test(tourMap.summaryText)
-        && /9 Länder/.test(tourMap.summaryText)
+        && /08\.–29\.09\.2027/.test(tourMap.summaryText) && /22 Tage/.test(tourMap.summaryText)
+        && /4\.825 km/.test(tourMap.summaryText) && /2\.823 km/.test(tourMap.summaryText)
+        && !/ca\./.test(tourMap.summaryText)
         && (page.viewportSize().width > 412 || tourMap.cta.bottom <= page.viewportSize().height)
       : tourMap.cta.top >= tourMap.copyBottom && tourMap.cta.left < tourMap.left && tourMap.height >= 290 && !tourMap.route.visible,
-    `Karte=${Math.round(tourMap.width)}×${Math.round(tourMap.height)}; Highlights=${tourMap.mobileInfo.length} (Titel=Wikipedia-Link); Route=${tourMap.route.text} (${Math.round(tourMap.route.left)}–${Math.round(tourMap.route.right)}) neben Button=${tourMap.ctaText} (${Math.round(tourMap.cta.left)}–${Math.round(tourMap.cta.right)}, unten ${Math.round(tourMap.cta.bottom)}px); Zoom=${tourMap.zoomVisible}`);
+    `Karte=${Math.round(tourMap.width)}×${Math.round(tourMap.height)} ab ${Math.round(tourMap.top)}px; Highlights=${tourMap.mobileInfo.length} (Titel=Wikipedia-Link); Route=${tourMap.route.text} (${Math.round(tourMap.route.left)}–${Math.round(tourMap.route.right)}) neben Button=${tourMap.ctaText} (${Math.round(tourMap.cta.left)}–${Math.round(tourMap.cta.right)}, unten ${Math.round(tourMap.cta.bottom)}px); Zoom=${tourMap.zoomVisible}`);
+  recordChange('Tourkarte: ohne Überschrift; Legende und Hinweis jeweils einzeilig',
+    tourMap.heading === null && tourMap.singleLine.every(({ lines }) => lines === 1),
+    tourMap.singleLine.map(({ selector, lines }) => `${selector}=${lines} Zeile(n)`).join('; '));
   recordChange('Tourkarte: enger Ausschnitt mit 14 px Rand und feinen Punkten (r=2,5)',
     tourMap.pointSizes.length === 1 && tourMap.pointSizes[0] <= 6
       && Math.max(tourMap.pointSpread.spanX, tourMap.pointSpread.spanY) >= 0.6
@@ -651,7 +667,7 @@ async function runLandingChecks(page, record, shot) {
     `Punktbreite=${tourMap.pointSizes}px; Ausdehnung=${Math.round(tourMap.pointSpread.spanX * 100)}%×${Math.round(tourMap.pointSpread.spanY * 100)}%; Rand links/oben/rechts=${Math.round(tourMap.pointSpread.marginLeft)}/${Math.round(tourMap.pointSpread.marginTop)}/${Math.round(tourMap.pointSpread.marginRight)}px`);
   recordChange('Tourkarte: gestrichelte Fährverbindung mit Legende',
     tourMap.ferry.count === 1 && tourMap.ferry.vertices === 7 && Boolean(tourMap.ferry.dash) && tourMap.ferry.width > 5 && tourMap.ferry.height > 5
-      && tourMap.ferry.legend === 'Fährverbindung (ca. Linie)' && tourMap.ferry.stroke === '#ffc64a'
+      && tourMap.ferry.legend === (page.viewportSize().width < 768 ? 'Fährverbindung' : 'Fährverbindung (ca. Linie)') && tourMap.ferry.stroke === '#ffc64a'
       && tourMap.ferry.strokeWidth === '5' && tourMap.ferry.opacity === '0.95'
       && tourMap.ferry.outline === '#12151b' && tourMap.ferry.outlineWidth === '9'
       && tourMap.ferry.legendColor.includes('rgb(255, 198, 74)') && tourMap.ferry.legendHeight === '5px',
@@ -1107,8 +1123,8 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     record('Roadbook Desktop: Höhenprofil vollständig im sichtbaren Viewport',
       profile.expanded && profile.sectionTop >= profile.headerBottom - 1
         && profile.chartTop >= profile.headerBottom - 1 && profile.sectionBottom <= profile.viewport - 10
-        && profile.chartBottom <= Math.min(profile.viewport - 10, 790),
-      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Ziel≤${Math.min(profile.viewport - 10, 790)}px; Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
+        && profile.chartBottom <= profile.viewport - 100,
+      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Ziel≤${profile.viewport - 100}px (100 px Puffer für Linux-Chromium); Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
     await shot('roadbook-elevation', 'Desktop: Höhenprofil vollständig sichtbar');
   }
   await page.click('#settings-toggle');
@@ -1132,6 +1148,24 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
       noHorizontalScroll: dialog.scrollWidth <= dialog.clientWidth,
       initialStateCollapsed: cards.every((card) => card.getAttribute('aria-expanded') === 'false')
         && [...dialog.querySelectorAll('.settings-history')].every((history) => history.hidden),
+      slideshowSettings: [...dialog.querySelectorAll('[data-slideshow-setting]')].map((input) => {
+        const label = input.closest('.slideshow-setting');
+        const labelText = label?.querySelector('span')?.textContent.trim();
+        const inputRect = input.getBoundingClientRect();
+        const labelRect = label?.getBoundingClientRect();
+        return {
+          name: input.dataset.slideshowSetting,
+          type: input.type,
+          min: input.min,
+          max: input.max,
+          value: input.value,
+          labelText,
+          inputWidth: inputRect.width,
+          inputHeight: inputRect.height,
+          insideDialog: Boolean(labelRect) && labelRect.left >= dialogRect.left - 0.5
+            && labelRect.right <= dialogRect.right + 0.5,
+        };
+      }),
     };
   });
   record('Einstellungen: Versionsstände und Karten-Grundstruktur',
@@ -1140,6 +1174,72 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
       && /^v\d/.test(settingsBase.appVersion) && /^v\d+$/.test(settingsBase.cacheVersion),
     `App=${settingsBase.appVersion}; Cache=${settingsBase.cacheVersion}; `
       + `2 Buttons=${settingsBase.cardsAreButtons}; Verläufe geschlossen=${settingsBase.initialStateCollapsed}`);
+
+  const expectedSlideshowSettings = [
+    ['photosPerHighlight', '1', '5', '2', 'Bilder pro Highlight (1–5)'],
+    ['secondsPerImage', '2', '15', '5', 'Anzeigedauer pro Bild (2–15 s)'],
+    ['slideshowSeconds', '10', '120', '30', 'Dauer der Slideshow (10–120 s)'],
+    ['idleSeconds', '5', '120', '15', 'Standardbild bis zur nächsten Slideshow (5–120 s)'],
+  ];
+  const slideshowSettingsValid = settingsBase.slideshowSettings.length === expectedSlideshowSettings.length
+    && settingsBase.slideshowSettings.every((setting, index) => {
+      const expected = expectedSlideshowSettings[index];
+      return setting.name === expected[0] && setting.type === 'number'
+        && setting.min === expected[1] && setting.max === expected[2] && setting.value === expected[3]
+        && setting.labelText === expected[4] && setting.inputWidth >= 44 && setting.inputHeight >= 44 && setting.insideDialog;
+    });
+  record('Einstellungen: vier Slideshow-Optionen mit Grenzen und 44-px-Touchhöhe',
+    slideshowSettingsValid,
+    settingsBase.slideshowSettings.map(({ name, min, max, value, inputHeight, insideDialog }) =>
+      `${name}=${value} (${min}–${max}), ${inputHeight.toFixed(1)}px, im Dialog=${insideDialog}`).join(' | '));
+
+  const switchMetrics = await page.evaluate(() => {
+    const input = document.querySelector('#slideshow-enabled');
+    const label = input.closest('label');
+    const rect = input.getBoundingClientRect();
+    return {
+      checked: input.checked,
+      role: input.getAttribute('role'),
+      name: label.querySelector('span').textContent.trim(),
+      state: label.querySelector('#slideshow-enabled-state').textContent.trim(),
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+  const switchContrast = [];
+  for (const theme of ['default', 'schalke', 'bvb']) {
+    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    const contrast = await page.evaluate(collectContrast, '.slideshow-toggle');
+    switchContrast.push({ theme, ...contrast });
+  }
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'default'; });
+  const switchClipping = await page.evaluate(collectTextClipping, '.slideshow-settings');
+  await setFontStep(page, 5);
+  const switchClippingLarge = await page.evaluate(collectTextClipping, '.slideshow-settings');
+  await setFontStep(page, 2);
+  record('Einstellungen: Slideshow-Schalter standardmäßig an, zugänglich und kontrastreich',
+    switchMetrics.checked && switchMetrics.role === 'switch'
+      && switchMetrics.name === 'Slideshow auf der Startseite' && switchMetrics.state === 'An'
+      && switchMetrics.width >= 44 && switchMetrics.height >= 44
+      && switchContrast.every((result) => result.checked > 0 && result.minimum >= 4.5)
+      && switchClipping.total === 0 && switchClippingLarge.total === 0,
+    `An=${switchMetrics.checked}; Touch=${switchMetrics.width}×${switchMetrics.height}px; `
+      + `Kontrast=${switchContrast.map(({ theme, minimum }) => `${theme} ${minimum.toFixed(2)}:1`).join(', ')}; `
+      + `Textfehler normal/groß=${switchClipping.total}/${switchClippingLarge.total}`);
+  await page.locator('#slideshow-enabled').uncheck();
+  const switchedOff = await page.evaluate(() => ({
+    state: document.querySelector('#slideshow-enabled-state').textContent,
+    stored: JSON.parse(localStorage.getItem('balkan-ride-slideshow')).enabled,
+  }));
+  await page.locator('#slideshow-enabled').check();
+  const switchedOn = await page.evaluate(() => ({
+    state: document.querySelector('#slideshow-enabled-state').textContent,
+    stored: JSON.parse(localStorage.getItem('balkan-ride-slideshow')).enabled,
+  }));
+  record('Einstellungen: Slideshow-Schalter speichert An und Aus',
+    switchedOff.state === 'Aus' && switchedOff.stored === false
+      && switchedOn.state === 'An' && switchedOn.stored === true,
+    `Aus gespeichert=${switchedOff.stored === false}; An gespeichert=${switchedOn.stored === true}`);
 
   const fontSteps = [];
   await page.focus('#font-size-range');
@@ -1183,6 +1283,43 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
   });
   record('Einstellungen: Dialog scrollt ohne seitlichen Überlauf', afterScroll.atEnd && afterScroll.noHorizontal,
     `scrollbar nötig=${afterScroll.scrollable}, Ende erreichbar=${afterScroll.atEnd}`);
+
+  if (viewport.slug === 'iphone-12-mini') {
+    await page.locator('[data-slideshow-setting="idleSeconds"]').fill('5');
+    await page.locator('[data-slideshow-setting="idleSeconds"]').dispatchEvent('change');
+    await page.locator('.settings-close').click();
+    await page.locator('.brand').click();
+    await page.waitForSelector('.tour-slideshow:not([hidden])', { timeout: 10000 });
+    const activeSlide = await page.evaluate(() => ({
+      image: Boolean(document.querySelector('.tour-slideshow-image').getAttribute('src')),
+      title: document.querySelector('.tour-slideshow-title').textContent.trim(),
+      credit: document.querySelector('.tour-slideshow-credit').textContent.trim(),
+    }));
+    await shot('start-slideshow', 'Tourübersicht: aktive Highlight-Slideshow');
+    await page.locator('#settings-toggle').click();
+    await page.locator('#slideshow-enabled').uncheck();
+    const immediatelyOff = await page.evaluate(() => document.querySelector('.tour-slideshow').hidden
+      && !document.querySelector('.tour-mobile-summary').classList.contains('is-slideshow'));
+    await page.locator('.settings-close').click();
+    await page.waitForTimeout(5500);
+    const stayedOff = await page.evaluate(() => document.querySelector('.tour-slideshow').hidden
+      && getComputedStyle(document.querySelector('.tour-bento')).visibility === 'visible');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForSelector('#slideshow-enabled', { state: 'attached' });
+    const afterReload = await page.evaluate(() => ({
+      checked: document.querySelector('#slideshow-enabled').checked,
+      hidden: document.querySelector('.tour-slideshow').hidden,
+      stored: JSON.parse(localStorage.getItem('balkan-ride-slideshow')).enabled,
+    }));
+    await page.waitForTimeout(5500);
+    const stillBento = await page.evaluate(() => document.querySelector('.tour-slideshow').hidden
+      && getComputedStyle(document.querySelector('.tour-bento')).visibility === 'visible');
+    record('Slideshow: Ausschalten beendet aktives Bild und bleibt nach Neuladen beim Bento',
+      activeSlide.image && activeSlide.title && activeSlide.credit && immediatelyOff && stayedOff
+        && !afterReload.checked && afterReload.hidden && afterReload.stored === false && stillBento,
+      `Bild/Titel/Credit=${Boolean(activeSlide.image)}/${Boolean(activeSlide.title)}/${Boolean(activeSlide.credit)}; `
+        + `sofort Bento=${immediatelyOff}; nach Pause=${stayedOff}; nach Neuladen aus=${!afterReload.checked && stillBento}`);
+  }
 
   record('Keine Laufzeit- oder Konsolenfehler', runtimeErrors.length === 0,
     runtimeErrors.length === 0 ? '0 pageerror / console.error' : runtimeErrors.slice(0, 5).join(' | '));

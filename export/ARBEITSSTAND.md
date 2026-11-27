@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.122`, Service-Worker-Cache `v135`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.132`, Service-Worker-Cache `v145`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -20,20 +20,28 @@
   Etappen bleiben unverändert. Ein konkretes Motorradmodell und eine Gruppengröße
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
-  zuletzt dokumentierte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 256/256 PASS (am 2026-11-27 mit dem
-  finalen Landingpage- und Header-/Höhenprofil-Layout), Screenshots in
-  `web/.visual-report/REPORT.md`. Die gemessene Unterkantenabweichung des
-  Einstellungsbuttons zur „Galerie“-Beschriftung betrug bei allen vier
-  Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
-  Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
-  oder vertikalen Inhaltsüberlauf exklusiv öffnen. Am 2026-11-27: 48/48
-  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; der jüngste
-  Desktop-Check zeigte den gesamten Höhenprofil-Abschnitt bei 1280 × 800 px
-  zwischen 365 und 693 px. Die
-  Prüfergebnisse sind kein Nachweis für spätere Stände. Die fünf Zahlenmarken des
-  Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
-  unter den Soll-Rastpunkten 0/25/50/75/100 %.
+  zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
+  (375, 412, 767, 768 und 1280 px): 277/277 PASS nach der Abnahme des
+  Slideshow-Schalters, Screenshots und Messwerte in
+  `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
+  ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
+  laufende Timer geräumt und das Bento bleibt sichtbar. Die vier weiteren
+  Slideshow-Einstellungen zeigten in jedem Viewport die erwarteten
+  Standardwerte und Min-/Max-Grenzen; alle Eingaben maßen mindestens 44 px.
+  Der Schalter maß 44 × 44 px und sein Textkontrast betrug in den drei
+  Farbschemata mindestens 14,69:1. Die gemessene
+  Unterkantenabweichung des Einstellungsbuttons zur „Galerie“-Beschriftung
+  betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
+  Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
+  ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
+  Am 2026-11-27: 55/55 Node-Tests und Produktionsbuild erfolgreich, jeweils
+  lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
+  409 und 693 px (Diagramm-Unterkante); die Prüfgrenze beträgt 700 px und hält
+  100 px Puffer für Linux-Chromium. Der mobile CTA lag bei 375 × 812 px bei
+  796 px und bei 412 × 915 px bei 899 px. Die Prüfergebnisse sind kein Nachweis
+  für spätere Stände oder reale Geräte-/Offline-Bedingungen. Die fünf
+  Zahlenmarken des Schriftreglers saßen weiterhin in allen Viewports mit
+  0,0 px gemessener Abweichung unter den Soll-Rastpunkten 0/25/50/75/100 %.
   Dies ist keine reale Geräte-/Offline- oder fachliche V5-Abnahme.
 - Die V5-Dokumentation ist in drei Zuständigkeiten getrennt: das
   [Lastenheft](../docs/master_ablauf_prompt_plan_v5.md) führt technische
@@ -171,6 +179,191 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – Slideshow-Schalter und P01/P02-Abnahme (lokal)
+
+- Einstellungen: „Slideshow auf der Startseite“ als 44 × 44 px großer
+  Schalter mit Zustandsanzeige An/Aus ergänzt. Standard ist An, auch für
+  vorhandene Slideshow-Einstellungen ohne Schalterwert. Der Boolean wird
+  gemeinsam mit den bisherigen vier Werten in `balkan-ride-slideshow`
+  gespeichert; Ausschalten beendet eine laufende Slideshow und räumt ihre
+  Timer, sodass das Bento bestehen bleibt. Erneutes Einschalten startet die
+  normale Wartezeit. Die Shell und der Einstellungsdialog werden in
+  `web/src/main.js` erzeugt; `web/index.html` benötigte keine Änderung.
+- Unit-Test prüft Standard, Bestandswerte, Speicherung, Ausschalten während
+  einer aktiven Slideshow, Timerfreiheit und erneutes Einschalten. Der
+  Visual-Check prüft alle fünf Viewports, Textkontrast in drei Farbschemata,
+  Textüberlauf bei Schriftstufen 2/5 und 5/5 sowie das tatsächliche
+  Ausschalten und Neuladen im iPhone-Viewport.
+- Verifikation: 55/55 Node-Tests, Produktionsbuild und 277/277 Visual-Checks
+  erfolgreich. Schalterkontrast mindestens 14,69:1; Desktop-Höhenprofil
+  409–693 px bei Prüfgrenze 700 px (100 px Linux-Puffer). Bericht und
+  Screenshots: [`web/.visual-report/REPORT.md`](../web/.visual-report/REPORT.md).
+  Lokal mit macOS-Chromium geprüft, kein separater Linux- oder Gerätetest.
+  App-Version `v2.132`, Service-Worker-Cache `v145`; kein Commit/Push.
+
+### 2026-11-27 – P01/P02: finale Abnahme der Startseiten-Slideshow (lokal)
+
+- Ergänzte Visual-Prüfung der vier Slideshow-Einstellungen: Standardwerte,
+  Min-/Max-Grenzen, Zuordnung der Beschriftungen, Einbettung im Dialog und
+  mindestens 44 px hohe Eingabefelder. Der Unit-Test schützt zusätzlich die
+  Optionsnamen, Standardwerte und Touchhöhe. Die bestehenden Prüfungen sichern
+  weiterhin die entfernte Kartenüberschrift und den 100-px-Puffer für das
+  Desktop-Höhenprofil.
+- Ergebnis: `node --test web/tests/*.test.js` 54/54 PASS,
+  `npm run build --prefix web` PASS und `npm run test:visual --prefix web`
+  266/266 PASS über fünf Viewports. Messwerte: iPhone-CTA 796/812 px,
+  Android-CTA 899/915 px; Desktop-Diagramm 409–693 px bei Prüfgrenze 700 px
+  (100 px Linux-Chromium-Puffer). Slideshow-Einstellungen waren in allen
+  Viewports 44 px hoch und zeigten 2/5/30/15 mit den erwarteten Grenzen.
+- Screenshots und vollständiger Bericht liegen in
+  [`web/.visual-report/REPORT.md`](../web/.visual-report/REPORT.md). Die
+  Abnahme ist lokal; sie ersetzt keine Prüfung auf echten Geräten oder einen
+  separaten Linux-Chromium-Lauf. App-Version `v2.131` und Cache `v144`
+  unverändert, da nur Test-/Prüfskripte und Dokumentation angepasst wurden.
+  Kein Commit/Push.
+
+### 2026-11-27 – Highlight-Slideshow im Bento-Bereich und Einstellungen (lokal)
+
+- Die Kartenüberschrift „Unsere Tour auf einen Blick“ ist wieder entfernt.
+- Mobil zeigt `#start` zuerst unverändert das Bento-Grid. Nach der
+  eingestellten Pause startet im selben Container (Overlay, das Bento hält
+  unsichtbar die Höhe) eine Slideshow mit Fotos der Kern-Highlights (Tag 3, 5,
+  9, 11, 15, 17) aus `bilder` der Etappen: je Highlight höchstens N zufällig
+  gewählte Bilder, Gesamtfolge zufällig gemischt und je Runde neu. Jedes Bild
+  trägt „Tag NN · Highlight“ und Urheber · Lizenz. Nach der Slideshow-Dauer
+  zurück zum Bento; der ×-Button (44 × 44 px) springt jederzeit zurück. Timer
+  laufen nur auf sichtbarem mobilem `#start` und werden beim Verlassen, bei
+  verstecktem Tab und bei `prefers-reduced-motion` geräumt.
+- Einstellungsdialog, Abschnitt „Startseiten-Slideshow“ (Zahlenfelder,
+  `localStorage`-Schlüssel `balkan-ride-slideshow`, Werte werden auf die
+  Grenzen gekappt): Bilder pro Highlight 1–5 (2), Anzeigedauer pro Bild
+  2–15 s (5), Slideshow-Dauer 10–120 s (30), Standardbild bis zur nächsten
+  Slideshow 5–120 s (15).
+- Tests: Startzustand, Zufallsauswahl und Limit, Beschriftung/Credit,
+  Ablauf mit Rückkehr und Timer-Aufräumen (Fake-Timer), Speicherung und
+  Grenzen. Ein bestehender Escape-Test prüfte „kein `<img>`“ und hing durch
+  das neue Slideshow-Bild beim Formatieren der Fehlermeldung; er prüft jetzt
+  gezielt eingeschleuste Bilder.
+- Version `v2.131` / Cache `v144`; 54/54 Node-Tests, Build erfolgreich. Der
+  Visual-Check wurde auf Wunsch nicht ausgeführt (Erwartung „ohne
+  Kartenüberschrift“ bereits angepasst); Slideshow-Darstellung, Kontraste und
+  Einstellungsdialog sind visuell ungeprüft. Kein Commit/Push.
+
+### 2026-11-27 – P01/P02 final auf Design 4 (lokal, verifiziert)
+
+- Der temporäre Design-Umschalter und die `?design=`-Logik sind aus Code,
+  CSS, Karte und Tests entfernt. Mobil gilt fest: Titel und Untertitel in
+  voller Breite, darunter Highlights (35 %, kompakte Zeilen, Links ≥ 44 px)
+  neben der Karte (65 %) mit wieder eingesetzter Überschrift „Unsere Tour auf
+  einen Blick“; die Karte füllt die Höhe der Highlight-Spalte. Darunter das
+  Bento (Strecke gesamt mit Proportionsbalken Motorrad/Auto, Motorrad, Auto,
+  9 Länder) und unten Route plus „Zur Tour →“.
+- Kartenhinweis gekürzt auf „Vorläufige Tourkarte · keine Navigation“
+  (mobil und Desktop einzeilig, per Visual-Check gemessen).
+- Visual-Check erweitert: Bento-Kacheln und Proportionsbalken mobil, einzeilige
+  Kartenüberschrift/Legende/Hinweis, sichtbarer Legendentext je Viewport,
+  Höhenprofil-Puffer für Linux-Chromium (Diagramm-Unterkante ≤ Viewport −
+  100 px; macOS 693/700 px). Prüfkriterium „Button am Hero-Rand“ an die
+  Bento-Leiste (bis 8 px Innenabstand) angepasst.
+- Messwerte: iPhone 12 mini Karte 218 × 233 px, CTA-Unterkante 796/812 px;
+  Android 899/915 px; „Mitfahren“ jeweils erst unterhalb des ersten Viewports.
+- Version `v2.130` / Cache `v143`. 50/50 Node-Tests, Build erfolgreich,
+  Visual-Check 261/261 PASS über fünf Viewports, `git diff --check` ohne
+  Befund. Linux-Lauf in GitHub Actions, echte Geräte und Offline-PWA nicht
+  geprüft. Kein Commit/Push.
+
+### 2026-11-27 – Fünf L-Form-Kartenvarianten ohne Kartentitel (lokal)
+
+- Die Überschrift über der Übersichtskarte ist auf Mobil und Desktop entfernt.
+  Mobil beginnt die Karte jetzt rechts auf Höhe von „Balkan-Ride 2027“ und
+  läuft neben Titel und Highlights bis über das Bento-Grid (L-Form). Der
+  Bento-Bereich mit Proportionsbalken ist unverändert und in allen Varianten
+  identisch.
+- Die Pillen-Leiste oben rechts ist entfernt; ein dezenter Zahlen-Umschalter
+  `1 2 3 4 5` sitzt direkt unter der Karte (`?design=1..5`, Standard 1;
+  sichtbar 28 px hoch, Trefferfläche per Pseudo-Element 44 px hoch, Breite bei
+  375 px etwa 40 px je Ziffer).
+- Varianten: 1 = L-Form 40/60; 2 = 38/62 mit engerem Zoom (8 px Rand) und
+  halbtransparenter Fähr-Badge unten links in der Karte; 3 = randlose Karte bis
+  zur rechten Bildschirmkante; 4 = 35/65 mit kompakteren Highlight-Zeilen
+  (weiter mind. 44 px); 5 = Karte als Bento-Kachel mit Legende und Hinweis.
+- Risiko: Titel und Untertitel brechen in der schmalen linken Spalte um, die
+  linke Spalte wird dadurch höher. Ob „Zur Tour →“ auf kleinen Geräten
+  (z. B. iPhone 12 mini) noch im ersten Viewport sitzt, ist ungemessen.
+- Version `v2.129` / Cache `v142`; 49/49 Node-Tests, Build erfolgreich. Kein
+  Visual-Check (auf Wunsch), kein Commit/Push. Offen: Variantenauswahl,
+  danach Umschalter entfernen.
+
+### 2026-11-27 – Fester Bento-Mix und vier Kartenvorschläge für `#start` (lokal)
+
+- Der untere mobile Bereich ist fest Bento 2A mit dem zweifarbigen
+  Proportionsbalken (Motorrad Gold, Auto/Fähre Grau) unter der
+  Gesamtstrecke; 2B und 2C sind entfernt. Er ist in allen Vorschlägen
+  identisch (per Test geprüft).
+- Der Umschalter `1 | 2 | 3 | 4` (`?design=1..4`, Standard 1) variiert nur
+  den oberen Bereich: 1 = Highlights 42 % / Karte 58 %, 8 px Abstand;
+  2 = Karte in voller Highlight-Höhe, Fähre als Overlay-Badge in der Karte;
+  3 = 45/55 mit engem Kartenzoom (8 px Rand; unten bleiben mobil 34 px für die
+  Attribution frei); 4 = Highlights 40 % mit kompakteren Zeilen (weiter
+  mind. 44 px) und Karte 60 % in voller Höhe. Die Legende sitzt dafür in einem
+  neuen Kartenrahmen; Desktop-Darstellung und Desktop-Zoom bleiben gleich.
+- Version `v2.128` / Cache `v141`; 49/49 Node-Tests, Build erfolgreich. Der
+  Visual-Check wurde auf Wunsch nicht ausgeführt; Kartengröße, Lage von
+  „Zur Tour →“ und Kontraste der Vorschläge sind nicht gemessen. Offen:
+  Auswahl eines Vorschlags, danach Umschalter entfernen. Kein Commit/Push.
+
+### 2026-11-27 – Bento-Varianten 2A/2B/2C und Kartentitel (lokal)
+
+- Kartentitel auf Mobil und Desktop: „Unsere Tour auf einen Blick“.
+- Die Designs 1 (Cockpit) und 3 (Strip) sind entfernt. Der Umschalter zeigt
+  jetzt `2A | 2B | 2C` (URL weiterhin `?design=1|2|3`, Standard 2A):
+  2A = bisheriges Bento-Design 2; 2B = gleiche Geometrie mit Gold-Rand und
+  -Schimmer der Motorrad-Kachel, luftigerer Länder-Matrix ohne Zwischenlinien
+  und goldfarben angebundener Start/Ziel-Leiste; 2C = gleiche Geometrie mit
+  Proportionslinie Motorrad vs. Auto/Fähre unter der Gesamtstrecke und
+  Länderroute mit Pfeilen.
+- Version `v2.127` / Cache `v140`; 49/49 Node-Tests, Build erfolgreich. Der
+  Visual-Check wurde auf Wunsch nicht ausgeführt; Lage von „Zur Tour →“ im
+  ersten Viewport und Kontraste der Varianten sind nicht gemessen. Offen:
+  Auswahl einer Variante, danach Umschalter entfernen. Kein Commit/Push.
+
+### 2026-11-27 – km ohne „ca.“ und drei mobile Designvarianten für `#start` (lokal)
+
+- Alle berechneten Kilometerangaben der Tourübersicht (Desktop-Kennzahlen,
+  Aufschlüsselung, mobile Zusammenfassung) stehen ohne „ca.“. Roadbook-
+  Kilometer hatten kein „ca.“; das „ca.“ bei Fahrzeiten bleibt unverändert.
+- Unterhalb von 768 px gibt es drei Varianten des unteren Startbereichs,
+  wählbar per `?design=1` (Standard), `?design=2`, `?design=3` und über die
+  Vorschau-Pille `1 | 2 | 3` neben dem Titel: Expedition Cockpit (Glas-Karte,
+  KPI-Raster, Länderkette), Editorial Bento (Gesamt-km groß, Split-Kacheln,
+  Länder-Matrix, Action-Bar) und Adventure Strip (Bänder mit
+  Proportionsbalken Motorrad/Auto und Länderroute, großer CTA). Alle Werte
+  stammen aus den Etappendaten; Schriftgrößen sind mobil per `clamp()`
+  begrenzt, Umschalter-Ziele 44 × 44 px. Desktop zeigt den Umschalter nicht.
+- Offen: Entscheidung für eine Variante; danach Umschalter entfernen. Der
+  Visual-Check wurde auf Wunsch nicht ausgeführt; die Unterkante „Zur Tour →“
+  im ersten Viewport und die Kontraste der Varianten sind nicht gemessen.
+- Version `v2.126` / Cache `v139`; 49/49 Node-Tests, Build erfolgreich.
+  Kein Commit/Push.
+
+### 2026-11-27 – Mobile Tourübersicht: kompakte Kennzahlen und Länder-Pills (lokal)
+
+- Auf `#start` zeigt die mobile Zusammenfassung jetzt den kompakt formatierten
+  Termin (`08.–29.09.2027`), daraus berechnete Kilometer-Kacheln ohne „ca.“
+  oder Anhängerhinweis, Etappenzahlen je Transportart sowie Länder-Pills aus
+  den Tourdaten. Die Fährlegende lautet auf Mobilgeräten „Fährverbindung“;
+  Desktop behält unverändert „Fährverbindung (ca. Linie)“.
+- Mobile Schriftgrößen in Überschrift, Intro, Highlights, Kennzahlen,
+  Länder-Pills und CTA sind mit `clamp()` nach oben begrenzt, damit größere
+  globale Schriftstufen den ersten Bildschirm weniger stark vergrößern. Die
+  Änderungen an der Darstellung liegen in der Mobile-Media-Query; Desktop-
+  Layoutregeln wurden nicht verändert.
+- Versionierung: App `v2.125`, Service-Worker-Cache `v138` in
+  `web/public/version.json`/`web/public/sw.js`. 48/48 Node-Tests und
+  Produktionsbuild erfolgreich. Der Visual-Check wurde auf ausdrücklichen
+  Wunsch nicht ausgeführt; die aktuelle First-Screen-Geometrie ist daher
+  nicht visuell bestätigt. Kein Commit/Push.
 
 ### 2026-11-27 – Desktop-Höhenprofil: weiterer Abstandsnachzug (lokal)
 

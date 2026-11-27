@@ -1,7 +1,57 @@
 {
-  "version": "v2.123",
-  "serviceWorkerCache": "v136",
+  "version": "v2.133",
+  "serviceWorkerCache": "v146",
   "serviceWorkerHistory": [
+    {
+      "version": "v146",
+      "date": "2026-11-27",
+      "message": "P01/P02: Desktop-Abstaende um 50px nachgezogen fuer Linux-Viewport"
+    },
+    {
+      "version": "v145",
+      "date": "2026-11-27",
+      "message": "P01/P02: Startseiten-Slideshow ein- und ausschalten"
+    },
+    {
+      "version": "v144",
+      "date": "2026-11-27",
+      "message": "P01/P02: Highlight-Slideshow auf der Startseite und Einstellungen"
+    },
+    {
+      "version": "v143",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage final auf Design 4"
+    },
+    {
+      "version": "v142",
+      "date": "2026-11-27",
+      "message": "P01/P02: fuenf L-Form-Kartenvarianten ohne Kartentitel"
+    },
+    {
+      "version": "v141",
+      "date": "2026-11-27",
+      "message": "P01/P02: Bento mit Proportionsbalken und vier Kartenvorschlaege"
+    },
+    {
+      "version": "v140",
+      "date": "2026-11-27",
+      "message": "P01/P02: Bento-Varianten 2A-2C und Kartentitel"
+    },
+    {
+      "version": "v139",
+      "date": "2026-11-27",
+      "message": "P01/P02: km ohne ca. und drei mobile Designvarianten"
+    },
+    {
+      "version": "v138",
+      "date": "2026-11-27",
+      "message": "P01/P02: Mobile-Touruebersicht kompakt"
+    },
+    {
+      "version": "v137",
+      "date": "2026-11-27",
+      "message": "P01/P02: Desktop-Abstaende um 50px nachgezogen fuer Linux-Viewport"
+    },
     {
       "version": "v136",
       "date": "2026-11-27",
@@ -234,6 +284,56 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.133",
+      "date": "2026-11-27",
+      "message": "P01/P02: Desktop-Abstaende um 50px nachgezogen fuer Linux-Viewport"
+    },
+    {
+      "version": "v2.132",
+      "date": "2026-11-27",
+      "message": "P01/P02: Startseiten-Slideshow ein- und ausschalten"
+    },
+    {
+      "version": "v2.131",
+      "date": "2026-11-27",
+      "message": "P01/P02: Highlight-Slideshow auf der Startseite und Einstellungen"
+    },
+    {
+      "version": "v2.130",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage final auf Design 4"
+    },
+    {
+      "version": "v2.129",
+      "date": "2026-11-27",
+      "message": "P01/P02: fuenf L-Form-Kartenvarianten ohne Kartentitel"
+    },
+    {
+      "version": "v2.128",
+      "date": "2026-11-27",
+      "message": "P01/P02: Bento mit Proportionsbalken und vier Kartenvorschlaege"
+    },
+    {
+      "version": "v2.127",
+      "date": "2026-11-27",
+      "message": "P01/P02: Bento-Varianten 2A-2C und Kartentitel"
+    },
+    {
+      "version": "v2.126",
+      "date": "2026-11-27",
+      "message": "P01/P02: km ohne ca. und drei mobile Designvarianten"
+    },
+    {
+      "version": "v2.125",
+      "date": "2026-11-27",
+      "message": "P01/P02: Mobile-Touruebersicht kompakt"
+    },
+    {
+      "version": "v2.124",
+      "date": "2026-11-27",
+      "message": "P01/P02: Desktop-Abstaende um 50px nachgezogen fuer Linux-Viewport"
+    },
     {
       "version": "v2.123",
       "date": "2026-11-27",

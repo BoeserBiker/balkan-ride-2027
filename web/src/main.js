@@ -7,13 +7,16 @@ import roadbookDays from 'virtual:roadbook-content';
 import tourInfo from 'virtual:tour-info';
 import logisticsMarkdown from './content/logistik.md?raw';
 import { createRoadbookMap, createTourMap } from './map.js';
-import { renderDayContent, renderMediaGallery } from './roadbook.js';
+import { mediaPathMap, renderDayContent, renderMediaGallery } from './roadbook.js';
 import { buildRouteTrack } from './route-scrubber.js';
 import {
   bindElevationProfile, buildElevationProfile, buildPoiPositions, renderElevationProfile,
 } from './elevation-profile.js';
 import { renderLogisticsChecklist } from './logistics.js';
-import { bindHeaderHeight, bindSelfCheck, buildTourOverview, createTourScrollMemory, renderTourOverview } from './tour-overview.js';
+import {
+  bindHeaderHeight, bindSelfCheck, buildHighlightSlides, buildTourOverview, createSlideshowController, createTourScrollMemory,
+  readSlideshowSettings, renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS,
+} from './tour-overview.js';
 import {
   directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
 } from './html.js';
@@ -95,7 +98,11 @@ function initializeSettings() {
   const refreshButton = dialog.querySelector('#refresh-app');
   const status = dialog.querySelector('#settings-status');
   const historyToggles = [...dialog.querySelectorAll('[data-version-history-toggle]')];
+  const slideshowInputs = [...dialog.querySelectorAll('[data-slideshow-setting]')];
+  const slideshowToggle = dialog.querySelector('#slideshow-enabled');
+  const slideshowToggleState = dialog.querySelector('#slideshow-enabled-state');
   let onThemeChange = () => {};
+  let onSlideshowChange = () => {};
 
   function applyTheme(theme, persist = false) {
     root.dataset.theme = theme;
@@ -135,6 +142,25 @@ function initializeSettings() {
   navigationSelect.addEventListener('change', () => {
     setNavigationApp(navigationSelect.value);
     updateNavigationLinks();
+  });
+  const slideshowSettings = readSlideshowSettings(localStorage);
+  const updateSlideshowToggle = (enabled) => {
+    slideshowToggle.checked = enabled;
+    slideshowToggleState.textContent = enabled ? 'An' : 'Aus';
+  };
+  updateSlideshowToggle(slideshowSettings.enabled);
+  slideshowToggle.addEventListener('change', () => {
+    const saved = saveSlideshowSetting(localStorage, 'enabled', slideshowToggle.checked);
+    updateSlideshowToggle(saved.enabled);
+    onSlideshowChange();
+  });
+  slideshowInputs.forEach((input) => {
+    input.value = String(slideshowSettings[input.dataset.slideshowSetting]);
+    input.addEventListener('change', () => {
+      const saved = saveSlideshowSetting(localStorage, input.dataset.slideshowSetting, input.value);
+      input.value = String(saved[input.dataset.slideshowSetting]);
+      onSlideshowChange();
+    });
   });
 
   historyToggles.forEach((button) => {
@@ -207,6 +233,9 @@ function initializeSettings() {
     setThemeChangeHandler(handler) {
       onThemeChange = handler;
       onThemeChange();
+    },
+    setSlideshowChangeHandler(handler) {
+      onSlideshowChange = handler;
     },
   };
 }
@@ -382,6 +411,19 @@ function renderShell() {
           <output id="font-size-value" class="font-size-value" for="font-size-range" aria-live="polite"></output>
         </div>
       </fieldset>
+      <fieldset class="settings-group slideshow-settings">
+        <legend>Startseiten-Slideshow</legend>
+        <label class="slideshow-toggle">
+          <span>Slideshow auf der Startseite</span>
+          <span id="slideshow-enabled-state" aria-hidden="true">An</span>
+          <input id="slideshow-enabled" type="checkbox" role="switch" checked>
+        </label>
+        ${Object.entries(SLIDESHOW_SETTINGS).map(([name, { label, min, max, unit }]) => `
+          <label class="slideshow-setting">
+            <span>${label}${unit ? ` (${min}–${max} ${unit})` : ` (${min}–${max})`}</span>
+            <input type="number" inputmode="numeric" min="${min}" max="${max}" step="1" data-slideshow-setting="${name}">
+          </label>`).join('')}
+      </fieldset>
       <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
       <button id="refresh-app" class="button button-primary settings-refresh" type="button">App &amp; Offline-Cache aktualisieren</button>
       <section class="version-current-grid" aria-label="Aktueller Versionsstand">
@@ -457,7 +499,8 @@ function renderApp() {
   const viewIds = ['start', 'roadbook', 'media', 'logistics'];
   const viewSections = viewIds.map((id) => document.getElementById(id));
   const startSection = document.getElementById('start');
-  startSection.innerHTML = renderTourOverview(buildTourOverview(roadbookDays, tourInfo), tourInfo);
+  const tourOverview = buildTourOverview(roadbookDays, tourInfo);
+  startSection.innerHTML = renderTourOverview(tourOverview, tourInfo);
   bindSelfCheck(startSection);
   bindHeaderHeight(document.querySelector('.site-header'));
   let onRoadbookShown = () => {};
@@ -471,11 +514,43 @@ function renderApp() {
   const syncMobileDayNavigation = () => {
     mobileDayNavigation.hidden = !mobileViewport.matches || activeView === 'start';
   };
+  const slideshow = startSection.querySelector('.tour-slideshow');
+  const slideshowSummary = startSection.querySelector('.tour-mobile-summary');
+  const slideshowImage = slideshow.querySelector('img');
+  const slideshowMediaUrls = mediaPathMap(mediaAssets);
+  const slideshowController = createSlideshowController({
+    getSettings: () => readSlideshowSettings(localStorage),
+    getSlides: () => buildHighlightSlides(tourOverview.highlights, roadbookDays, slideshowMediaUrls, readSlideshowSettings(localStorage).photosPerHighlight),
+    render: (slide) => {
+      slideshow.hidden = !slide;
+      slideshowSummary.classList.toggle('is-slideshow', Boolean(slide));
+      if (!slide) return;
+      slideshowImage.src = slide.src;
+      slideshowImage.alt = slide.alt;
+      slideshow.querySelector('.tour-slideshow-title').textContent = `Tag ${String(slide.tag).padStart(2, '0')} · ${slide.title}`;
+      slideshow.querySelector('.tour-slideshow-credit').textContent = slide.credit;
+    },
+  });
+  const slideshowViewport = window.matchMedia('(max-width: 767px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Nur auf der sichtbaren mobilen Startseite und ohne Bewegungsreduzierung; sonst werden alle Timer geräumt.
+  const syncSlideshow = () => {
+    if (activeView === 'start' && slideshowViewport.matches && !reducedMotion.matches && !document.hidden
+      && readSlideshowSettings(localStorage).enabled) {
+      slideshowController.start();
+    } else {
+      slideshowController.stop();
+    }
+  };
+  slideshow.querySelector('.tour-slideshow-close').addEventListener('click', () => slideshowController.showBento());
+  [slideshowViewport, reducedMotion].forEach((query) => query.addEventListener('change', syncSlideshow));
+  document.addEventListener('visibilitychange', syncSlideshow);
   const showView = (id) => {
     const active = viewIds.includes(id) ? id : 'start';
     activeView = active;
     viewSections.forEach((section) => { section.hidden = section.id !== active; });
     syncMobileDayNavigation();
+    syncSlideshow();
     navigationLinks.forEach((link) => {
       const isActive = link.hash === `#${active}`;
       link.classList.toggle('active', isActive);
@@ -547,6 +622,10 @@ function renderApp() {
   onStartShown = () => requestAnimationFrame(() => tourMap.resize());
   if (activeView === 'start') onStartShown();
   settings.setThemeChangeHandler(map.setTheme);
+  settings.setSlideshowChangeHandler(() => {
+    slideshowController.stop();
+    syncSlideshow();
+  });
   // Startet die App auf der Tourübersicht, hatte die Karte keine Größe und wird beim ersten Anzeigen neu eingepasst.
   let mapFitted = !document.getElementById('roadbook').hidden;
   onRoadbookShown = () => {

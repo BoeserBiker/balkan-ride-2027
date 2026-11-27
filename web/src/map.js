@@ -139,7 +139,7 @@ export function createTourMap(L, days, statusElement) {
     const loading = states.filter((state) => state === 'loading').length;
     const errors = states.filter((state) => state === 'error').length;
     statusElement.textContent = [
-      loading ? `Tourkarte: ${loading} Tages-GPX werden geladen.` : 'Tourkarte: vorläufige Planungsdaten, keine geprüfte Navigation.',
+      loading ? `Tourkarte: ${loading} Tages-GPX werden geladen.` : 'Vorläufige Tourkarte · keine Navigation',
       errors ? `${errors} Tages-GPX nicht verfügbar; Start- und Zielpunkte bleiben sichtbar.` : '',
       tileError ? 'Kartenhintergrund nicht verfügbar; eine Internetverbindung ist erforderlich.' : '',
     ].filter(Boolean).join(' ');

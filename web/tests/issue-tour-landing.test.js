@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
-  bindSelfCheck, buildTourOverview, createTourScrollMemory, formatDateRange, renderTourOverview, transportKind, validateTourInfo,
+  bindSelfCheck, buildHighlightSlides, buildTourOverview, createSlideshowController, createTourScrollMemory, formatDateRange, readSlideshowSettings,
+  renderTourOverview, saveSlideshowSetting, SLIDESHOW_SETTINGS, SLIDESHOW_STORAGE_KEY, transportKind, validateTourInfo,
 } from '../src/tour-overview.js';
 import { ferryConnections, ferryRoute, tourFitOptions } from '../src/map.js';
 import { loadDays, loadTourInfo } from './helpers/content.js';
@@ -149,6 +150,9 @@ test('first screen fills the viewport below the header and puts the key figures 
   assert.ok(Number.parseInt(css.declarations('.tour-hero-main')['column-gap'], 10) > 0);
   assert.equal(css.declarations('.tour-start', '@media (max-width: 767px)')['--tour-start-top'], '16px');
   assert.equal(css.declarations('.tour-hero-main', '@media (max-width: 767px)').flex, 'none');
+  assert.equal(css.declarations('.tour-mobile-summary', '@media (max-width: 767px)').display, 'grid');
+  assert.match(css.declarations('.tour-mobile-summary', '@media (max-width: 767px)')['font-size'], /^clamp\(/);
+  assert.equal(css.declarations('.tour-mobile-summary')['font-size'], undefined, 'mobile typography cap does not affect desktop');
   const document = render(days, info);
   const block = document.querySelector('.tour-hero-main > .tour-facts-block');
   assert.ok(block.querySelector('.tour-facts'), 'Kennzahlenkarten stehen im ersten Bildschirm');
@@ -166,21 +170,19 @@ test('landing page shows the kilometre and stage split derived from the stage fi
   const overview = buildTourOverview(days, info);
   const number = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
   const document = render(days, info);
-  const lines = [...document.querySelectorAll('.tour-breakdown p')].map(normalizeText);
-  assert.equal(lines.length, 4, 'Kennzahlen-Block und mobile Zusammenfassung zeigen je zwei Zeilen');
-  const [mobileKilometres, mobileStages, kilometres, stages] = lines;
-  assert.ok(kilometres.includes(`ca. ${number.format(overview.totalKm)} km gesamt`));
-  assert.ok(kilometres.includes(`ca. ${number.format(overview.motorcycleKm)} km Motorrad`));
-  assert.ok(kilometres.includes(`ca. ${number.format(overview.gespannKm)} km Auto mit Anhänger`));
+  const [kilometres, stages] = [...document.querySelectorAll('.tour-facts-block .tour-breakdown p')].map(normalizeText);
+  assert.ok(kilometres.startsWith(`${number.format(overview.totalKm)} km gesamt`));
+  assert.ok(kilometres.includes(`· ${number.format(overview.motorcycleKm)} km Motorrad`));
+  assert.ok(kilometres.includes(`· ${number.format(overview.gespannKm)} km Auto mit Anhänger`));
+  assert.doesNotMatch(pageText(document), /ca\.\s*[\d.,]+\s*km/, 'Kilometer stehen überall ohne „ca.“');
   assert.equal(stages, `${overview.dayCount} Etappen · ${overview.gespannDays} Auto · ${overview.motorcycleDays} Motorrad · ${overview.ferryDays} Fähre`);
   // Tag 19 nennt 0 km; eine Fährstrecke wird nicht erfunden.
   assert.equal(overview.ferryKm, 0);
   assert.ok(kilometres.includes('Fähre ohne Kilometerangabe'));
   assert.doesNotMatch(kilometres, /0 km Fähre/);
-  assert.deepEqual([mobileKilometres, mobileStages], [kilometres, stages]);
-  assert.ok(document.querySelector('.tour-mobile-summary .tour-breakdown'));
+  assert.equal(overview.compactRange, '08.–29.09.2027');
   const withFerryKm = buildTourOverview([day(1, { kilometer: 100 }), day(2, { kilometer: 40 }, 'Fähre.')], baseInfo({ kern_highlights: [{ tag: 1 }] }));
-  assert.match(pageText(render([day(1, { kilometer: 100 }), day(2, { kilometer: 40 }, 'Fähre.')], baseInfo())), /ca\. 40 km Fähre/);
+  assert.match(pageText(render([day(1, { kilometer: 100 }), day(2, { kilometer: 40 }, 'Fähre.')], baseInfo())), /· 40 km Fähre/);
   assert.equal(withFerryKm.ferryKm, 40);
   assert.equal(normalizeText(document.querySelector('.tour-intro-mobile')), 'Unsere Tour, dein Abenteuer!');
   assert.doesNotMatch(pageText(document), /Dein Abenteuer\./);
@@ -251,6 +253,8 @@ test('landing page uses personal address, explains bookings and contains the ove
   assert.match(text, /Fährverbindungen werden vorab gebucht/);
   assert.match(text, /Basislager bei Villach.*letzte Hotel bei Igoumenitsa.*voraussichtlich ebenfalls vorgebucht/);
   assert.ok(document.querySelector('.tour-hero #tour-map[aria-label]'));
+  assert.equal(document.querySelector('.tour-map-panel h2'), null, 'die Karte steht ohne Überschrift');
+  assert.doesNotMatch(pageText(document), /auf einen Blick/);
   assert.ok(document.querySelector('#tour-map-status[role="status"]'));
 });
 
@@ -261,8 +265,12 @@ test('hero has one CTA after the map and an accessible ferry legend', () => {
   assert.deepEqual([...hero.querySelector('.tour-hero-main').children].map((element) => element.className), [
     'tour-hero-copy', 'tour-mobile-highlights', 'tour-map-panel', 'tour-mobile-summary', 'tour-facts-block',
   ]);
-  assert.match(normalizeText(hero.querySelector('#tour-ferry-legend')), /Fährverbindung \(ca\. Linie\)/);
+  assert.equal(normalizeText(hero.querySelector('.tour-ferry-legend-desktop')), 'Fährverbindung (ca. Linie)');
+  assert.equal(normalizeText(hero.querySelector('.tour-ferry-legend-mobile')), 'Fährverbindung');
   assert.ok(hero.querySelector('#tour-ferry-legend').hasAttribute('hidden'));
+  assert.equal(css.declarations('.tour-ferry-legend-mobile').display, 'none');
+  assert.equal(css.declarations('.tour-ferry-legend-mobile', '@media (max-width: 767px)').display, 'inline');
+  assert.equal(css.declarations('.tour-ferry-legend-desktop', '@media (max-width: 767px)').display, 'none');
   assert.equal(css.declarations('.tour-hero-main', '@media (max-width: 767px)')['grid-template-areas'], '"copy copy" "highlights map" "summary summary"');
   assert.equal(css.declarations('.tour-hero-main')['grid-template-areas'], '"copy map" "facts map"');
   const row = hero.querySelector('.tour-cta-row');
@@ -300,7 +308,7 @@ test('compact highlights and summary use the same validated tour data', () => {
   assert.equal(wikiRule['min-width'], '44px');
   const overview = buildTourOverview(days, info);
   const summary = normalizeText(document.querySelector('.tour-mobile-summary'));
-  assert.ok(summary.includes(overview.range));
+  assert.ok(summary.includes(overview.compactRange));
   assert.ok(summary.includes(`${overview.calendarDays} Tage`));
   const rounded = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
   assert.ok(summary.includes(rounded.format(overview.totalKm)));
@@ -309,6 +317,233 @@ test('compact highlights and summary use the same validated tour data', () => {
   assert.doesNotMatch(summary, /↔|→/, 'Start und Ziel stehen neben dem Button, nicht in der Zusammenfassung');
   assert.equal(normalizeText(document.querySelector('.tour-mobile-route')), `${overview.startPlace} ${overview.startPlace === overview.endPlace ? '↔' : '→'} ${overview.endPlace}`);
   assert.equal(normalizeText(document.querySelector('.tour-cta-mobile')), 'Zur Tour');
+});
+
+test('final mobile layout: compact highlights beside a full-height map and the bento summary with share bar', () => {
+  const overview = buildTourOverview(days, info);
+  const number = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+  const document = render(days, info);
+  assert.equal(document.querySelector('.tour-design-switch'), null, 'kein Design-Umschalter mehr');
+  assert.equal(document.querySelector('[data-design]'), null);
+  assert.doesNotMatch(overviewSource + mainSource, /design=|tourDesignFromSearch|TOUR_DESIGNS/);
+  assert.doesNotMatch(styleSource, /tour-design-switch|data-design/);
+  assert.deepEqual([...document.querySelector('.tour-map-panel').children].map((element) => element.tagName.toLowerCase() + (element.className ? `.${element.className}` : '')), [
+    'div.tour-map-frame', 'p.tour-note',
+  ]);
+  assert.deepEqual([...document.querySelectorAll('.tour-bento > div')].map((tile) => [
+    tile.className, normalizeText(tile.querySelector('span')), tile.querySelector('strong') ? normalizeText(tile.querySelector('strong')) : '',
+  ]), [
+    ['tour-bento-hero', 'Strecke gesamt', `${number.format(overview.totalKm)} km`],
+    ['tour-bento-cell is-accent', 'Motorrad', `${number.format(overview.motorcycleKm)} km`],
+    ['tour-bento-cell', 'Auto', `${number.format(overview.gespannKm)} km`],
+    ['tour-bento-countries', `${overview.countries.length} Länder`, ''],
+  ]);
+  const split = document.querySelector('.tour-bento-hero strong + .tour-bento-split');
+  assert.ok(split, 'Proportionsbalken direkt unter der Gesamtstrecke');
+  assert.deepEqual([...split.children].map((part) => [part.className, part.getAttribute('style')]), [
+    ['tour-bento-split-part is-accent', `flex-grow: ${Math.round(overview.motorcycleKm)}`],
+    ['tour-bento-split-part', `flex-grow: ${Math.round(overview.gespannKm)}`],
+  ]);
+  assert.deepEqual([...document.querySelectorAll('.tour-bento-matrix li')].map(normalizeText), overview.countries);
+  const text = normalizeText(document.querySelector('.tour-mobile-summary'));
+  for (const part of ['08.–29.09.2027 · 22 Tage', `${overview.dayCount} Etappen`, `${overview.motorcycleDays} Motorrad`, `${overview.gespannDays} Auto · ${overview.ferryDays} Fähre`]) {
+    assert.ok(text.includes(part), part);
+  }
+  assert.doesNotMatch(text, /ca\.|Anhänger|↔/);
+
+  const mobile = '@media (max-width: 767px)';
+  const grid = css.declarations('.tour-hero-main', mobile);
+  assert.equal(grid['grid-template-columns'], 'minmax(0, 35fr) minmax(0, 65fr)');
+  assert.equal(grid.gap, '.5rem 8px');
+  assert.equal(css.declarations('.tour-map-panel', mobile)['align-self'], 'stretch', 'Karte füllt die Höhe der Highlight-Spalte');
+  assert.equal(css.declarations('#tour-map', mobile).flex, '1 1 auto');
+  assert.equal(css.declarations('.tour-mobile-highlights li > a', mobile)['min-height'], '44px');
+  for (const selector of ['.tour-bento span', '.tour-bento-hero strong', '.tour-bento-cell strong', '.tour-bento-matrix li']) {
+    assert.match(css.declarations(selector, mobile)['font-size'], /^clamp\(\d+px, [\d.]+rem, \d+px\)$/, selector);
+  }
+});
+
+function memoryStorage(initial = {}) {
+  const data = new Map(Object.entries(initial));
+  return { getItem: (key) => (data.has(key) ? data.get(key) : null), setItem: (key, value) => data.set(key, String(value)), data };
+}
+
+function seededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+}
+
+function fakeTimers() {
+  let now = 0;
+  let id = 0;
+  const pending = new Map();
+  return {
+    setTimeout(callback, delay) { id += 1; pending.set(id, { at: now + delay, callback }); return id; },
+    clearTimeout(timer) { pending.delete(timer); },
+    advance(ms) {
+      const end = now + ms;
+      for (;;) {
+        const [nextId, next] = [...pending].sort(([, a], [, b]) => a.at - b.at)[0] ?? [];
+        if (!next || next.at > end) break;
+        pending.delete(nextId);
+        now = next.at;
+        next.callback();
+      }
+      now = end;
+    },
+    get pending() { return pending.size; },
+  };
+}
+
+test('slideshow starts hidden over the bento grid and offers a 44 px way back', () => {
+  const document = render(days, info);
+  const summary = document.querySelector('.tour-mobile-summary');
+  assert.deepEqual([...summary.children].map((child) => child.className), ['tour-bento', 'tour-slideshow']);
+  const slideshow = summary.querySelector('.tour-slideshow');
+  assert.ok(slideshow.hasAttribute('hidden'), 'Startzustand ist das Bento-Grid');
+  assert.ok(slideshow.querySelector('img.tour-slideshow-image'));
+  assert.ok(slideshow.querySelector('figcaption .tour-slideshow-title'));
+  assert.match(slideshow.querySelector('.tour-slideshow-close').getAttribute('aria-label'), /Übersicht/);
+  const mobile = '@media (max-width: 767px)';
+  assert.equal(css.declarations('.tour-slideshow', mobile).position, 'absolute');
+  assert.equal(css.declarations('.tour-slideshow', mobile).inset, '0', 'gleiche Fläche wie das Bento');
+  assert.equal(css.declarations('.tour-mobile-summary.is-slideshow .tour-bento', mobile).visibility, 'hidden', 'Bento hält die Höhe');
+  assert.equal(css.declarations('.tour-slideshow-close', mobile).width, '44px');
+  assert.equal(css.declarations('.tour-slideshow-close', mobile).height, '44px');
+});
+
+test('slideshow settings use defaults, clamp to limits and persist all four values', () => {
+  assert.deepEqual(readSlideshowSettings(memoryStorage()), { enabled: true, photosPerHighlight: 2, secondsPerImage: 5, slideshowSeconds: 30, idleSeconds: 15 });
+  assert.deepEqual(Object.values(SLIDESHOW_SETTINGS).map(({ min, max }) => [min, max]), [[1, 5], [2, 15], [10, 120], [5, 120]]);
+  const storage = memoryStorage();
+  saveSlideshowSetting(storage, 'photosPerHighlight', 9);
+  saveSlideshowSetting(storage, 'secondsPerImage', '0');
+  saveSlideshowSetting(storage, 'slideshowSeconds', 45.4);
+  const saved = saveSlideshowSetting(storage, 'idleSeconds', 'abc');
+  assert.deepEqual(saved, { enabled: true, photosPerHighlight: 5, secondsPerImage: 2, slideshowSeconds: 45, idleSeconds: 15 });
+  assert.deepEqual(JSON.parse(storage.getItem(SLIDESHOW_STORAGE_KEY)), saved);
+  assert.deepEqual(readSlideshowSettings(storage), saved);
+  assert.throws(() => saveSlideshowSetting(storage, 'speed', 3), /Unbekannte/);
+  assert.deepEqual(Object.entries(SLIDESHOW_SETTINGS).map(([name, { label, default: value }]) => [name, label, value]), [
+    ['photosPerHighlight', 'Bilder pro Highlight', 2],
+    ['secondsPerImage', 'Anzeigedauer pro Bild', 5],
+    ['slideshowSeconds', 'Dauer der Slideshow', 30],
+    ['idleSeconds', 'Standardbild bis zur nächsten Slideshow', 15],
+  ]);
+  assert.match(mainSource, /<fieldset class="settings-group slideshow-settings">\s*<legend>Startseiten-Slideshow<\/legend>/);
+  assert.equal(css.declarations('.slideshow-setting input')['min-height'], '44px');
+  const original = console.error;
+  console.error = () => {};
+  try {
+    assert.deepEqual(readSlideshowSettings(memoryStorage({ [SLIDESHOW_STORAGE_KEY]: '{kaputt' })).secondsPerImage, 5);
+  } finally {
+    console.error = original;
+  }
+  assert.match(mainSource, /data-slideshow-setting="\$\{name\}"/);
+  assert.match(mainSource, /Object\.entries\(SLIDESHOW_SETTINGS\)/);
+  assert.match(mainSource, /saveSlideshowSetting\(localStorage/);
+});
+
+test('slideshow switch defaults to on, persists off and prevents timers and slides', () => {
+  const storage = memoryStorage({ [SLIDESHOW_STORAGE_KEY]: JSON.stringify({ photosPerHighlight: 3 }) });
+  assert.equal(readSlideshowSettings(storage).enabled, true, 'bestehende Einstellungen bleiben aktiviert');
+  const timers = fakeTimers();
+  const shown = [];
+  let builds = 0;
+  const controller = createSlideshowController({
+    timers,
+    getSettings: () => readSlideshowSettings(storage),
+    getSlides: () => { builds += 1; return [{ title: 'Highlight' }]; },
+    render: (slide) => shown.push(slide?.title ?? 'bento'),
+  });
+  controller.start();
+  timers.advance(15000);
+  assert.equal(shown.at(-1), 'Highlight');
+  assert.equal(saveSlideshowSetting(storage, 'enabled', false).photosPerHighlight, 3);
+  controller.start();
+  assert.equal(shown.at(-1), 'bento');
+  assert.equal(timers.pending, 0, 'aktiver Timer wird beim Ausschalten geräumt');
+  controller.start();
+  timers.advance(240000);
+  assert.equal(timers.pending, 0);
+  assert.equal(builds, 1, 'ausgeschaltet werden keine Slides erzeugt');
+  assert.equal(readSlideshowSettings(storage).enabled, false);
+  assert.equal(JSON.parse(storage.getItem(SLIDESHOW_STORAGE_KEY)).enabled, false);
+  assert.throws(() => saveSlideshowSetting(storage, 'enabled', 'false'), /Boolean/);
+  saveSlideshowSetting(storage, 'enabled', true);
+  controller.start();
+  assert.equal(timers.pending, 1, 'erneutes Einschalten startet die normale Pause');
+  timers.advance(15000);
+  assert.equal(shown.at(-1), 'Highlight');
+  controller.stop();
+});
+
+test('highlight slides pick at most N random photos per highlight with highlight caption and credit', () => {
+  const overview = buildTourOverview(days, info);
+  const urls = Object.fromEntries(days.flatMap(({ frontmatter }) => frontmatter.bilder.map((photo) => [photo.datei, `/media/${photo.datei}`])));
+  const slides = buildHighlightSlides(overview.highlights, days, urls, 2, seededRandom(1));
+  assert.equal(slides.length, overview.highlights.length * 2);
+  for (const highlight of overview.highlights) {
+    const own = slides.filter((slide) => slide.tag === highlight.tag);
+    assert.equal(own.length, 2, `Tag ${highlight.tag}`);
+    assert.ok(own.every((slide) => slide.title === highlight.kurz));
+    const photos = days[highlight.index].frontmatter.bilder;
+    for (const slide of own) {
+      const photo = photos.find((candidate) => urls[candidate.datei] === slide.src);
+      assert.ok(photo, 'Bild stammt aus der Highlight-Etappe');
+      assert.equal(slide.credit, `${photo.urheber} · ${photo.lizenz}`);
+    }
+  }
+  const other = buildHighlightSlides(overview.highlights, days, urls, 2, seededRandom(7));
+  assert.notDeepEqual(other.map((slide) => slide.src), slides.map((slide) => slide.src), 'Auswahl und Reihenfolge sind zufällig');
+  assert.equal(buildHighlightSlides(overview.highlights, days, urls, 9, seededRandom(1)).length,
+    overview.highlights.reduce((sum, highlight) => sum + Math.min(5, days[highlight.index].frontmatter.bilder.length), 0), 'Limit höchstens 5');
+  assert.deepEqual(buildHighlightSlides(overview.highlights, days, {}, 2), [], 'fehlende Bilder ergeben keine Slides');
+});
+
+test('slideshow controller cycles bento → images → bento and cleans up its timers', () => {
+  const timers = fakeTimers();
+  const shown = [];
+  let builds = 0;
+  const settings = { photosPerHighlight: 2, secondsPerImage: 5, slideshowSeconds: 30, idleSeconds: 15 };
+  const controller = createSlideshowController({
+    timers,
+    getSettings: () => settings,
+    getSlides: () => { builds += 1; return [{ title: 'A' }, { title: 'B' }, { title: 'C' }, { title: 'D' }]; },
+    render: (slide) => shown.push(slide?.title ?? 'bento'),
+  });
+  controller.start();
+  assert.deepEqual(shown, ['bento'], 'Start mit dem Bento-Grid');
+  timers.advance(14999);
+  assert.deepEqual(shown, ['bento']);
+  timers.advance(1);
+  assert.deepEqual(shown, ['bento', 'A']);
+  timers.advance(25000);
+  assert.deepEqual(shown, ['bento', 'A', 'B', 'C', 'D', 'A', 'B'], '30 s / 5 s = 6 Bilder, Folge läuft zyklisch');
+  timers.advance(5000);
+  assert.equal(shown.at(-1), 'bento', 'nach der Slideshow-Dauer zurück zum Bento');
+  timers.advance(15000);
+  assert.equal(shown.at(-1), 'A');
+  assert.equal(builds, 2, 'jede Runde mischt neu');
+  controller.showBento();
+  assert.equal(shown.at(-1), 'bento', 'manuell jederzeit zurück zum Bento');
+  timers.advance(14999);
+  assert.equal(shown.at(-1), 'bento');
+  controller.stop();
+  assert.equal(timers.pending, 0, 'keine Timer nach dem Verlassen von #start');
+  timers.advance(120000);
+  assert.equal(shown.at(-1), 'bento');
+  assert.match(mainSource, /prefers-reduced-motion: reduce/);
+  assert.match(mainSource, /activeView === 'start' && slideshowViewport\.matches && !reducedMotion\.matches/);
+});
+
+test('map hint under the tour map is a single short line', async () => {
+  const source = await readFile(new URL('../src/map.js', import.meta.url), 'utf8');
+  assert.match(source, /'Vorläufige Tourkarte · keine Navigation'/);
+  assert.doesNotMatch(source, /vorläufige Planungsdaten/);
 });
 
 test('overview scroll memory survives other views and resets only on brand navigation', () => {
@@ -415,7 +650,8 @@ test('dynamic text is escaped on the landing page', () => {
   const hostileDays = [day(1, { titel: hostile, start: '"<b>', ziel: '&' }), day(2, { titel: hostile })];
   const html = renderTourOverview(buildTourOverview(hostileDays, hostileInfo), hostileInfo);
   const document = parseHtml(html);
-  assert.equal(document.querySelector('img'), null);
+  assert.equal(document.querySelector('img:not(.tour-slideshow-image)'), null, 'kein eingeschleustes Bild');
+  assert.equal(document.querySelector('img.tour-slideshow-image').getAttribute('src'), null, 'Slideshow-Bild ist anfangs leer');
   assert.equal(document.querySelector('b'), null);
   assert.ok(normalizeText(document.querySelector('.tour-chips')).includes(hostile));
   assert.match(html, /href="https:\/\/example\.org\/\?a=&quot;b&quot;"/);

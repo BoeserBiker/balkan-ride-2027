@@ -64,7 +64,7 @@ function formatDate(value) {
   }).format(date);
 }
 
-function mediaPathMap(assets) {
+export function mediaPathMap(assets) {
   return Object.fromEntries(
     Object.entries(assets).map(([source, url]) => [source.replace('../../', ''), url]),
   );
