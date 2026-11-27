@@ -142,6 +142,7 @@ a { color: inherit; }
 .site-nav { display: flex; flex-wrap: nowrap; gap: clamp(20px, 3vw, 44px); }
 .site-nav a { position: relative; color: #c4cbc5; font-size: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
 .site-nav a::after { position: absolute; inset: -16px -4px; content: ""; }
+.site-nav-tour-mobile { display: none; }
 .header-navigation .settings-toggle { margin: 0; }
 .site-nav a:hover, .site-nav a:focus-visible, .site-nav a[aria-current="page"], .site-nav a.active { color: var(--accent); }
 
@@ -295,6 +296,17 @@ h1, h2, h3, p { margin-top: 0; }
 .elevation-missing-pois { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .elevation-missing-pois button { padding: 2px 4px; border: 0; background: transparent; color: var(--accent); text-decoration: underline; cursor: pointer; }
 .elevation-missing-pois button:focus-visible, .elevation-missing-pois button.is-active { outline: 1px solid var(--accent); }
+
+@media (min-width: 901px) {
+  .journey-panel { padding-top: 20px; }
+  .journey-heading .eyebrow { margin-bottom: 8px; }
+  .journey-heading h1 { margin-bottom: 6px; }
+  .day-picker { margin-top: 18px; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }
+  .day-picker-head { margin-bottom: 8px; }
+  .day-title { margin-top: 8px; margin-bottom: 12px; }
+  .stats-grid { padding-top: 9px; padding-bottom: 9px; }
+  .elevation-section { margin-top: 10px; margin-bottom: 10px; }
+}
 .day-section, .story-section { margin-top: 25px; }
 .day-section h3, .story-section h3 { margin-bottom: 13px; font-size: 13px; font-weight: 650; letter-spacing: .01em; }
 .highlight-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
@@ -535,12 +547,9 @@ h1, h2, h3, p { margin-top: 0; }
 .load-error p:last-child { color: var(--muted); }
 
 /* Tourübersicht (Einstiegsseite) und Rücksprung aus dem Roadbook */
-.day-picker-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.day-picker-head { margin-bottom: 12px; }
 .day-picker-head .day-picker-label { margin-bottom: 0; }
-.overview-link { display: inline-flex; min-height: 44px; align-items: center; padding: 0 2px 0 10px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
-.overview-link:hover { text-decoration: underline; }
-.overview-link-mobile { display: none; }
-.overview-link:focus-visible, .tour-cta:focus-visible, .tour-contact:focus-visible, .tour-day-link:focus-visible, .tour-info-link:focus-visible,
+.tour-cta:focus-visible, .tour-contact:focus-visible, .tour-day-link:focus-visible, .tour-info-link:focus-visible,
 .tour-check:focus-within { outline: 2px solid var(--marker-highlight); outline-offset: 2px; }
 .tour-start { --tour-start-top: 56px; width: 100%; max-width: 1120px; margin-inline: auto; padding: var(--tour-start-top) clamp(16px, 5vw, 64px) 64px; }
 /* Der erste Bildschirm endet exakt am unteren Rand; „Mitfahren“ beginnt erst darunter. */
@@ -615,9 +624,9 @@ h1, h2, h3, p { margin-top: 0; }
 .tour-itinerary a:focus-visible { outline: 2px solid var(--marker-highlight); outline-offset: -2px; }
 .tour-itinerary-route { min-width: 0; overflow-wrap: anywhere; }
 .tour-itinerary small { color: var(--muted); font-size: .75rem; white-space: nowrap; }
-@media (max-width: 768px) {
-  .overview-link-mobile { display: inline-flex; align-self: flex-start; padding-left: 0; }
-  .day-picker-head .overview-link { display: none; }
+@media (max-width: 767px) {
+  .site-nav-tour-desktop { display: none; }
+  .site-nav-tour-mobile { display: inline; }
 }
 @media (max-width: 767px) {
   .tour-start { --tour-start-top: 16px; padding: 16px 16px 48px; }

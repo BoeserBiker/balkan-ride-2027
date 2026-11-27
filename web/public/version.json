@@ -1,7 +1,17 @@
 {
-  "version": "v2.115",
-  "serviceWorkerCache": "v128",
+  "version": "v2.117",
+  "serviceWorkerCache": "v130",
   "serviceWorkerHistory": [
+    {
+      "version": "v130",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage abgeschlossen und Arbeitsstand aktualisiert"
+    },
+    {
+      "version": "v129",
+      "date": "2026-11-27",
+      "message": "Header: Tourübersicht und vollständiges Desktop-Höhenprofil"
+    },
     {
       "version": "v128",
       "date": "2026-11-27",
@@ -194,6 +204,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.117",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage abgeschlossen und Arbeitsstand aktualisiert"
+    },
+    {
+      "version": "v2.116",
+      "date": "2026-11-27",
+      "message": "Header: Tourübersicht und vollständiges Desktop-Höhenprofil"
+    },
     {
       "version": "v2.115",
       "date": "2026-11-27",

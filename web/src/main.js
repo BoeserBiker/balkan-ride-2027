@@ -222,6 +222,7 @@ function renderShell() {
       </div>
       <div class="header-navigation">
         <nav class="site-nav" aria-label="Hauptnavigation">
+          <a href="#start" aria-label="Tourübersicht"><span class="site-nav-tour-desktop">Tourübersicht</span><span class="site-nav-tour-mobile" aria-hidden="true">Tour</span></a>
           <a href="#roadbook">Etappen</a>
           <a href="#media">Galerie</a>
           <a href="#logistics">Logistik</a>
@@ -237,7 +238,6 @@ function renderShell() {
 
       <section id="roadbook" class="roadbook-layout mx-auto max-w-[1680px]" aria-label="Tour-Roadbook">
         <section class="map-panel" aria-label="Etappenkarte">
-          <a class="overview-link overview-link-mobile" href="#start" data-view-link>‹ Tourübersicht</a>
           <div class="mobile-map-context" aria-live="polite">
             <h2><span class="mobile-stage-label" id="mobile-stage-label"></span><span class="mobile-stage-title" id="mobile-stage-title"></span></h2>
           </div>
@@ -269,7 +269,6 @@ function renderShell() {
           <nav class="day-picker" aria-label="Etappe auswählen">
             <div class="day-picker-head">
               <div class="day-picker-label">ETAPPEN</div>
-              <a class="overview-link" href="#start" data-view-link>‹ Tourübersicht</a>
             </div>
             <div class="day-picker-controls">
               <button id="day-picker-previous" class="day-scroll" type="button" aria-label="Vorherige Etappe auswählen" aria-controls="day-list">‹</button>

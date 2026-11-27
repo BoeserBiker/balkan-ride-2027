@@ -220,12 +220,32 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   }
 
   const links = [...shellDocument.querySelectorAll('nav.site-nav a')]
-    .map((link) => [link.getAttribute('href').replace(/^#/, ''), normalizeText(link)]);
+    .map((link) => [link.getAttribute('href').replace(/^#/, ''), link.getAttribute('aria-label') ?? normalizeText(link)]);
   assert.deepEqual(links, [
+    ['start', 'Tourübersicht'],
     ['roadbook', 'Etappen'],
     ['media', 'Galerie'],
     ['logistics', 'Logistik'],
   ]);
+  const tourLink = shellDocument.querySelector('.site-nav a[href="#start"]');
+  assert.equal(normalizeText(tourLink.querySelector('.site-nav-tour-desktop')), 'Tourübersicht');
+  assert.equal(normalizeText(tourLink.querySelector('.site-nav-tour-mobile')), 'Tour');
+  assertCss('.site-nav-tour-mobile', { display: 'none' });
+  assertCss('.site-nav-tour-desktop', { display: 'none' }, '@media (max-width: 767px)');
+  assertCss('.site-nav-tour-mobile', { display: 'inline' }, '@media (max-width: 767px)');
+  assert.equal(css.has('.overview-link'), false, 'the redundant in-page return links are removed');
+  const desktopSpacingSelectors = [
+    '.journey-panel', '.journey-heading .eyebrow', '.journey-heading h1',
+    '.day-picker', '.day-picker-head', '.day-title', '.stats-grid', '.elevation-section',
+  ];
+  const desktopSpacing = css.entries.filter((entry) => entry.media === '@media (min-width: 901px)');
+  assert.ok(desktopSpacing.length > 0);
+  assert.ok(desktopSpacing.every((entry) => desktopSpacingSelectors.includes(entry.selector)
+    && Object.keys(entry.declarations).every((property) => /^(margin|margin-top|margin-bottom|padding|padding-top|padding-bottom|gap|row-gap|column-gap)$/.test(property))),
+    'desktop roadbook compaction changes spacing only, never typography or element sizing');
+  assert.deepEqual(css.declarations('.day-picker', '@media (min-width: 901px)'), {
+    'margin-top': '18px', 'margin-bottom': '14px', 'padding-top': '8px', 'padding-bottom': '8px',
+  });
   assertCss('.site-nav', { display: 'flex', 'flex-wrap': 'nowrap' });
   assertCss('.site-nav a', { 'white-space': 'nowrap' });
   for (const selector of [

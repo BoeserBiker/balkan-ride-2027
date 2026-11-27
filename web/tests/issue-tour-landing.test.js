@@ -456,7 +456,7 @@ test('self-check ticks are restored and saved on this device only', () => {
   }
 });
 
-test('shell starts on the overview and links back from the roadbook', () => {
+test('shell starts on the overview with a single responsive main-menu entry', () => {
   const main = shell.querySelector('main#top');
   const sections = [...main.children].map((child) => child.id);
   assert.deepEqual(sections.slice(0, 4), ['start', 'roadbook', 'media', 'logistics']);
@@ -464,32 +464,33 @@ test('shell starts on the overview and links back from the roadbook', () => {
   const brand = shell.querySelector('.site-header a.brand');
   assert.equal(brand.getAttribute('href'), '#start');
   assert.ok(brand.hasAttribute('data-view-link'));
-  const backLinks = [...shell.querySelectorAll('a.overview-link[href="#start"]')];
-  assert.equal(backLinks.length, 2, 'je ein Rücksprung für Desktop (Etappenwahl) und Mobil (Karte)');
-  assert.ok(backLinks.every((link) => link.hasAttribute('data-view-link') && normalizeText(link).includes('Tourübersicht')));
-  assert.ok(shell.querySelector('.day-picker .day-picker-head a.overview-link'));
-  const mobileLink = shell.querySelector('.map-panel > a.overview-link-mobile');
-  assert.ok(mobileLink, 'der mobile Rücksprung liegt vor der Karte');
-  assert.equal(mobileLink.closest('[aria-live]'), null, 'der Link gehört nicht in die Live-Region der Etappe');
+  const tourLink = shell.querySelector('.site-nav a[href="#start"]');
+  assert.ok(tourLink);
+  assert.equal(tourLink.getAttribute('aria-label'), 'Tourübersicht');
+  assert.equal(normalizeText(tourLink.querySelector('.site-nav-tour-desktop')), 'Tourübersicht');
+  assert.equal(normalizeText(tourLink.querySelector('.site-nav-tour-mobile')), 'Tour');
+  assert.equal(shell.querySelectorAll('a[href="#start"]').length, 2, 'nur Menüpunkt und Markenlogo verweisen auf die Übersicht');
+  assert.equal(shell.querySelector('.day-picker a[href="#start"]'), null);
+  assert.equal(shell.querySelector('.map-panel a[href="#start"]'), null);
   assert.deepEqual(
     [...shell.querySelectorAll('nav.site-nav a')].map((link) => link.getAttribute('href')),
-    ['#roadbook', '#media', '#logistics'],
-    'die Hauptnavigation bleibt unverändert',
+    ['#start', '#roadbook', '#media', '#logistics'],
   );
 });
 
 test('touch targets of the landing page keep their minimum sizes in CSS', () => {
   const minimum = (selector, media = '') => css.declarations(selector, media)['min-height'];
   for (const [selector, value] of [
-    ['.overview-link', '44px'], ['.tour-start .tour-cta', '48px'], ['.tour-start .tour-contact', '48px'],
+    ['.tour-start .tour-cta', '48px'], ['.tour-start .tour-contact', '48px'],
     ['.tour-day-link', '44px'], ['.tour-itinerary a', '48px'], ['.tour-check', '44px'],
     ['.tour-info-link', '44px'],
   ]) {
     assert.equal(minimum(selector), normalizeCssValue(value), selector);
   }
-  assert.equal(css.declarations('.overview-link-mobile').display, 'none');
-  assert.equal(css.declarations('.overview-link-mobile', '@media (max-width: 768px)').display, 'inline-flex');
-  assert.equal(css.declarations('.day-picker-head .overview-link', '@media (max-width: 768px)').display, 'none');
+  assert.equal(css.declarations('.site-nav-tour-mobile').display, 'none');
+  assert.equal(css.declarations('.site-nav-tour-desktop', '@media (max-width: 767px)').display, 'none');
+  assert.equal(css.declarations('.site-nav-tour-mobile', '@media (max-width: 767px)').display, 'inline');
+  assert.equal(css.declarations('.site-nav-tour-desktop', '@media (min-width: 768px)').display, undefined);
 });
 
 test('no motorcycle model or fixed group size is built into the landing page code or data', async () => {

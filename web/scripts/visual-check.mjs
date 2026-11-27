@@ -405,6 +405,7 @@ const roadbookState = () => ({
   startHidden: document.getElementById('start').hidden,
   roadbookVisible: !document.getElementById('roadbook').hidden,
   activeDay: [...document.querySelectorAll('#day-list .day-link')].findIndex((button) => button.getAttribute('aria-current') === 'step'),
+  activeNavigation: document.querySelector('.site-nav a[aria-current="page"]')?.hash ?? '',
   map: (() => {
     const rect = document.querySelector('#map').getBoundingClientRect();
     const visiblePins = [...document.querySelectorAll('.day-map-pin')].filter((pin) => {
@@ -450,16 +451,26 @@ async function runLandingChecks(page, record, shot) {
       personal: /Dein Überblick/.test(start.textContent) && !/\b(Euer|Eure|Euch|wir|uns)\b/i.test(start.textContent),
       booking: /Fährverbindungen werden vorab gebucht/.test(start.textContent)
         && /Basislager bei Villach.*letzte Hotel bei Igoumenitsa.*voraussichtlich ebenfalls vorgebucht/s.test(start.textContent),
+      tourNavigation: (() => {
+        const link = document.querySelector('.site-nav a[href="#start"]');
+        return Boolean(link) && link.getAttribute('aria-label') === 'Tourübersicht'
+          && link.getAttribute('aria-current') === 'page'
+          && getComputedStyle(link.querySelector('.site-nav-tour-mobile')).display === (innerWidth < 768 ? 'inline' : 'none')
+          && getComputedStyle(link.querySelector('.site-nav-tour-desktop')).display === (innerWidth < 768 ? 'none' : 'inline')
+          && document.querySelectorAll('.site-nav a[href="#start"]').length === 1
+          && document.querySelectorAll('.day-picker a[href="#start"], .map-panel a[href="#start"]').length === 0;
+      })(),
     };
   });
   recordChange('Tourübersicht: Pflichtinhalte aus den Projektdaten vorhanden',
     content.headings === 1 && content.facts.length >= 3 && content.factsFilled && content.countries > 0
       && content.highlights > 0 && content.itinerary === content.days && content.itinerary > 0
       && content.contactSecure && content.contactLast && content.selfCheck > 0 && content.status > 0
+      && content.tourNavigation
       && content.badges && content.info && content.personal && content.booking,
     `Kennzahlen=${content.facts.join('/')}; Länder=${content.countries}; Highlights=${content.highlights}; `
       + `Reiseverlauf=${content.itinerary}/${content.days} Etappen; Kontakt https=${content.contactSecure}, letztes Element nach Selbstcheck=${content.contactLast}; `
-      + `Selbstcheck=${content.selfCheck}; Planungshinweise=${content.status}; Länder/Infos=${content.badges}/${content.info}; Du=${content.personal}; Buchungen=${content.booking}`);
+      + `Selbstcheck=${content.selfCheck}; Planungshinweise=${content.status}; Länder/Infos=${content.badges}/${content.info}; Du=${content.personal}; Buchungen=${content.booking}; Tour-Menü aktiv/responsiv=${content.tourNavigation}`);
 
   const breakdown = await page.evaluate(() => {
     const visible = [...document.querySelectorAll('#start .tour-breakdown')].filter((block) => block.getBoundingClientRect().width > 0);
@@ -673,21 +684,26 @@ async function runLandingChecks(page, record, shot) {
   const entered = await page.evaluate(roadbookState);
   recordChange('Tourübersicht: Einstieg führt in die Roadbook-Tage mit sichtbarer Karte',
     entered.hash === '#roadbook' && entered.startHidden && entered.roadbookVisible && entered.activeDay === 0
+      && entered.activeNavigation === '#roadbook'
       && entered.map.width >= 200 && entered.map.height >= 160 && entered.map.visiblePins >= 1,
-    `hash=${entered.hash}; Etappe=${entered.activeDay + 1}; Karte=${entered.map.width}×${entered.map.height}px; Pins im Ausschnitt=${entered.map.visiblePins}`);
+    `hash=${entered.hash}; Menü aktiv=${entered.activeNavigation}; Etappe=${entered.activeDay + 1}; Karte=${entered.map.width}×${entered.map.height}px; Pins im Ausschnitt=${entered.map.visiblePins}`);
 
-  const backTargets = await page.evaluate(collectTargetSizes, ['.overview-link']);
-  recordChange('Roadbook: Rücksprung zur Tourübersicht sichtbar und mindestens 44 px hoch',
-    backTargets.count === 1 && backTargets.smallTotal === 0,
-    `${backTargets.count} sichtbarer Link; Größe=${backTargets.smallest.toFixed(1)}px`);
-  await page.locator('.overview-link:visible').click();
+  const backMenu = await page.evaluate(() => {
+    const links = [...document.querySelectorAll('.site-nav a[href="#start"]')];
+    return { count: links.length, label: links[0]?.getAttribute('aria-label'), visible: links[0]?.getBoundingClientRect().width > 0 };
+  });
+  recordChange('Roadbook: zentraler Rücksprung zur Tourübersicht über das Hauptmenü',
+    backMenu.count === 1 && backMenu.label === 'Tourübersicht' && backMenu.visible,
+    `Menüpunkt=${backMenu.label}; sichtbar=${backMenu.visible}; doppelte Zwischenlinks entfernt`);
+  await page.locator('.site-nav a[href="#start"]').click();
   await openView(page, 'start');
   const back = await page.evaluate(roadbookState);
   const backMap = await page.locator('#tour-map').boundingBox();
   const ctaReturn = await page.evaluate(() => window.scrollY);
   recordChange('Roadbook: Rücksprung zeigt die Tourübersicht',
-    back.hash === '#start' && !back.startHidden && !back.roadbookVisible && backMap.width >= (page.viewportSize().width < 768 ? 130 : 200) && backMap.height >= 160,
-    `hash=${back.hash}; Tourkarte=${Math.round(backMap.width)}×${Math.round(backMap.height)}px`);
+    back.hash === '#start' && back.activeNavigation === '#start' && !back.startHidden && !back.roadbookVisible
+      && backMap.width >= (page.viewportSize().width < 768 ? 130 : 200) && backMap.height >= 160,
+    `hash=${back.hash}; Menü aktiv=${back.activeNavigation}; Tourkarte=${Math.round(backMap.width)}×${Math.round(backMap.height)}px`);
 
   const itineraryLink = page.locator('.tour-itinerary a[data-open-day="10"]');
   await itineraryLink.scrollIntoViewIfNeeded();
@@ -719,7 +735,7 @@ async function runLandingChecks(page, record, shot) {
     opened.hash === '#roadbook' && opened.activeDay === 10 && history.hash === '#start' && !history.startHidden
       && highlight.activeDay === highlight.expected,
     `Etappe 11 geöffnet=${opened.activeDay === 10}; Zurück→${history.hash}; Highlight geöffnet=${highlight.activeDay === highlight.expected}`);
-  await page.locator('.overview-link:visible').click();
+  await page.locator('.site-nav a[href="#start"]').click();
   await openView(page, 'start');
   const highlightReturn = await page.evaluate(() => window.scrollY);
   recordChange('Tourübersicht: Scrollposition bei CTA, Reiseverlauf und Highlight wiederhergestellt',
@@ -1057,6 +1073,35 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
   await runLandingChecks(page, record, shot);
 
   await page.click('.site-nav a[href="#roadbook"]');
+  await openView(page, 'roadbook');
+  if (viewport.width >= 901) {
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#day-detail .elevation-section');
+      return section && !section.hidden && section.querySelector('.elevation-chart')
+        && !section.querySelector('[data-elevation-content]')?.hidden;
+    }, null, { timeout: 15000 });
+    const profile = await page.evaluate(() => {
+      const section = document.querySelector('#day-detail .elevation-section');
+      const chart = section.querySelector('.elevation-chart');
+      const sectionRect = section.getBoundingClientRect();
+      const chartRect = chart.getBoundingClientRect();
+      return {
+        viewport: window.innerHeight,
+        headerBottom: document.querySelector('.site-header').getBoundingClientRect().bottom,
+        sectionTop: sectionRect.top,
+        sectionBottom: sectionRect.bottom,
+        chartTop: chartRect.top,
+        chartBottom: chartRect.bottom,
+        expanded: !section.querySelector('[data-elevation-content]').hidden,
+      };
+    });
+    record('Roadbook Desktop: Höhenprofil vollständig im sichtbaren Viewport',
+      profile.expanded && profile.sectionTop >= profile.headerBottom - 1
+        && profile.chartTop >= profile.headerBottom - 1 && profile.sectionBottom <= profile.viewport
+        && profile.chartBottom <= profile.viewport,
+      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
+    await shot('roadbook-elevation', 'Desktop: Höhenprofil vollständig sichtbar');
+  }
   await page.click('#settings-toggle');
   await page.waitForSelector('#settings-dialog[open]');
   await page.waitForFunction(() => !document.querySelector('#version-current').textContent.includes('lädt'));

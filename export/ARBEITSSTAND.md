@@ -7,11 +7,12 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.114`, Service-Worker-Cache `v127`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.116`, Service-Worker-Cache `v129`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
-  die 22 Roadbook-Tage und hat daneben die Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
+  die 22 Roadbook-Tage; das Hauptmenü zeigt dafür „Tourübersicht“ ab 768 px
+  und „Tour“ darunter. Daneben bestehen die Ansichten Etappen/Galerie/Logistik, einen 5-Stufen-
   Schriftregler und kompakte Einstellungen, deren Versionskarten unter dem
   Aktualisierungsbutton liegen und ihre jeweilige Historie exklusiv öffnen.
   Die Tests trennen wiederverwendbare Basisprüfungen von issue-spezifischen
@@ -20,14 +21,16 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt dokumentierte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 255/255 PASS (am 2026-11-27 mit dem
-  finalen Landingpage-Layout), Screenshots in
+  (375, 412, 767, 768 und 1280 px): 256/256 PASS (am 2026-11-27 mit dem
+  finalen Landingpage- und Header-/Höhenprofil-Layout), Screenshots in
   `web/.visual-report/REPORT.md`. Die gemessene Unterkantenabweichung des
   Einstellungsbuttons zur „Galerie“-Beschriftung betrug bei allen vier
   Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
   Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
   oder vertikalen Inhaltsüberlauf exklusiv öffnen. Am 2026-11-27: 48/48
-  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; die
+  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; der Desktop-
+  Check zeigte den gesamten Höhenprofil-Abschnitt bei 1280 × 800 px zwischen
+  462 und 790 px. Die
   Prüfergebnisse sind kein Nachweis für spätere Stände. Die fünf Zahlenmarken des
   Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
   unter den Soll-Rastpunkten 0/25/50/75/100 %.
@@ -168,6 +171,30 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – Tourmenü und Desktop-Höhenprofil (lokal)
+
+- Der neue Menüpunkt „Tourübersicht“ steht links neben „Etappen“; unter 768 px
+  wird kompakt „Tour“ angezeigt. Auf `#start` setzt die bestehende
+  Ansichtslogik `aria-current="page"`; im Roadbook wird der Menüpunkt aktiv
+  statt zweier doppelter Zwischenlinks. Die bestehenden Header-Geometrie-Checks
+  blieben grün.
+- Die Abstände in der rechten Roadbook-Spalte wurden ab 901 px ausschließlich
+  über vertikale Margins und Paddings verdichtet; Schriftgrößen,
+  Zeilenhöhen und Elementdimensionen wurden nicht verändert. Der Visual-Check
+  misst bei 1280 × 800 px den Höhenprofil-Abschnitt vollständig im Viewport:
+  Abschnitt 462–790 px, Diagramm 506–790 px.
+- Versionierung der sichtbaren Web-Änderung: App `v2.116`, Service-Worker-
+  Cache `v129`; `web/public/version.json` und `web/public/sw.js` sind synchron.
+  Finaler Closed-Loop: 48/48 Node-Tests, Build erfolgreich, Visual-Check
+  256/256 über fünf Viewports; `git diff --check` ohne Befund. Keine echten
+  Geräte- oder Offline-Prüfungen. Kein Commit/Push.
+- Betroffene Dateien: `web/src/main.js`, `web/src/style.css`,
+  `web/tests/issue-tour-landing.test.js`, `web/tests/features.test.js`,
+  `web/scripts/visual-check.mjs`, `web/public/version.json`,
+  `web/public/sw.js` und dieses Daily. `web/index.html` und
+  `web/src/tour-overview.js` mussten nicht geändert werden: Navigation und
+  Desktop-Abstände liegen im Shell-Aufbau bzw. Stylesheet.
 
 ### 2026-11-27 – P01/P02: Kontakt-Abschluss und finale Verifikation (lokal)
 
