@@ -244,13 +244,13 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
     && Object.keys(entry.declarations).every((property) => /^(margin|margin-top|margin-bottom|padding|padding-top|padding-bottom|gap|row-gap|column-gap)$/.test(property))),
     'desktop roadbook compaction changes spacing only, never typography or element sizing');
   assert.deepEqual(css.declarations('.day-picker', '@media (min-width: 901px)'), {
-    'margin-top': '12px', 'margin-bottom': '10px', 'padding-top': '5px', 'padding-bottom': '5px',
+    'margin-top': '5px', 'margin-bottom': '5px', 'padding-top': '3px', 'padding-bottom': '3px',
   });
   assert.deepEqual(css.declarations('.day-picker .day-picker-head', '@media (min-width: 901px)'), {
-    'margin-bottom': '4px',
+    'margin-bottom': '2px',
   });
   assert.deepEqual(css.declarations('.elevation-section', '@media (min-width: 901px)'), {
-    'margin-top': '4px', 'margin-bottom': '4px',
+    'margin-top': '2px', 'margin-bottom': '4px',
   });
   assertCss('.site-nav', { display: 'flex', 'flex-wrap': 'nowrap' });
   assertCss('.site-nav a', { 'white-space': 'nowrap' });

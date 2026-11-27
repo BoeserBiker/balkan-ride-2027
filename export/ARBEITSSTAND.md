@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.118`, Service-Worker-Cache `v131`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.122`, Service-Worker-Cache `v135`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -30,7 +30,7 @@
   oder vertikalen Inhaltsüberlauf exklusiv öffnen. Am 2026-11-27: 48/48
   Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; der jüngste
   Desktop-Check zeigte den gesamten Höhenprofil-Abschnitt bei 1280 × 800 px
-  zwischen 410 und 738 px. Die
+  zwischen 365 und 693 px. Die
   Prüfergebnisse sind kein Nachweis für spätere Stände. Die fünf Zahlenmarken des
   Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
   unter den Soll-Rastpunkten 0/25/50/75/100 %.
@@ -171,6 +171,23 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – Desktop-Höhenprofil: weiterer Abstandsnachzug (lokal)
+
+- Nach dem gemeldeten Linux-Chromium-Ergebnis 542–826 px wurden die vertikalen
+  Margins und Paddings oberhalb des Höhenprofils in der zweispaltigen
+  Roadbook-Ansicht ab 901 px weiter reduziert, ohne Schrift- oder
+  Elementgrößen zu verändern. Der Breakpoint entspricht dem bestehenden
+  Desktop-Layout; bei 768–900 px ist die Ansicht weiterhin untereinander.
+- Auf macOS zeigt der Visual-Report bei 1280 × 800 px nun den Abschnitt
+  365–693 px und das Diagramm **409–693 px**, also 45 px höher als beim
+  vorherigen lokalen Ergebnis. Linux/GitHub Actions wurde für diese Änderung
+  noch nicht erneut ausgeführt und ist daher nicht bestätigt.
+- Lokal: 48/48 Node-Tests, Build erfolgreich und 256/256 Visual-Prüfungen.
+  Der Screenshot des Desktop-Profils wurde gesichtet. Der bereits vorgemerkte
+  Versionsschritt `v2.122` / Cache `v135` gegenüber `HEAD` blieb unverändert;
+  die betreffenden Änderungen waren bereits vor dieser Arbeit gestagt.
+  Kein Commit/Push.
 
 ### 2026-11-27 – Desktop-Höhenprofil mit 52 px Viewport-Reserve (lokal)
 
