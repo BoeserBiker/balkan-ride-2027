@@ -1,7 +1,17 @@
 {
-  "version": "v2.134",
-  "serviceWorkerCache": "v147",
+  "version": "v2.136",
+  "serviceWorkerCache": "v149",
   "serviceWorkerHistory": [
+    {
+      "version": "v149",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
+    {
+      "version": "v148",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
     {
       "version": "v147",
       "date": "2026-11-27",
@@ -289,6 +299,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.136",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
+    {
+      "version": "v2.135",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
     {
       "version": "v2.134",
       "date": "2026-11-27",
