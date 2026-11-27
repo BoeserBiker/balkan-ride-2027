@@ -1,7 +1,17 @@
 {
-  "version": "v2.119",
-  "serviceWorkerCache": "v132",
+  "version": "v2.121",
+  "serviceWorkerCache": "v134",
   "serviceWorkerHistory": [
+    {
+      "version": "v134",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Menuepunkt und Desktop-Abstaende fuer 800px-Viewport korrigiert"
+    },
+    {
+      "version": "v133",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Menuepunkt und Desktop-Abstaende fuer 800px-Viewport korrigiert"
+    },
     {
       "version": "v132",
       "date": "2026-11-27",
@@ -214,6 +224,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.121",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Menuepunkt und Desktop-Abstaende fuer 800px-Viewport korrigiert"
+    },
+    {
+      "version": "v2.120",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Menuepunkt und Desktop-Abstaende fuer 800px-Viewport korrigiert"
+    },
     {
       "version": "v2.119",
       "date": "2026-11-27",
