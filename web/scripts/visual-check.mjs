@@ -1028,6 +1028,40 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     header.bottomDelta <= 1.5 && header.withinHeaderPadding && header.noOverlap && header.noHeaderOverflow,
     `Button ${header.buttonGeometry}; Galerie-Unterkante=${header.linkBottom}px; Delta=${header.bottomDelta.toFixed(1)}px`);
 
+  if (viewport.slug === 'desktop') {
+    const icons = await page.evaluate(async () => {
+      const base = document.querySelector('.brand-mark').src;
+      const load = async (url) => {
+        const image = new Image();
+        image.src = url;
+        await image.decode();
+        return image;
+      };
+      const svg = await load(base);
+      const results = [];
+      for (const [file, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['apple-touch-icon.png', 180]]) {
+        const png = await load(new URL(`${file}?v=4`, base).href);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const context = canvas.getContext('2d');
+        context.drawImage(svg, 0, 0, size, size);
+        const expected = context.getImageData(0, 0, size, size).data;
+        context.clearRect(0, 0, size, size);
+        context.drawImage(png, 0, 0);
+        const actual = context.getImageData(0, 0, size, size).data;
+        let changed = 0;
+        for (let i = 0; i < expected.length; i += 4) {
+          if (Math.max(...[0, 1, 2, 3].map((channel) => Math.abs(expected[i + channel] - actual[i + channel]))) > 2) changed += 1;
+        }
+        results.push({ file, size, width: png.naturalWidth, height: png.naturalHeight, changed });
+      }
+      return results;
+    });
+    record('App-Icons: PNGs entsprechen der SVG-Vorlage',
+      icons.every(({ size, width, height, changed }) => width === size && height === size && changed <= size * size * 0.002),
+      icons.map(({ file, size, changed }) => `${file}: ${size}×${size}px, abweichende Pixel=${changed}`).join('; '));
+  }
+
   for (const view of PAGES) {
     await page.click(view.trigger ?? `.site-nav a[href="#${view.id}"]`);
     await page.waitForFunction((id) => !document.getElementById(id).hidden, view.id);

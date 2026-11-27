@@ -1,7 +1,17 @@
 {
-  "version": "v2.136",
-  "serviceWorkerCache": "v149",
+  "version": "v2.138",
+  "serviceWorkerCache": "v151",
   "serviceWorkerHistory": [
+    {
+      "version": "v151",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
+    {
+      "version": "v150",
+      "date": "2026-11-27",
+      "message": "App-Icon und Header-Logo: BB auf dem Motorradtank"
+    },
     {
       "version": "v149",
       "date": "2026-11-27",
@@ -299,6 +309,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.138",
+      "date": "2026-11-27",
+      "message": "fix(visual-check): Desktop-Hoehenprofil-Limit fuer Linux-Chromium auf 790px gesetzt"
+    },
+    {
+      "version": "v2.137",
+      "date": "2026-11-27",
+      "message": "App-Icon und Header-Logo: BB auf dem Motorradtank"
+    },
     {
       "version": "v2.136",
       "date": "2026-11-27",

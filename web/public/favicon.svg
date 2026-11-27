@@ -16,6 +16,10 @@
     <path d="M145 337l54-40 38 27h37l33-56" fill="none" stroke="#2563eb" stroke-width="10"/>
     <path d="M245 332h38l17-18" fill="none" stroke="#f8fafc" stroke-width="8"/>
     <path d="M271 240l49-33 29 8 22 33-42 16-36 35-20-19z" fill="#2563eb" stroke="#bfdbfe" stroke-width="7"/>
+    <g transform="translate(311 245) scale(-1 1) rotate(45)" fill="#ffffff" fill-rule="evenodd">
+      <path id="tank-b" d="M-17-12h11q7 0 7 6 0 4-4 6 5 1 5 6 0 6-8 6h-11zm5 4v5h5q3 0 3-2.5T-7-8zm0 9v7h5q4 0 4-3.5T-7 1z"/>
+      <use href="#tank-b" transform="translate(21 0)"/>
+    </g>
     <path d="M320 209l-5-61 25-8 20 57" fill="#64748b" stroke="#f8fafc" stroke-width="7"/>
     <path d="M303 220l-13-24h-22m72-6h20l13 17" fill="none" stroke="#f8fafc" stroke-width="8"/>
     <path d="M349 220l55 17-44 10-20-8" fill="#f8fafc" stroke="#f8fafc" stroke-width="7"/>

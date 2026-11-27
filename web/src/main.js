@@ -245,7 +245,7 @@ function renderShell() {
     <header class="site-header flex items-center justify-between">
       <div class="brand-group">
         <a class="brand" href="#start" data-view-link aria-label="Balkan-Ride 2027 Startseite">
-          <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=3" alt="" aria-hidden="true">
+          <img class="brand-mark" src="${import.meta.env.BASE_URL}favicon.svg?v=4" alt="" aria-hidden="true">
           <span><strong>BALKAN RIDE</strong><small>ROADBOOK · 2027</small></span>
         </a>
       </div>

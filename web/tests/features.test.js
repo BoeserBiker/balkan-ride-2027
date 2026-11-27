@@ -357,3 +357,27 @@ test('enlarges the header brand icon into the free header space without growing 
   // Die Kartengroesse bleibt unveraendert.
   assertCss('#map', { height: 'min(74vh, 760px)', 'min-height': '390px' });
 });
+
+test('shares the updated tank monogram across header, favicon and PWA icon URLs', async () => {
+  const [svg, manifestText, worker] = await Promise.all([
+    readFile(new URL('../public/favicon.svg', import.meta.url), 'utf8'),
+    readFile(new URL('../public/manifest.json', import.meta.url), 'utf8'),
+    readFile(new URL('../public/sw.js', import.meta.url), 'utf8'),
+  ]);
+  const icon = parseDocument(svg);
+  const letter = icon.querySelector('#tank-b');
+  const lettering = letter?.parentElement;
+  assert.ok(letter);
+  assert.equal(lettering.getAttribute('fill'), '#ffffff');
+  assert.match(lettering.getAttribute('transform'), /rotate\(45\)/);
+  assert.equal(lettering.querySelector('use').getAttribute('href'), '#tank-b');
+  assert.match(shellDocument.querySelector('.brand-mark').getAttribute('src'), /favicon\.svg\?v=4$/);
+  assert.match(indexDocument.querySelector('link[rel="icon"]').getAttribute('href'), /favicon\.svg\?v=4$/);
+  assert.match(indexDocument.querySelector('link[rel="apple-touch-icon"]').getAttribute('href'), /apple-touch-icon\.png\?v=4$/);
+  assert.match(indexDocument.querySelector('link[rel="manifest"]').getAttribute('href'), /manifest\.json\?v=5$/);
+  assert.deepEqual(JSON.parse(manifestText).icons.map(({ src }) => src), [
+    'icon-192.png?v=4', 'icon-512.png?v=4', 'favicon.svg?v=4',
+  ]);
+  assert.match(worker, /manifest\.json\?v=5/);
+  assert.match(worker, /\$\{path\}\?v=4/);
+});

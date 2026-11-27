@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.132`, Service-Worker-Cache `v145`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.137`, Service-Worker-Cache `v150`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -21,8 +21,8 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 277/277 PASS nach der Abnahme des
-  Slideshow-Schalters, Screenshots und Messwerte in
+  (375, 412, 767, 768 und 1280 px): 278/278 PASS nach der Icon-Anpassung,
+  Screenshots und Messwerte in
   `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
   ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
   laufende Timer geräumt und das Bento bleibt sichtbar. Die vier weiteren
@@ -34,7 +34,7 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-27: 55/55 Node-Tests und Produktionsbuild erfolgreich, jeweils
+  Am 2026-11-27: 56/56 Node-Tests und Produktionsbuild erfolgreich, jeweils
   lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
   (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
@@ -116,9 +116,11 @@
 - Das Reiseenduro-Motiv liegt als gemeinsame SVG-Vorlage in
   [`web/public/favicon.svg`](../web/public/favicon.svg); die drei PNG-Icons
   liegen daneben. Header, HTML und Manifest verwenden dasselbe Motiv.
-  Das Motorrad zeigt nach links und trägt blaue und weiße Akzente.
-  Beim damaligen Icon-Update wurden Service-Worker-Cache und Icon-URLs auf
-  Version 3 gesetzt; der damals dokumentierte Cache-Stand war `v104`. Die
+  Das Motorrad zeigt nach links und trägt blaue und weiße Akzente; auf dem
+  blauen Tank steht ein weißes, um 45° gedrehtes BB-Vektormonogramm. Bei
+  sehr kleinen Favicons und im kleinen Header sind die Buchstaben wegen der
+  geringen Pixelzahl nicht zuverlässig einzeln lesbar.
+  Die aktuellen Icon-URLs verwenden Version 4, das Manifest Version 5. Die
   tatsächliche Aktualisierung bereits installierter Homescreen-Icons auf iOS
   und Android muss auf Geräten geprüft werden.
 - Der geprüfte Final-Plan V7 aus dem Geschwister-Workspace ist für alle
@@ -179,6 +181,21 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – BB-Monogramm auf dem Motorrad-Icon
+
+- Weiße Vektorinitialen `BB` im 45°-Winkel mittig auf dem blauen Tank der
+  gemeinsamen SVG-Vorlage ergänzt. Header und Favicon verwenden diese
+  Vorlage; 180-, 192- und 512-px-PNGs wurden daraus mit Chromium neu
+  gerendert. Keine weiteren Motorrad-Icons oder ICO-Dateien gefunden.
+- Icon-URLs auf `v=4`, Manifest-URL auf `v=5` aktualisiert; App-Version
+  `v2.137`, Service-Worker-Cache `v150`. Header-Außenmaße unverändert.
+- Verifikation: 56/56 Node-Tests, Build und 278/278 Visual-Checks erfolgreich;
+  Browser-Pixelvergleich SVG/PNGs: 0 abweichende Pixel in allen drei Größen.
+  Die Sichtprüfung bei 16 und 38 CSS-Pixeln zeigt: Das Monogramm ist dort
+  nicht zuverlässig als zwei Buchstaben lesbar; dafür wäre ein gesondertes
+  vereinfachtes Kleinformat nötig. Reale Geräte und installierte
+  Homescreen-Icons wurden nicht geprüft. Kein Commit/Push.
 
 ### 2026-11-27 – Höhenprofil-Prüfgrenze für Linux angepasst
 
