@@ -532,10 +532,10 @@ function renderApp() {
     },
   });
   const slideshowViewport = window.matchMedia('(max-width: 767px)');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  // Nur auf der sichtbaren mobilen Startseite und ohne Bewegungsreduzierung; sonst werden alle Timer geräumt.
+  // Nur auf der sichtbaren mobilen Startseite; sonst werden alle Timer geräumt. Die Slideshow nutzt harte Bildwechsel ohne
+  // Animation und ist per Schalter abstellbar, daher blockiert iOS „Bewegung reduzieren“ sie nicht.
   const syncSlideshow = () => {
-    if (activeView === 'start' && slideshowViewport.matches && !reducedMotion.matches && !document.hidden
+    if (activeView === 'start' && slideshowViewport.matches && !document.hidden
       && readSlideshowSettings(localStorage).enabled) {
       slideshowController.start();
     } else {
@@ -543,7 +543,7 @@ function renderApp() {
     }
   };
   slideshow.querySelector('.tour-slideshow-close').addEventListener('click', () => slideshowController.showBento());
-  [slideshowViewport, reducedMotion].forEach((query) => listenMediaQuery(query, syncSlideshow));
+  listenMediaQuery(slideshowViewport, syncSlideshow);
   document.addEventListener('visibilitychange', syncSlideshow);
   const showView = (id) => {
     const active = viewIds.includes(id) ? id : 'start';

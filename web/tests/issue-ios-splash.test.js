@@ -6,7 +6,7 @@ import { parseDocument } from './helpers/dom.js';
 
 const sizes = [[750, 1334, 2], [828, 1792, 2], [1080, 2340, 3], [1125, 2436, 3],
   [1170, 2532, 3], [1179, 2556, 3], [1206, 2622, 3], [1242, 2688, 3],
-  [1284, 2778, 3], [1290, 2796, 3], [1320, 2868, 3]];
+  [1260, 2736, 3], [1284, 2778, 3], [1290, 2796, 3], [1320, 2868, 3]];
 
 test('iOS startup links point to existing PNGs with matching portrait dimensions and Pages paths', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');

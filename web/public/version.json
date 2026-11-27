@@ -1,7 +1,17 @@
 {
-  "version": "v2.145",
-  "serviceWorkerCache": "v158",
+  "version": "v2.147",
+  "serviceWorkerCache": "v160",
   "serviceWorkerHistory": [
+    {
+      "version": "v160",
+      "date": "2026-11-27",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v159",
+      "date": "2026-11-27",
+      "message": "iOS: Slideshow trotz Bewegung reduzieren, Splash fuer iPhone Air"
+    },
     {
       "version": "v158",
       "date": "2026-11-27",
@@ -344,6 +354,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.147",
+      "date": "2026-11-27",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v2.146",
+      "date": "2026-11-27",
+      "message": "iOS: Slideshow trotz Bewegung reduzieren, Splash fuer iPhone Air"
+    },
     {
       "version": "v2.145",
       "date": "2026-11-27",

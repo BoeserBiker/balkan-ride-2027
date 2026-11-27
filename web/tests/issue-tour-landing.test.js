@@ -421,7 +421,7 @@ test('media-query changes work with modern and older Safari listener APIs', () =
   listenMediaQuery({ addEventListener(type, handler) { assert.equal(type, 'change'); handler(); } }, callback);
   listenMediaQuery({ addListener(handler) { handler(); } }, callback);
   assert.deepEqual(calls, ['changed', 'changed']);
-  assert.match(mainSource, /listenMediaQuery\(query, syncSlideshow\)/);
+  assert.match(mainSource, /listenMediaQuery\(slideshowViewport, syncSlideshow\)/);
   assert.match(mainSource, /listenMediaQuery\(mobileViewport, syncMobileViewport\)/);
 });
 
@@ -546,8 +546,8 @@ test('slideshow controller cycles bento → images → bento and cleans up its t
   assert.equal(timers.pending, 0, 'keine Timer nach dem Verlassen von #start');
   timers.advance(120000);
   assert.equal(shown.at(-1), 'bento');
-  assert.match(mainSource, /prefers-reduced-motion: reduce/);
-  assert.match(mainSource, /activeView === 'start' && slideshowViewport\.matches && !reducedMotion\.matches/);
+  assert.match(mainSource, /activeView === 'start' && slideshowViewport\.matches && !document\.hidden/);
+  assert.doesNotMatch(mainSource.slice(mainSource.indexOf('const syncSlideshow'), mainSource.indexOf('listenMediaQuery(slideshowViewport')), /reduced-motion|reducedMotion/, 'iOS „Bewegung reduzieren“ darf die Slideshow nicht blockieren');
 });
 
 test('map hint under the tour map is a single short line', async () => {

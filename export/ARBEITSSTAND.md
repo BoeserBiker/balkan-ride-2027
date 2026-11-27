@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.144`, Service-Worker-Cache `v157`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.146`, Service-Worker-Cache `v159`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -181,6 +181,25 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – iPhone: Slideshow trotz „Bewegung reduzieren“ (lokal)
+
+- Meldung: Auf dem iPhone (App `v2.145`) funktioniert es weiterhin nicht,
+  auf Android einwandfrei. Der Live-Stand enthielt bereits Apple-Tags,
+  Touch-Icon und Splashbilder (HTTP 200).
+- Gemessene Ursache der Slideshow: Mit aktivem `prefers-reduced-motion`
+  (iOS „Bewegung reduzieren“) startete sie nie, im WebKit-Test gegen die
+  Live-Seite `shown=false`. Die Slideshow hat nur harte Bildwechsel ohne
+  Animation und ist per Schalter abstellbar; das Gating wurde entfernt.
+  Dies weicht von der früheren Vorgabe ab, bei Bewegungsreduzierung die
+  Timer zu räumen. Nach der Änderung startet sie im WebKit-iPhone-Profil
+  mit und ohne Bewegungsreduzierung.
+- Splashbild für das iPhone Air (420 × 912, DPR 3) ergänzt. App `v2.146`,
+  Cache `v159`; 61/61 Tests, Build, 279/279 Visual-Prüfungen lokal.
+- Offen/ungeprüft: Home-Bildschirm-Icon und nativer Splash. iOS speichert
+  beide beim „Zum Home-Bildschirm“; die App muss dafür entfernt und neu
+  hinzugefügt werden. Kein echter Gerätetest; ohne Rückmeldung, welches
+  Symptom genau fehlt, ist die Ursache dort nicht gesichert. Kein Commit/Push.
 
 ### 2026-11-27 – iOS-PWA-Kompatibilität (lokal)
 
