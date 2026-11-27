@@ -1,7 +1,12 @@
 {
-  "version": "v2.133",
-  "serviceWorkerCache": "v146",
+  "version": "v2.134",
+  "serviceWorkerCache": "v147",
   "serviceWorkerHistory": [
+    {
+      "version": "v147",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage, Bento-Grid, konfigurierbare Slideshow und Arbeitsstand abgeschlossen"
+    },
     {
       "version": "v146",
       "date": "2026-11-27",
@@ -284,6 +289,11 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.134",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage, Bento-Grid, konfigurierbare Slideshow und Arbeitsstand abgeschlossen"
+    },
     {
       "version": "v2.133",
       "date": "2026-11-27",

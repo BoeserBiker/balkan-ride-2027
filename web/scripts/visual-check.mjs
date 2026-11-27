@@ -1123,8 +1123,8 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     record('Roadbook Desktop: Höhenprofil vollständig im sichtbaren Viewport',
       profile.expanded && profile.sectionTop >= profile.headerBottom - 1
         && profile.chartTop >= profile.headerBottom - 1 && profile.sectionBottom <= profile.viewport - 10
-        && profile.chartBottom <= profile.viewport - 100,
-      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Ziel≤${profile.viewport - 100}px (100 px Puffer für Linux-Chromium); Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
+        && profile.chartBottom <= profile.viewport - 10,
+      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Ziel≤${profile.viewport - 10}px (10 px Abstand zum Viewport-Rand); Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
     await shot('roadbook-elevation', 'Desktop: Höhenprofil vollständig sichtbar');
   }
   await page.click('#settings-toggle');

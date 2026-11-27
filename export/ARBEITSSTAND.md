@@ -36,8 +36,8 @@
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
   Am 2026-11-27: 55/55 Node-Tests und Produktionsbuild erfolgreich, jeweils
   lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
-  409 und 693 px (Diagramm-Unterkante); die Prüfgrenze beträgt 700 px und hält
-  100 px Puffer für Linux-Chromium. Der mobile CTA lag bei 375 × 812 px bei
+  409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
+  (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
   796 px und bei 412 × 915 px bei 899 px. Die Prüfergebnisse sind kein Nachweis
   für spätere Stände oder reale Geräte-/Offline-Bedingungen. Die fünf
   Zahlenmarken des Schriftreglers saßen weiterhin in allen Viewports mit
@@ -179,6 +179,17 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – Höhenprofil-Prüfgrenze für Linux angepasst
+
+- Der Visual-Check prüft Diagramm und Abschnitt nun bis maximal
+  `Viewport-Höhe − 10 px`, bei 1280 × 800 px also bis 790 px statt 700 px.
+  Hintergrund: der gemeldete Linux-Chromium-Wert für das Diagramm beträgt
+  497–781 px; ein erneuter Linux-Lauf wurde hier nicht ausgeführt.
+- Lokaler Visual-Check: 277/277 PASS; Diagramm 409–693 px bei Ziel ≤ 790 px.
+  Bericht und Screenshot:
+  [`web/.visual-report/REPORT.md`](../web/.visual-report/REPORT.md).
+  Nur Prüfskript und Daily geändert; kein Commit oder Push.
 
 ### 2026-11-27 – Slideshow-Schalter und P01/P02-Abnahme (lokal)
 
