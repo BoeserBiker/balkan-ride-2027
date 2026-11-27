@@ -1,7 +1,17 @@
 {
-  "version": "v2.138",
-  "serviceWorkerCache": "v151",
+  "version": "v2.140",
+  "serviceWorkerCache": "v153",
   "serviceWorkerHistory": [
+    {
+      "version": "v153",
+      "date": "2026-11-27",
+      "message": "feat(icons): BB-Monogramm im 45-Grad-Winkel auf Tank ergaenzt"
+    },
+    {
+      "version": "v152",
+      "date": "2026-11-27",
+      "message": "iOS PWA: Startbilder fuer iPhone Hochformat"
+    },
     {
       "version": "v151",
       "date": "2026-11-27",
@@ -309,6 +319,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.140",
+      "date": "2026-11-27",
+      "message": "feat(icons): BB-Monogramm im 45-Grad-Winkel auf Tank ergaenzt"
+    },
+    {
+      "version": "v2.139",
+      "date": "2026-11-27",
+      "message": "iOS PWA: Startbilder fuer iPhone Hochformat"
+    },
     {
       "version": "v2.138",
       "date": "2026-11-27",

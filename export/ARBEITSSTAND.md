@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.137`, Service-Worker-Cache `v150`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.139`, Service-Worker-Cache `v152`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -34,7 +34,7 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-27: 56/56 Node-Tests und Produktionsbuild erfolgreich, jeweils
+  Am 2026-11-27: 58/58 Node-Tests und Produktionsbuild erfolgreich, jeweils
   lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
   (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
@@ -181,6 +181,20 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – iOS-Startbilder (lokal)
+
+- Sieben Hochformat-Startbilder mit BB-Motorrad und Titel aus
+  `web/public/favicon.svg` erzeugt; die Geräteabmessungen und
+  DPR-Media-Queries sind in `web/index.html` mit dem Pages-Unterpfad verknüpft.
+  Der Generator liegt in `web/scripts/generate-ios-splash.mjs`.
+- Die Bilder werden nicht vorab im Service Worker gespeichert, sondern nur
+  bei tatsächlichem Abruf im Cache `v152`; App-Version `v2.139`. Ob iOS den
+  Service Worker beim nativen Startbildabruf nutzt, ist nicht geprüft.
+- Lokal: 58/58 Node-Tests, Produktionsbuild und 278/278 bestehende
+  Visual-Prüfungen erfolgreich; zwei erzeugte Bilder visuell kontrolliert.
+  Kein Test auf einem echten iPhone; die sieben angeforderten Auflösungen
+  decken nicht automatisch alle iPhone-Modelle ab.
 
 ### 2026-11-27 – BB-Monogramm auf dem Motorrad-Icon
 

@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v151`;
+const CACHE_NAME = `${CACHE_PREFIX}v153`;
 const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -54,6 +54,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (requestUrl.pathname.includes('/assets/')
+    || requestUrl.pathname.startsWith(new URL('splash/', scopeUrl).pathname)
     || ICON_PATHS.some((path) => requestUrl.pathname === new URL(path, scopeUrl).pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
