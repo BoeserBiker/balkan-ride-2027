@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const publicDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../public');
-const sizes = [[750, 1334], [1125, 2436], [1170, 2532], [1179, 2556], [1206, 2622], [1290, 2796], [1320, 2868]];
+const sizes = [[750, 1334], [828, 1792], [1080, 2340], [1125, 2436], [1170, 2532], [1179, 2556],
+  [1206, 2622], [1242, 2688], [1284, 2778], [1290, 2796], [1320, 2868]];
 const svg = await readFile(path.join(publicDirectory, 'favicon.svg'), 'utf8');
 await mkdir(path.join(publicDirectory, 'splash'), { recursive: true });
 

@@ -1,7 +1,22 @@
 {
-  "version": "v2.140",
-  "serviceWorkerCache": "v153",
+  "version": "v2.143",
+  "serviceWorkerCache": "v156",
   "serviceWorkerHistory": [
+    {
+      "version": "v156",
+      "date": "2026-11-27",
+      "message": "feat(pwa): iOS-Splashscreens mit BB-Icon ergaenzt"
+    },
+    {
+      "version": "v155",
+      "date": "2026-11-27",
+      "message": "PWA: Android-Icons und iOS-Startbilder korrigiert"
+    },
+    {
+      "version": "v154",
+      "date": "2026-11-27",
+      "message": "feat(pwa): iOS-Splashscreens mit BB-Icon ergaenzt"
+    },
     {
       "version": "v153",
       "date": "2026-11-27",
@@ -319,6 +334,21 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.143",
+      "date": "2026-11-27",
+      "message": "feat(pwa): iOS-Splashscreens mit BB-Icon ergaenzt"
+    },
+    {
+      "version": "v2.142",
+      "date": "2026-11-27",
+      "message": "PWA: Android-Icons und iOS-Startbilder korrigiert"
+    },
+    {
+      "version": "v2.141",
+      "date": "2026-11-27",
+      "message": "feat(pwa): iOS-Splashscreens mit BB-Icon ergaenzt"
+    },
     {
       "version": "v2.140",
       "date": "2026-11-27",

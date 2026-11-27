@@ -4,16 +4,23 @@ import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 import { parseDocument } from './helpers/dom.js';
 
-const sizes = [[750, 1334, 2], [1125, 2436, 3], [1170, 2532, 3], [1179, 2556, 3],
-  [1206, 2622, 3], [1290, 2796, 3], [1320, 2868, 3]];
+const sizes = [[750, 1334, 2], [828, 1792, 2], [1080, 2340, 3], [1125, 2436, 3],
+  [1170, 2532, 3], [1179, 2556, 3], [1206, 2622, 3], [1242, 2688, 3],
+  [1284, 2778, 3], [1290, 2796, 3], [1320, 2868, 3]];
 
 test('iOS startup links point to existing PNGs with matching portrait dimensions and Pages paths', async () => {
-  const document = parseDocument(await readFile(new URL('../index.html', import.meta.url), 'utf8'));
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const document = parseDocument(html);
+  for (const [name, content] of [['apple-mobile-web-app-capable', 'yes'], ['apple-mobile-web-app-status-bar-style', 'black-translucent']]) {
+    assert.equal(document.querySelector(`meta[name="${name}"]`).getAttribute('content'), content);
+    assert.ok(html.indexOf(`name="${name}"`) < html.indexOf('rel="apple-touch-startup-image"'));
+  }
+  assert.equal(document.querySelector('link[rel="apple-touch-icon"]').getAttribute('href'), '%BASE_URL%apple-touch-icon.png');
   const links = [...document.querySelectorAll('link[rel="apple-touch-startup-image"]')];
   assert.equal(links.length, sizes.length);
   for (const [width, height, dpr] of sizes) {
     const name = `splash-${width}x${height}.png`;
-    const link = links.find((item) => item.getAttribute('href') === `%BASE_URL%splash/${name}?v=1`);
+    const link = links.find((item) => item.getAttribute('href') === `%BASE_URL%splash/${name}`);
     assert.ok(link, name);
     const media = link.getAttribute('media');
     assert.ok(media.includes(`(device-width: ${width / dpr}px)`));
@@ -47,14 +54,14 @@ test('service worker caches only requested splash images and reuses them offline
     addEventListener(name, callback) { handlers[name] = callback; },
   };
   runInNewContext(await readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), {
-    self, URL, caches: { async open() { return cache; } },
+    self, URL, Request, caches: { async open() { return cache; } },
     fetch: async () => { if (!online) throw new Error('offline'); return response; },
   });
   let install;
   handlers.install({ waitUntil(promise) { install = promise; } });
   await install;
   assert.ok(preloaded.every((url) => !String(url).includes('/splash/')), 'keine Splash-PNGs vorab laden');
-  const request = { method: 'GET', mode: 'no-cors', url: `${self.registration.scope}splash/splash-750x1334.png?v=1` };
+  const request = { method: 'GET', mode: 'no-cors', url: `${self.registration.scope}splash/splash-750x1334.png` };
   let result;
   handlers.fetch({ request, respondWith(promise) { result = promise; } });
   assert.equal(await result, response);

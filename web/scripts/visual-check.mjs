@@ -1060,6 +1060,40 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     record('App-Icons: PNGs entsprechen der SVG-Vorlage',
       icons.every(({ size, width, height, changed }) => width === size && height === size && changed <= size * size * 0.002),
       icons.map(({ file, size, changed }) => `${file}: ${size}×${size}px, abweichende Pixel=${changed}`).join('; '));
+    const maskable = await page.evaluate(async () => {
+      const base = document.querySelector('.brand-mark').src;
+      const results = [];
+      for (const size of [192, 512]) {
+        const image = new Image();
+        image.src = new URL(`icon-maskable-${size}.png`, base).href;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(0, 0, size, size).data;
+        let content = 0;
+        let outside = 0;
+        let transparent = 0;
+        for (let y = 0; y < size; y += 1) {
+          for (let x = 0; x < size; x += 1) {
+            const i = (y * size + x) * 4;
+            if (pixels[i + 3] !== 255) transparent += 1;
+            if (pixels[i] !== 15 || pixels[i + 1] !== 23 || pixels[i + 2] !== 42) {
+              content += 1;
+              if (Math.hypot(x + 0.5 - size / 2, y + 0.5 - size / 2) > size * 0.4) outside += 1;
+            }
+          }
+        }
+        results.push({ size, width: image.naturalWidth, height: image.naturalHeight, content, outside, transparent });
+      }
+      return results;
+    });
+    record('Maskable-Icons: undurchsichtig und Motiv in der Sicherheitszone',
+      maskable.every(({ size, width, height, content, outside, transparent }) => width === size && height === size
+        && content > size * size * 0.01 && outside === 0 && transparent === 0),
+      maskable.map(({ size, content, outside, transparent }) =>
+        `${size}×${size}px: Motiv=${content}, außerhalb=${outside}, transparent=${transparent}`).join('; '));
   }
 
   for (const view of PAGES) {

@@ -1,6 +1,6 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v153`;
-const ICON_PATHS = ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'];
+const CACHE_NAME = `${CACHE_PREFIX}v156`;
+const ICON_PATHS = ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -8,8 +8,9 @@ self.addEventListener('install', (event) => {
     await cache.addAll([
       self.registration.scope,
       new URL('version.json', self.registration.scope),
-      new URL('manifest.json?v=5', self.registration.scope),
-      ...ICON_PATHS.map((path) => new URL(`${path}?v=4`, self.registration.scope)),
+      new Request(new URL('manifest.json', self.registration.scope), { cache: 'reload' }),
+      new URL('favicon.svg?v=4', self.registration.scope),
+      ...ICON_PATHS.map((path) => new Request(new URL(path, self.registration.scope), { cache: 'reload' })),
     ]);
     await self.skipWaiting();
   })());
@@ -33,7 +34,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.mode === 'navigate' || requestUrl.pathname === new URL('version.json', scopeUrl).pathname) {
+  if (request.mode === 'navigate' || ['version.json', 'manifest.json'].some((path) => requestUrl.pathname === new URL(path, scopeUrl).pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       try {
@@ -55,7 +56,7 @@ self.addEventListener('fetch', (event) => {
 
   if (requestUrl.pathname.includes('/assets/')
     || requestUrl.pathname.startsWith(new URL('splash/', scopeUrl).pathname)
-    || ICON_PATHS.some((path) => requestUrl.pathname === new URL(path, scopeUrl).pathname)) {
+    || ['favicon.svg', ...ICON_PATHS].some((path) => requestUrl.pathname === new URL(path, scopeUrl).pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       if (requestUrl.pathname.includes('/assets/gpx/')) {

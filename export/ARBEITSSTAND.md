@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.139`, Service-Worker-Cache `v152`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.142`, Service-Worker-Cache `v155`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -21,7 +21,7 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 278/278 PASS nach der Icon-Anpassung,
+  (375, 412, 767, 768 und 1280 px): 279/279 PASS nach dem PWA-Fix,
   Screenshots und Messwerte in
   `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
   ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
@@ -34,7 +34,7 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-27: 58/58 Node-Tests und Produktionsbuild erfolgreich, jeweils
+  Am 2026-11-27: 60/60 Node-Tests und Produktionsbuild erfolgreich, jeweils
   lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
   (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
@@ -181,6 +181,32 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – PWA-Manifest und iOS-Startbilder (lokal)
+
+- Manifest-ID, Start und Scope auf den Pages-Unterpfad gesetzt. Jeweils
+  eigene PNG-Icons für `any` und `maskable`; die zwei maskierbaren Icons
+  werden aus dem BB-SVG mit Abstand generiert. Der Visual-Check fand bei
+  192 und 512 px keinen Motivpixel außerhalb des Sicherheitskreises und
+  keine transparenten Pixel.
+- iOS-Statusleisten-Meta ergänzt, Icon- und Startbild-URLs ohne Query;
+  Startbilder für 828 × 1792, 1080 × 2340, 1242 × 2688 und 1284 × 2778
+  ergänzt. Für das iPhone 12/13 mini ist 360 × 780 CSS-Pixel bei DPR 3
+  angegeben; 375 × 812/DPR 3 bleibt dem 1125 × 2436-Bild zugeordnet.
+- Der Service Worker lädt Manifest und Icons beim Installieren mit
+  `cache: reload` und nutzt den neuen Cache `v155` (App `v2.142`).
+  Splashbilder werden weiterhin nur bei Abruf gespeichert. Der zuvor
+  bereits gestagte Versionsstand `v2.141`/`v154` blieb im Index erhalten.
+- Lokal: 60/60 Node-Tests, Build und 279/279 Visual-Prüfungen erfolgreich.
+  Ein lokaler Chromium-Test mit echtem Service Worker lieferte Manifest und
+  alle fünf PNG-Icons nach Aktivierung auch offline mit HTTP 200.
+  Keine Prüfung auf echten Android- oder iOS-Geräten; WebAPK-Erzeugung und
+  Installationsangebot entscheidet der Browser, ein eigener
+  `beforeinstallprompt`-Hinweis ist nicht implementiert.
+- Abgleich am 2026-11-27: [iPhone-Viewport-Tabelle](https://yesviz.com/iphones.php),
+  [W3C Web Application Manifest](https://www.w3.org/TR/2026/WD-appmanifest-20261118/).
+  Die tatsächliche iOS-Startbildauswahl und Aktualisierung installierter
+  Icons bleiben ohne Gerätetest offen. Kein Commit/Push.
 
 ### 2026-11-27 – iOS-Startbilder (lokal)
 
