@@ -236,7 +236,7 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
   assert.equal(css.has('.overview-link'), false, 'the redundant in-page return links are removed');
   const desktopSpacingSelectors = [
     '.journey-panel', '.journey-heading .eyebrow', '.journey-heading h1',
-    '.day-picker', '.day-picker-head', '.day-title', '.stats-grid', '.elevation-section',
+    '.day-picker', '.day-picker .day-picker-head', '.day-title', '.stats-grid', '.elevation-section',
   ];
   const desktopSpacing = css.entries.filter((entry) => entry.media === '@media (min-width: 901px)');
   assert.ok(desktopSpacing.length > 0);
@@ -244,7 +244,13 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
     && Object.keys(entry.declarations).every((property) => /^(margin|margin-top|margin-bottom|padding|padding-top|padding-bottom|gap|row-gap|column-gap)$/.test(property))),
     'desktop roadbook compaction changes spacing only, never typography or element sizing');
   assert.deepEqual(css.declarations('.day-picker', '@media (min-width: 901px)'), {
-    'margin-top': '18px', 'margin-bottom': '14px', 'padding-top': '8px', 'padding-bottom': '8px',
+    'margin-top': '12px', 'margin-bottom': '10px', 'padding-top': '5px', 'padding-bottom': '5px',
+  });
+  assert.deepEqual(css.declarations('.day-picker .day-picker-head', '@media (min-width: 901px)'), {
+    'margin-bottom': '4px',
+  });
+  assert.deepEqual(css.declarations('.elevation-section', '@media (min-width: 901px)'), {
+    'margin-top': '4px', 'margin-bottom': '4px',
   });
   assertCss('.site-nav', { display: 'flex', 'flex-wrap': 'nowrap' });
   assertCss('.site-nav a', { 'white-space': 'nowrap' });

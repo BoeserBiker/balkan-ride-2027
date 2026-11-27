@@ -690,11 +690,20 @@ async function runLandingChecks(page, record, shot) {
 
   const backMenu = await page.evaluate(() => {
     const links = [...document.querySelectorAll('.site-nav a[href="#start"]')];
-    return { count: links.length, label: links[0]?.getAttribute('aria-label'), visible: links[0]?.getBoundingClientRect().width > 0 };
+    const link = links[0];
+    return {
+      count: links.length,
+      label: link?.getAttribute('aria-label'),
+      visibleLabel: link?.innerText.trim(),
+      first: link?.nextElementSibling?.getAttribute('href') === '#roadbook',
+      visible: link?.getBoundingClientRect().width > 0,
+    };
   });
   recordChange('Roadbook: zentraler Rücksprung zur Tourübersicht über das Hauptmenü',
-    backMenu.count === 1 && backMenu.label === 'Tourübersicht' && backMenu.visible,
-    `Menüpunkt=${backMenu.label}; sichtbar=${backMenu.visible}; doppelte Zwischenlinks entfernt`);
+    backMenu.count === 1 && backMenu.label === 'Tourübersicht'
+      && backMenu.visibleLabel === (page.viewportSize().width < 768 ? 'Tour' : 'Tourübersicht')
+      && backMenu.first && backMenu.visible,
+    `Menüpunkt=${backMenu.visibleLabel} (aria-label=${backMenu.label}); erster Punkt=${backMenu.first}; sichtbar=${backMenu.visible}; doppelte Zwischenlinks entfernt`);
   await page.locator('.site-nav a[href="#start"]').click();
   await openView(page, 'start');
   const back = await page.evaluate(roadbookState);
@@ -1097,9 +1106,9 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     });
     record('Roadbook Desktop: Höhenprofil vollständig im sichtbaren Viewport',
       profile.expanded && profile.sectionTop >= profile.headerBottom - 1
-        && profile.chartTop >= profile.headerBottom - 1 && profile.sectionBottom <= profile.viewport
-        && profile.chartBottom <= profile.viewport,
-      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
+        && profile.chartTop >= profile.headerBottom - 1 && profile.sectionBottom <= profile.viewport - 10
+        && profile.chartBottom <= Math.min(profile.viewport - 10, 790),
+      `Abschnitt=${Math.round(profile.sectionTop)}–${Math.round(profile.sectionBottom)}px; Diagramm=${Math.round(profile.chartTop)}–${Math.round(profile.chartBottom)}px; Ziel≤${Math.min(profile.viewport - 10, 790)}px; Header=${Math.round(profile.headerBottom)}px; Viewport=${profile.viewport}px`);
     await shot('roadbook-elevation', 'Desktop: Höhenprofil vollständig sichtbar');
   }
   await page.click('#settings-toggle');

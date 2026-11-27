@@ -1,7 +1,17 @@
 {
-  "version": "v2.117",
-  "serviceWorkerCache": "v130",
+  "version": "v2.119",
+  "serviceWorkerCache": "v132",
   "serviceWorkerHistory": [
+    {
+      "version": "v132",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage abgeschlossen und Arbeitsstand aktualisiert"
+    },
+    {
+      "version": "v131",
+      "date": "2026-11-27",
+      "message": "Roadbook: Desktop-Höhenprofil sicher im Viewport; Tour-Menü geprüft"
+    },
     {
       "version": "v130",
       "date": "2026-11-27",
@@ -204,6 +214,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.119",
+      "date": "2026-11-27",
+      "message": "P01/P02: Tour-Landingpage abgeschlossen und Arbeitsstand aktualisiert"
+    },
+    {
+      "version": "v2.118",
+      "date": "2026-11-27",
+      "message": "Roadbook: Desktop-Höhenprofil sicher im Viewport; Tour-Menü geprüft"
+    },
     {
       "version": "v2.117",
       "date": "2026-11-27",

@@ -298,14 +298,14 @@ h1, h2, h3, p { margin-top: 0; }
 .elevation-missing-pois button:focus-visible, .elevation-missing-pois button.is-active { outline: 1px solid var(--accent); }
 
 @media (min-width: 901px) {
-  .journey-panel { padding-top: 20px; }
-  .journey-heading .eyebrow { margin-bottom: 8px; }
-  .journey-heading h1 { margin-bottom: 6px; }
-  .day-picker { margin-top: 18px; margin-bottom: 14px; padding-top: 8px; padding-bottom: 8px; }
-  .day-picker-head { margin-bottom: 8px; }
-  .day-title { margin-top: 8px; margin-bottom: 12px; }
-  .stats-grid { padding-top: 9px; padding-bottom: 9px; }
-  .elevation-section { margin-top: 10px; margin-bottom: 10px; }
+  .journey-panel { padding-top: 14px; }
+  .journey-heading .eyebrow { margin-bottom: 6px; }
+  .journey-heading h1 { margin-bottom: 4px; }
+  .day-picker { margin-top: 12px; margin-bottom: 10px; padding-top: 5px; padding-bottom: 5px; }
+  .day-picker .day-picker-head { margin-bottom: 4px; }
+  .day-title { margin-top: 6px; margin-bottom: 8px; }
+  .stats-grid { padding-top: 6px; padding-bottom: 6px; }
+  .elevation-section { margin-top: 4px; margin-bottom: 4px; }
 }
 .day-section, .story-section { margin-top: 25px; }
 .day-section h3, .story-section h3 { margin-bottom: 13px; font-size: 13px; font-weight: 650; letter-spacing: .01em; }

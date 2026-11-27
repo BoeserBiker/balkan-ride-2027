@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.116`, Service-Worker-Cache `v129`
+- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.118`, Service-Worker-Cache `v131`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -28,9 +28,9 @@
   Viewports 0,0 px. In Schriftstufe 5/5 lagen beide Versionskarten unter dem
   Aktualisierungsbutton; App- und Cache-Historie ließen sich ohne horizontalen
   oder vertikalen Inhaltsüberlauf exklusiv öffnen. Am 2026-11-27: 48/48
-  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; der Desktop-
-  Check zeigte den gesamten Höhenprofil-Abschnitt bei 1280 × 800 px zwischen
-  462 und 790 px. Die
+  Node-Tests und Produktionsbuild erfolgreich, jeweils lokal; der jüngste
+  Desktop-Check zeigte den gesamten Höhenprofil-Abschnitt bei 1280 × 800 px
+  zwischen 410 und 738 px. Die
   Prüfergebnisse sind kein Nachweis für spätere Stände. Die fünf Zahlenmarken des
   Schriftreglers saßen in allen Viewports mit 0,0 px gemessener Abweichung
   unter den Soll-Rastpunkten 0/25/50/75/100 %.
@@ -171,6 +171,34 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-27 – Desktop-Höhenprofil mit 52 px Viewport-Reserve (lokal)
+
+- Auf den GH-Visual-Check mit Diagramm-Unterkante 878 px reagiert: die
+  vertikalen Abstände in der zweispaltigen Roadbook-Ansicht (ab 901 px, dem
+  tatsächlichen Breakpoint des Desktop-Layouts) wurden weiter reduziert.
+  Ursache eines unwirksamen Teilabstands war die spätere Grundregel
+  `.day-picker-head { margin-bottom: 12px; }`; die Desktop-Regel verwendet nun
+  den spezifischeren Selektor `.day-picker .day-picker-head`.
+- Geändert wurden ausschließlich vertikale Paddings und Margins an
+  Journey-Header, Etappenwahl, Etappentitel, Kennzahlen und Höhenprofil.
+  Schriften, Zeilenhöhen und Elementgrößen blieben unverändert. Der
+  Playwright-Check verlangt nun mindestens 10 px Reserve und eine Diagramm-
+  Unterkante von höchstens 790 px. Bei 1280 × 800 px liegen Abschnitt und
+  Diagramm bei 410–738 px bzw. 454–738 px: 140 px früher als die gemeldeten
+  550–878 px und 52 px Reserve bis zur 790-px-Grenze.
+- Hauptmenü erneut abgesichert: „Tourübersicht“ ist ab 768 px, „Tour“ darunter
+  sichtbar, erster Menüpunkt vor „Etappen“; es gibt genau einen Menülink und
+  keine separaten Rücksprung-Zwischenlinks. Header-Geometrie blieb im
+  Visual-Check grün.
+- Versionierung: App `v2.118`, Service-Worker-Cache `v131`, synchron in
+  `web/public/version.json` und `web/public/sw.js`. Closed-Loop: 48/48
+  Node-Tests, Build erfolgreich, Visual-Check 256/256 über fünf Viewports,
+  `git diff --check` ohne Befund. Keine echten Geräte-/Offline-Prüfungen.
+  Kein Commit/Push.
+- Betroffene Dateien: `web/src/style.css`, `web/tests/features.test.js`,
+  `web/scripts/visual-check.mjs`, `web/public/version.json`, `web/public/sw.js`
+  und dieses Daily.
 
 ### 2026-11-27 – Tourmenü und Desktop-Höhenprofil (lokal)
 
