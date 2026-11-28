@@ -151,7 +151,7 @@ test('first screen fills the viewport below the header and puts the key figures 
   assert.equal(css.declarations('.tour-start', '@media (max-width: 767px)')['--tour-start-top'], '16px');
   assert.equal(css.declarations('.tour-hero-main', '@media (max-width: 767px)').flex, 'none');
   assert.equal(css.declarations('.tour-mobile-summary', '@media (max-width: 767px)').display, 'grid');
-  assert.match(css.declarations('.tour-mobile-summary', '@media (max-width: 767px)')['font-size'], /^clamp\(/);
+  assert.match(css.declarations('.tour-mobile-summary', '@media (max-width: 767px)')['font-size'], /^calc\(clamp\(.*\) \* var\(--font-scale\)\)$/);
   assert.equal(css.declarations('.tour-mobile-summary')['font-size'], undefined, 'mobile typography cap does not affect desktop');
   const document = render(days, info);
   const block = document.querySelector('.tour-hero-main > .tour-facts-block');
@@ -359,7 +359,7 @@ test('final mobile layout: compact highlights beside a full-height map and the b
   assert.equal(css.declarations('#tour-map', mobile).flex, '1 1 auto');
   assert.equal(css.declarations('.tour-mobile-highlights li > a', mobile)['min-height'], '44px');
   for (const selector of ['.tour-bento span', '.tour-bento-hero strong', '.tour-bento-cell strong', '.tour-bento-matrix li']) {
-    assert.match(css.declarations(selector, mobile)['font-size'], /^clamp\(\d+px, [\d.]+rem, \d+px\)$/, selector);
+    assert.match(css.declarations(selector, mobile)['font-size'], /^calc\(clamp\(\d+px, [\d.]+rem, \d+px\) \* var\(--font-scale\)\)$/, selector);
   }
 });
 

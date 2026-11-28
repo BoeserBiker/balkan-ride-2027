@@ -204,10 +204,10 @@ test('keeps the settings, themes, glove mode, and ordered app navigation wired i
     'the header tools follow the navigation',
   );
   for (const selector of ['.day-section h3', '.story-section h3']) {
-    assertCss(selector, { 'font-size': '13px', 'font-weight': '650', 'letter-spacing': '.01em' });
+    assertCss(selector, { 'font-size': 'calc(13px * var(--font-scale))', 'font-weight': '650', 'letter-spacing': '.01em' });
   }
   assertCss('.elevation-title', {
-    'font-size': '13px', 'font-weight': '650', 'line-height': 'inherit', 'letter-spacing': '.01em',
+    'font-size': 'calc(13px * var(--font-scale))', 'font-weight': '650', 'line-height': 'inherit', 'letter-spacing': '.01em',
   });
   assertCss('.stats-grid > div', { padding: '0 8px' }, '@media (max-width: 520px)');
   assert.ok(

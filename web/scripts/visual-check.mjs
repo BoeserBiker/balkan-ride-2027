@@ -124,7 +124,26 @@ function collectHeaderGeometry() {
   const style = getComputedStyle(header);
   const contentLeft = headerRect.left + parseFloat(style.paddingLeft);
   const contentRight = headerRect.right - parseFloat(style.paddingRight);
+  const markRect = document.querySelector('.brand-mark').getBoundingClientRect();
+  const brandTextRect = document.querySelector('.brand > span').getBoundingClientRect();
+  const navRect = document.querySelector('.site-nav').getBoundingClientRect();
+  const strongRange = document.createRange();
+  strongRange.selectNodeContents(document.querySelector('.brand strong'));
+  const smallRange = document.createRange();
+  smallRange.selectNodeContents(document.querySelector('.brand small'));
+  const lineTops = (range) => new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size;
+  const mobile = window.innerWidth < 768;
+  // Gestapelt: Navigation liegt vollständig unter dem Markenblock statt daneben.
+  const stacked = mobile && navRect.top >= Math.max(markRect.bottom, brandTextRect.bottom) - 1;
+  const navOverlapsBrand = !(navRect.right <= brandTextRect.left || navRect.left >= brandTextRect.right
+    || navRect.bottom <= brandTextRect.top || navRect.top >= brandTextRect.bottom);
   return {
+    stacked,
+    brandSingleLine: lineTops(strongRange) === 1 && lineTops(smallRange) === 1,
+    navClear: !navOverlapsBrand && navRect.left >= 0 && navRect.right <= window.innerWidth + 0.5,
+    iconsEqual: Math.abs(markRect.width - buttonRect.width) <= 0.5 && Math.abs(markRect.height - buttonRect.height) <= 0.5
+      && Math.abs(markRect.top - buttonRect.top) <= 1.5 && Math.abs(markRect.bottom - buttonRect.bottom) <= 1.5,
+    navGap: navRect.top - Math.max(markRect.bottom, brandTextRect.bottom),
     bottomDelta: Math.abs(buttonRect.bottom - linkRect.bottom),
     withinHeaderPadding: buttonRect.left >= contentLeft - 0.5
       && buttonRect.right <= contentRight + 0.5,
@@ -1025,8 +1044,41 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
   await page.waitForSelector('#day-list li', { state: 'attached', timeout: 15000 });
   const header = await page.evaluate(collectHeaderGeometry);
   record('Header: Einstellungen rechtsbündig und an Galerie ausgerichtet',
-    header.bottomDelta <= 1.5 && header.withinHeaderPadding && header.noOverlap && header.noHeaderOverflow,
-    `Button ${header.buttonGeometry}; Galerie-Unterkante=${header.linkBottom}px; Delta=${header.bottomDelta.toFixed(1)}px`);
+    (header.stacked ? header.iconsEqual : header.bottomDelta <= 1.5) && header.withinHeaderPadding && header.noOverlap && header.noHeaderOverflow,
+    `Button ${header.buttonGeometry}; Galerie-Unterkante=${header.linkBottom}px; Delta=${header.bottomDelta.toFixed(1)}px; ${header.stacked ? 'Navigation unter dem Markenblock' : 'eine Zeile'}`);
+
+  if (viewport.mobile) {
+    // Schmale Handys (iPhone 12: 390 px) in allen fünf Schriftstufen: BALKAN RIDE einzeilig, Navigation überlappt nichts, Icons gleich groß.
+    const widths = viewport.slug === 'iphone-12-mini' ? [viewport.width, 390] : [viewport.width];
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: viewport.height });
+      for (const level of [1, 2, 3, 4, 5]) {
+        await page.evaluate((value) => { document.documentElement.dataset.fontSize = value; }, String(level));
+        await page.waitForTimeout(60);
+        const layout = await page.evaluate(collectHeaderGeometry);
+        record(`Header ${width} px, Schriftstufe ${level}/5: BALKAN RIDE einzeilig, Navigation überlappt nicht, Icons gleich`,
+          layout.brandSingleLine && layout.navClear && layout.iconsEqual && layout.withinHeaderPadding
+            && layout.noOverlap && layout.noHeaderOverflow && (!layout.stacked || layout.navGap >= 4),
+          `${layout.stacked ? `Navigation darunter (Abstand ${layout.navGap.toFixed(1)}px)` : 'eine Zeile'}; Zeilen=${layout.brandSingleLine ? 1 : '>1'}; Icons gleich=${layout.iconsEqual}`);
+      }
+    }
+    await page.evaluate(() => { document.documentElement.dataset.fontSize = '2'; });
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.waitForTimeout(60);
+  }
+
+  // Daten-Hinweis ist ausschließlich für Mobilgeräte (< 768 px); Desktop und Tablet unterdrücken ihn.
+  const dataNoticeVisible = await page.evaluate(async () => {
+    navigator.serviceWorker.dispatchEvent(new MessageEvent('message', {
+      data: { type: 'TOUR_DATA_UPDATED', url: 'https://example.test/roadbook-data.json', changedStages: [{ tag: 3, title: 'Prüfstand' }] },
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const notice = document.querySelector('#data-update-notice');
+    return !notice.hidden && getComputedStyle(notice).display !== 'none';
+  });
+  record('Update-Hinweis erscheint nur auf Mobilgeräten (< 768 px)', dataNoticeVisible === (viewport.width < 768),
+    `Daten-Hinweis sichtbar=${dataNoticeVisible}; erwartet=${viewport.width < 768}`);
+  if (dataNoticeVisible) await page.locator('#data-update-close').click();
 
   if (viewport.slug === 'desktop') {
     const icons = await page.evaluate(async () => {

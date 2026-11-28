@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-28): App-Version `v2.150`, Service-Worker-Cache `v163`
+- Web-Stand (Datei-Stand 2026-11-28): App-Version `v2.153`, Service-Worker-Cache `v166`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -21,7 +21,7 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 299/299 PASS am 2026-11-28,
+  (375, 412, 767, 768 und 1280 px): 319/319 PASS am 2026-11-28,
   Screenshots und Messwerte in
   `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
   ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
@@ -34,7 +34,7 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-28: 66/66 Node-Tests, Produktionsbuild und 299/299
+  Am 2026-11-28: 69/69 Node-Tests, Produktionsbuild und 319/319
   Visual-Prüfungen erfolgreich, jeweils lokal. Der Desktop-Check zeigte das
   Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
@@ -182,6 +182,42 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-28 – iPhone-Header, globale Schriftskalierung, mobile Update-Hinweise (lokal)
+
+- Header (< 768 px): `BALKAN RIDE`/`ROADBOOK · 2027` bleiben `nowrap`. Die Navigation
+  steht in der Standardstufe bis 394 px unter dem Markenblock (Stufe 3: 411 px,
+  Stufe 4: 426 px, Stufe 5: 458 px), darüber weiter in einer Zeile wie bisher
+  (Android 412 px, Stufe 2 unverändert). Logo und Einstellungen bleiben oben,
+  gleich groß und auf gleicher Höhe. Die Grenzen sind aus gemessenen Textbreiten
+  in Chromium abgeleitet; die echte iPhone-Schrift ist nicht gemessen.
+- Schriftgrößen: Alle `px`-Schriftgrößen sind mit `--font-scale`
+  (0,875 / 1 / 1,0625 / 1,125 / 1,25) multipliziert, `rem`-Größen folgen der
+  Root-Größe; die festen Stufen-Ausnahmen für Fließtext entfielen. Messung bei
+  390 px (Stufe 2 → 5): alle sichtbaren Textelemente wachsen um 1,2–1,3 ×
+  (Ausnahme: das Glyph „⋮“ des Einstellungsbuttons). Dabei wurden ein
+  umbrechender Highlight-Nummer („09“) und ein Logistik-Listenüberlauf in
+  Stufe 5 behoben.
+- Update-Dialog und Daten-Hinweis erscheinen nur unter 768 px
+  (`web/src/update-policy.js`); Desktop/Tablet unterdrücken beide. Die
+  Aktualisierung bleibt dort über die Einstellungen möglich.
+- Version `v2.153`, Cache `v166`. Tests: neue
+  `web/tests/issue-iphone-header-scale.test.js`; Visual-Check prüft Header
+  (375/390/412 px, Stufen 1–5) und die Desktop-Unterdrückung des Hinweises.
+- Verifikation lokal: 69/69 Node-Tests, Build und 319/319 Visual-Prüfungen
+  (Chromium). Kein echter iPhone-Test; kein Commit oder Push.
+
+### 2026-11-28 – Review Lastenheft Agenten-Architektur (nur Dokument)
+
+- `docs/Lastenheft_Agenten_Architektur_V1.md` (privat, lokal) gegen VS-Code-
+  Dokumentation und bestehende Projektregeln geprüft und um Abschnitt 7
+  ergänzt. Kernbefunde: `handoffs` gelten nur im Local-Harness, Copilot Fusion
+  läuft nur im Copilot-Harness; Handoffs liefern keinen frischen Kontext;
+  Tool-Namen sind gültig; mehrere Altpflichten (Datenmodell, `TRACKPUNKTE_MAX`,
+  Quellenregeln, Persona) fehlen in der Zielstruktur; der Visual-Check-Gate
+  ist nur per Prompt nicht erzwungen (Hook-Option beschrieben).
+- Die fünf Agentendateien und `copilot-instructions.md` wurden **nicht**
+  angelegt bzw. geändert; Entscheidung zu Abschnitt 7.1 steht aus. Kein Commit/Push.
 
 ### 2026-11-28 – Offline- und Update-Strategie, mobile Lesbarkeit (lokal)
 

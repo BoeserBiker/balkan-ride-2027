@@ -1,7 +1,22 @@
 {
-  "version": "v2.151",
-  "serviceWorkerCache": "v164",
+  "version": "v2.154",
+  "serviceWorkerCache": "v167",
   "serviceWorkerHistory": [
+    {
+      "version": "v167",
+      "date": "2026-11-28",
+      "message": "feat(pwa,ui): Offline Network-First, Update-Hinweise mit Changelog-Scrollbox & +50% mobile Schriftgröße (v2.150)"
+    },
+    {
+      "version": "v166",
+      "date": "2026-11-28",
+      "message": "iPhone-Header-Umbruch und Overlap behoben, globale Schriftgroessenskalierung und mobile Update-Hinweise"
+    },
+    {
+      "version": "v165",
+      "date": "2026-11-28",
+      "message": "feat(pwa,ui): Offline Network-First, Update-Hinweise mit Changelog-Scrollbox & +50% mobile Schriftgröße (v2.150)"
+    },
     {
       "version": "v164",
       "date": "2026-11-28",
@@ -374,6 +389,21 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.154",
+      "date": "2026-11-28",
+      "message": "feat(pwa,ui): Offline Network-First, Update-Hinweise mit Changelog-Scrollbox & +50% mobile Schriftgröße (v2.150)"
+    },
+    {
+      "version": "v2.153",
+      "date": "2026-11-28",
+      "message": "iPhone-Header-Umbruch und Overlap behoben, globale Schriftgroessenskalierung und mobile Update-Hinweise"
+    },
+    {
+      "version": "v2.152",
+      "date": "2026-11-28",
+      "message": "feat(pwa,ui): Offline Network-First, Update-Hinweise mit Changelog-Scrollbox & +50% mobile Schriftgröße (v2.150)"
+    },
     {
       "version": "v2.151",
       "date": "2026-11-28",

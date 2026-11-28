@@ -18,6 +18,7 @@ import {
 import {
   directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
 } from './html.js';
+import { MOBILE_UPDATE_QUERY, mobileUpdatesEnabled } from './update-policy.js';
 
 const APP_VERSION = __APP_VERSION__;
 const app = document.querySelector('#app');
@@ -552,6 +553,7 @@ function initializeUpdateChecks() {
   let latestVersionData = null;
 
   function showUpdate(data) {
+    if (!mobileUpdatesEnabled()) return;
     const hasProgramUpdate = data.version !== APP_VERSION;
     const updateId = `${data.version}:${data.serviceWorkerCache ?? ''}`;
     try {
@@ -581,6 +583,7 @@ function initializeUpdateChecks() {
   }
 
   function addChangedData(url) {
+    if (!mobileUpdatesEnabled()) return;
     const labels = new Set();
     (url.changedStages ?? []).forEach(({ tag, title }) => {
       labels.add(`Etappe ${String(tag).padStart(2, '0')}${title ? ` · ${title}` : ''}`);
@@ -695,6 +698,9 @@ function initializeUpdateChecks() {
   });
   dataUpdateHandler = addChangedData;
   pendingDataUpdates.splice(0).forEach(addChangedData);
+  listenMediaQuery(window.matchMedia(MOBILE_UPDATE_QUERY), (event) => {
+    if (event.matches) checkForUpdate();
+  });
   window.addEventListener('online', checkForUpdate);
   window.addEventListener('focus', checkForUpdate);
   document.addEventListener('visibilitychange', () => {
