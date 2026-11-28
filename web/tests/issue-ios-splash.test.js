@@ -49,7 +49,7 @@ test('service worker caches only requested splash images and reuses them offline
   const entries = new Map();
   let preloaded;
   let online = true;
-  const response = { ok: true, clone() { return this; } };
+  const response = new Response('fresh response');
   const cache = {
     async addAll(urls) { preloaded = urls; },
     async match(request) { return entries.get(request.url); },
@@ -62,19 +62,36 @@ test('service worker caches only requested splash images and reuses them offline
     addEventListener(name, callback) { handlers[name] = callback; },
   };
   runInNewContext(await readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), {
-    self, URL, Request, caches: { async open() { return cache; } },
-    fetch: async () => { if (!online) throw new Error('offline'); return response; },
+    self, URL, Request, Headers, Response, AbortController, setTimeout, clearTimeout,
+    caches: { async open() { return cache; } },
+    fetch: async (request) => {
+      if (!online) throw new Error('offline');
+      if (request.url.endsWith('/asset-manifest.json')) {
+        return new Response(JSON.stringify({
+          'index.html': {
+            src: 'index.html',
+            isEntry: true,
+            file: 'assets/app.js',
+            css: ['assets/app.css'],
+            imports: [],
+          },
+        }));
+      }
+      return response.clone();
+    },
   });
   let install;
   handlers.install({ waitUntil(promise) { install = promise; } });
   await install;
   assert.ok(preloaded.every((url) => !String(url).includes('/splash/')), 'keine Splash-PNGs vorab laden');
-  const request = { method: 'GET', mode: 'no-cors', url: `${self.registration.scope}splash/splash-750x1334.png` };
+  const request = new Request(`${self.registration.scope}splash/splash-750x1334.png`);
   let result;
   handlers.fetch({ request, respondWith(promise) { result = promise; } });
-  assert.equal(await result, response);
+  assert.equal(await (await result).text(), 'fresh response');
   assert.equal(entries.size, 1);
   online = false;
   handlers.fetch({ request, respondWith(promise) { result = promise; } });
-  assert.equal(await result, response);
+  const fallback = await result;
+  assert.equal(await fallback.text(), 'fresh response');
+  assert.equal(fallback.headers.get('X-Offline-Fallback'), 'true');
 });

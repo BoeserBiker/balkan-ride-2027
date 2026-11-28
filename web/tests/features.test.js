@@ -352,8 +352,11 @@ test('enlarges the header brand icon into the free header space without growing 
   const icon = shellDocument.querySelector('.site-header .brand img.brand-mark');
   assert.ok(icon, 'the brand icon must be rendered in the header');
   assertCss('.brand-mark', { width: '50px', height: '50px', 'margin-block': '-6px' });
-  assertCss('.brand-mark', { width: '44px', height: '44px', 'margin-block': '-5px' }, '@media (max-width: 520px)');
-  assertCss('.brand-mark', { width: '38px', height: '38px', 'margin-block': '-4px' }, '@media (max-width: 390px)');
+  assertCss('.brand-mark', { width: 'var(--header-icon)', height: 'var(--header-icon)' }, '@media (max-width: 767px)');
+  assertCss('.settings-toggle', { width: 'var(--header-icon)', height: 'var(--header-icon)' }, '@media (max-width: 767px)');
+  for (const [breakpoint, size] of [[767, '52px'], [520, '48px'], [390, '42px'], [370, '40px']]) {
+    assertCss('.site-header', { '--header-icon': size }, `@media (max-width: ${breakpoint}px)`);
+  }
   // Die Kartengroesse bleibt unveraendert.
   assertCss('#map', { height: 'min(74vh, 760px)', 'min-height': '390px' });
 });

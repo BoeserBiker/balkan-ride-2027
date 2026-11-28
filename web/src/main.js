@@ -3,8 +3,6 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
-import roadbookDays from 'virtual:roadbook-content';
-import tourInfo from 'virtual:tour-info';
 import logisticsMarkdown from './content/logistik.md?raw';
 import { createRoadbookMap, createTourMap } from './map.js';
 import { mediaPathMap, renderDayContent, renderMediaGallery } from './roadbook.js';
@@ -21,7 +19,19 @@ import {
   directionsUrl, escapeDisplayText, getNavigationApp, setNavigationApp,
 } from './html.js';
 
+const APP_VERSION = __APP_VERSION__;
 const app = document.querySelector('#app');
+let roadbookDays = [];
+let tourInfo;
+let dataUpdateHandler = null;
+const pendingDataUpdates = [];
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type !== 'TOUR_DATA_UPDATED') return;
+    if (dataUpdateHandler) dataUpdateHandler(event.data);
+    else pendingDataUpdates.push(event.data);
+  });
+}
 const SETTINGS_KEYS = {
   theme: 'balkan-ride-theme',
   fontSize: 'balkan-ride-font-size',
@@ -449,6 +459,24 @@ function renderShell() {
         </div>
       </section>
     </dialog>
+    <aside id="data-update-notice" class="data-update-notice" role="status" aria-labelledby="data-update-title" hidden>
+      <button id="data-update-close" class="data-update-close" type="button" aria-label="Hinweis schließen">×</button>
+      <h2 id="data-update-title">Neue Daten verfügbar</h2>
+      <p>Folgende Daten wurden geändert:</p>
+      <ul id="data-update-list"></ul>
+    </aside>
+    <dialog id="program-update-dialog" class="program-update-dialog" aria-labelledby="program-update-title">
+      <h2 id="program-update-title"></h2>
+      <p id="program-update-description"></p>
+      <div class="program-update-scroll" role="region" aria-label="Änderungen der neuen Version" tabindex="0">
+        <ol id="program-update-history" class="version-history-list"></ol>
+      </div>
+      <p id="program-update-status" class="settings-status" role="status" aria-live="polite"></p>
+      <div class="program-update-actions">
+        <button id="program-update-later" class="button button-secondary" type="button">Später</button>
+        <button id="program-update-now" class="button button-primary" type="button">Jetzt aktualisieren</button>
+      </div>
+    </dialog>
   `;
 }
 
@@ -487,6 +515,213 @@ async function loadVersionHistory() {
     current.textContent = 'nicht verfügbar';
     serviceWorkerCurrent.textContent = 'nicht verfügbar';
   }
+}
+
+function readableDataName(urlValue) {
+  const url = new URL(urlValue, location.origin);
+  if (/\/roadbook-data\.json$/i.test(url.pathname)) return 'Etappendaten und Tourtexte';
+  const gpxMatch = url.pathname.match(/\/tag-(\d{2})\.gpx$/i);
+  if (gpxMatch) {
+    const day = roadbookDays.find(({ frontmatter }) => Number(frontmatter.tag) === Number(gpxMatch[1]));
+    const title = day ? ` · ${day.frontmatter.titel}` : '';
+    return `Etappe ${gpxMatch[1]}${title} · GPX-Daten`;
+  }
+  if (/\/assets\/.+\.(?:avif|gif|jpe?g|png|webp)$/i.test(url.pathname)) return 'Galerie-Bilder';
+  if (/logistik|logistics/i.test(url.pathname)) return 'Logistik-Infos';
+  if (/\/assets\/gpx\//i.test(url.pathname)) return 'Tour-Karte';
+  if (/tour|route|karte|map/i.test(url.pathname)) return 'Tour-Karte';
+  return 'Tour-Daten';
+}
+
+function initializeUpdateChecks() {
+  const updateDialog = document.querySelector('#program-update-dialog');
+  const updateTitle = document.querySelector('#program-update-title');
+  const updateDescription = document.querySelector('#program-update-description');
+  const updateHistory = document.querySelector('#program-update-history');
+  const updateStatus = document.querySelector('#program-update-status');
+  const updateNow = document.querySelector('#program-update-now');
+  const updateLater = document.querySelector('#program-update-later');
+  const dataNotice = document.querySelector('#data-update-notice');
+  const dataList = document.querySelector('#data-update-list');
+  const dataClose = document.querySelector('#data-update-close');
+  if (!updateDialog || !dataNotice) return;
+
+  const dismissedKey = 'balkan-ride-dismissed-update';
+  const changedData = new Set();
+  let registration = null;
+  let latestVersionData = null;
+
+  function showUpdate(data) {
+    const hasProgramUpdate = data.version !== APP_VERSION;
+    const updateId = `${data.version}:${data.serviceWorkerCache ?? ''}`;
+    try {
+      if (sessionStorage.getItem(dismissedKey) === updateId) return;
+    } catch (error) {
+      console.error('Der zurückgestellte Update-Hinweis konnte nicht gelesen werden.', error);
+    }
+    const history = hasProgramUpdate ? data.history : (data.serviceWorkerHistory ?? []);
+    const currentHistoryIndex = history.findIndex((entry) => entry.version === (hasProgramUpdate
+      ? APP_VERSION
+      : data.serviceWorkerCache));
+    const pendingHistory = hasProgramUpdate
+      ? (currentHistoryIndex >= 0 ? history.slice(0, currentHistoryIndex) : history)
+      : history.slice(0, 1);
+    updateDialog.dataset.updateId = updateId;
+    updateTitle.textContent = hasProgramUpdate
+      ? `Neue Programmversion ${data.version}`
+      : `Service-Worker-Update für ${data.version}`;
+    updateDescription.textContent = hasProgramUpdate
+      ? 'Eine neue Programmversion ist verfügbar. Die Änderungen:'
+      : 'Ein Update für den Offline-Cache ist verfügbar.';
+    updateHistory.innerHTML = pendingHistory.map((entry) => `
+      <li><div><strong>${escapeDisplayText(entry.version)}</strong><time>${escapeDisplayText(entry.date)}</time></div>
+        <p>${escapeDisplayText(entry.message)}</p></li>
+    `).join('');
+    if (!updateDialog.open) updateDialog.showModal();
+  }
+
+  function addChangedData(url) {
+    const labels = new Set();
+    (url.changedStages ?? []).forEach(({ tag, title }) => {
+      labels.add(`Etappe ${String(tag).padStart(2, '0')}${title ? ` · ${title}` : ''}`);
+    });
+    if (url.tourInfoChanged) labels.add('Tour-Übersicht und Tour-Karte');
+    if (!labels.size && typeof url.url === 'string') labels.add(readableDataName(url.url));
+    labels.forEach((label) => {
+      if (changedData.has(label)) return;
+      changedData.add(label);
+      const item = document.createElement('li');
+      item.textContent = label;
+      dataList.append(item);
+      dataNotice.hidden = false;
+    });
+  }
+
+  async function checkForUpdate() {
+    if (!navigator.onLine) return;
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}version.json`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (response.headers.get('X-Offline-Fallback') === 'true') return;
+      const data = await response.json();
+      if (typeof data.version !== 'string' || !Array.isArray(data.history)
+        || !data.history.every((entry) => entry && typeof entry.version === 'string'
+          && typeof entry.date === 'string' && typeof entry.message === 'string')
+        || typeof data.serviceWorkerCache !== 'string' || !Array.isArray(data.serviceWorkerHistory)
+        || !data.serviceWorkerHistory.every((entry) => entry && typeof entry.version === 'string'
+          && typeof entry.date === 'string' && typeof entry.message === 'string')) {
+        throw new Error('Ungültiges Format der Versionsdatei.');
+      }
+      latestVersionData = data;
+      if (data.version !== APP_VERSION || registration?.waiting) showUpdate(data);
+      if (registration && navigator.onLine) {
+        try {
+          await registration.update();
+        } catch (error) {
+          console.error('Der Service Worker konnte nicht auf Updates geprüft werden.', error);
+        }
+      }
+    } catch (error) {
+      console.error('Die Programmversion konnte nicht geprüft werden.', error);
+    }
+  }
+
+  async function waitForInstalledWorker(targetRegistration) {
+    if (targetRegistration.waiting) return targetRegistration.waiting;
+    const worker = targetRegistration.installing;
+    if (!worker) return null;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Zeitüberschreitung beim Laden des Updates.')), 20000);
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'installed') {
+          clearTimeout(timeout);
+          resolve(targetRegistration.waiting ?? worker);
+        } else if (worker.state === 'redundant') {
+          clearTimeout(timeout);
+          reject(new Error('Der neue Service Worker konnte nicht installiert werden.'));
+        }
+      });
+    });
+  }
+
+  function rememberDismissal() {
+    const updateId = updateDialog.dataset.updateId
+      ?? (latestVersionData && `${latestVersionData.version}:${latestVersionData.serviceWorkerCache ?? ''}`);
+    if (!updateId) return;
+    try {
+      sessionStorage.setItem(dismissedKey, updateId);
+    } catch (error) {
+      console.error('Der Update-Hinweis konnte nicht zurückgestellt werden.', error);
+    }
+  }
+
+  updateLater.addEventListener('click', () => {
+    rememberDismissal();
+    updateDialog.close();
+  });
+  updateNow.addEventListener('click', async () => {
+    updateNow.disabled = true;
+    updateStatus.textContent = 'Das Update wird vorbereitet …';
+    try {
+      const appScope = new URL(import.meta.env.BASE_URL, location.origin).pathname;
+      registration ??= await navigator.serviceWorker?.getRegistration(appScope);
+      if (!registration || !navigator.serviceWorker) {
+        throw new Error('Für das Update ist kein Service Worker verfügbar.');
+      }
+      if (!registration.waiting) await registration.update();
+      const waitingWorker = await waitForInstalledWorker(registration);
+      if (!waitingWorker) throw new Error('Der neue Service Worker wurde nicht gefunden.');
+      updateStatus.textContent = 'Update wird aktiviert …';
+      const controllerChanged = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Der Browser hat das Update nicht aktiviert.')), 20000);
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          clearTimeout(timeout);
+          resolve();
+        }, { once: true });
+      });
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      await controllerChanged;
+      location.reload();
+    } catch (error) {
+      console.error('Die neue Programmversion konnte nicht aktiviert werden.', error);
+      updateStatus.textContent = 'Aktualisierung fehlgeschlagen. Prüfe die Verbindung und versuche es erneut.';
+      updateNow.disabled = false;
+    }
+  });
+  dataClose.addEventListener('click', () => { dataNotice.hidden = true; });
+  updateDialog.addEventListener('close', rememberDismissal);
+  updateDialog.addEventListener('click', (event) => {
+    if (event.target === updateDialog) updateDialog.close();
+  });
+  dataUpdateHandler = addChangedData;
+  pendingDataUpdates.splice(0).forEach(addChangedData);
+  window.addEventListener('online', checkForUpdate);
+  window.addEventListener('focus', checkForUpdate);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkForUpdate();
+  });
+  checkForUpdate();
+
+  return {
+    setRegistration(value) {
+      if (!value || typeof value.addEventListener !== 'function') return;
+      registration = value;
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing;
+        worker?.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            if (latestVersionData) showUpdate(latestVersionData);
+            else checkForUpdate();
+          }
+        });
+      });
+      if (registration.waiting) {
+        if (latestVersionData) showUpdate(latestVersionData);
+        else checkForUpdate();
+      }
+      checkForUpdate();
+    },
+  };
 }
 
 function renderApp() {
@@ -984,23 +1219,35 @@ function renderApp() {
   selectDay(0, { moveMap: false, centerDay: false });
 }
 
-try {
-  renderApp();
-} catch (error) {
-  console.error('Das Roadbook konnte nicht geladen werden.', error);
-  app.innerHTML = `
-    <section class="load-error" role="alert">
-      <p class="eyebrow">ROADBOOK NICHT VERFÜGBAR</p>
-      <h1>Beim Laden ist etwas schiefgelaufen.</h1>
-      <p>Bitte prüfe die Etappendateien und lade die Seite erneut.</p>
-    </section>
-  `;
+async function startApp() {
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}roadbook-data.json`, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Etappen-Daten konnten nicht geladen werden: HTTP ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data.days) || !data.days.length || !data.tourInfo || typeof data.tourInfo !== 'object') {
+      throw new Error('Das Etappen-Datenformat ist ungültig.');
+    }
+    roadbookDays = data.days;
+    tourInfo = data.tourInfo;
+    renderApp();
+  } catch (error) {
+    console.error('Das Roadbook konnte nicht geladen werden.', error);
+    app.innerHTML = `
+      <section class="load-error" role="alert">
+        <p class="eyebrow">ROADBOOK NICHT VERFÜGBAR</p>
+        <h1>Beim Laden ist etwas schiefgelaufen.</h1>
+        <p>Bitte prüfe die Etappendateien und lade die Seite erneut.</p>
+      </section>
+    `;
+  }
+
+  const updateChecks = initializeUpdateChecks();
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, {
+      scope: import.meta.env.BASE_URL,
+    }).then((registration) => updateChecks?.setRegistration(registration))
+      .catch((error) => console.error('Der Service Worker konnte nicht registriert werden.', error));
+  }
 }
 
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, {
-    scope: import.meta.env.BASE_URL,
-  }).catch((error) => {
-    console.error('Der Service Worker konnte nicht registriert werden.', error);
-  });
-}
+startApp();

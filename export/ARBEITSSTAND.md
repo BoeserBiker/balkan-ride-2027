@@ -1,13 +1,13 @@
 ## Arbeitsstand – Balkan-Ride 2027
 
-**Stand:** 2026-11-27
+**Stand:** 2026-11-28
 
 **Workspace:** `Balkan-Ride-2027`  
 **Leitdokument:** [.github/Dokumentationskonzept.md](../.github/Dokumentationskonzept.md)
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-27): App-Version `v2.146`, Service-Worker-Cache `v159`
+- Web-Stand (Datei-Stand 2026-11-28): App-Version `v2.150`, Service-Worker-Cache `v163`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -21,7 +21,7 @@
   sind nicht im Code festgelegt; die Teilnahmegrenze aus F03 steht als Datum in
   `content/tour.md`. Der
   zuletzt ausgeführte Playwright-Closed-Loop prüfte fünf Viewports
-  (375, 412, 767, 768 und 1280 px): 279/279 PASS nach der iOS-Anpassung,
+  (375, 412, 767, 768 und 1280 px): 299/299 PASS am 2026-11-28,
   Screenshots und Messwerte in
   `web/.visual-report/REPORT.md`. Der Schalter „Slideshow auf der Startseite“
   ist standardmäßig an und speichert den Zustand lokal; ausgeschaltet werden
@@ -34,8 +34,9 @@
   betrug bei allen vier Viewports 0,0 px. In Schriftstufe 5/5 lagen beide
   Versionskarten unter dem Aktualisierungsbutton; App- und Cache-Historie
   ließen sich ohne horizontalen oder vertikalen Inhaltsüberlauf exklusiv öffnen.
-  Am 2026-11-27: 61/61 Node-Tests und Produktionsbuild erfolgreich, jeweils
-  lokal. Der Desktop-Check zeigte das Höhenprofil bei 1280 × 800 px zwischen
+  Am 2026-11-28: 66/66 Node-Tests, Produktionsbuild und 299/299
+  Visual-Prüfungen erfolgreich, jeweils lokal. Der Desktop-Check zeigte das
+  Höhenprofil bei 1280 × 800 px zwischen
   409 und 693 px; die aktuelle Prüfgrenze für die Unterkante beträgt 790 px
   (10 px Abstand zum Viewport-Rand). Der mobile CTA lag bei 375 × 812 px bei
   796 px und bei 412 × 915 px bei 899 px. Die Prüfergebnisse sind kein Nachweis
@@ -181,6 +182,25 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-28 – Offline- und Update-Strategie, mobile Lesbarkeit (lokal)
+
+- Service Worker auf Network-First mit 3-Sekunden-Timeout und Cache-Fallback
+  umgestellt; geladene Tourdaten werden gecacht und Änderungen an
+  `roadbook-data.json` als Etappen- bzw. Tourinfo-Änderungen gemeldet.
+  Kern-Assets werden beim Installieren vorgeladen, Bilder nur bei Abruf.
+- Datenänderungen und Programmupdates haben getrennte Hinweise. Der
+  Versionsdialog zeigt den Changelog in einer Scrollbox mit „Später“-Option
+  und kann den wartenden Service Worker zum Aktualisieren aktivieren.
+  Etappendaten werden dafür als eigene `roadbook-data.json` ausgeliefert.
+- Mobile Schriftstufen 1–5 sind um den Faktor 1,5 vergrößert; Änderungen
+  gelten bis 520 px, um Tablet- und Desktop-Layout unverändert zu lassen.
+  Version `v2.150`, Cache `v163`.
+- Verifikation lokal: `npm run test --prefix web` 66/66 PASS,
+  `npm run build --prefix web` PASS und
+  `npm run test:visual --prefix web` 299/299 PASS. `git diff --check`
+  ebenfalls ohne Befund. Keine echten Geräte-/Offline-Netzwerktests;
+  kein Commit oder Push.
 
 ### 2026-11-27 – iPhone: Slideshow trotz „Bewegung reduzieren“ (lokal)
 

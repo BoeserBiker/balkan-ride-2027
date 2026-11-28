@@ -1336,6 +1336,68 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
   await page.keyboard.press('ArrowRight');
 
   await runCurrentChangeChecks(page, record, shot);
+  await page.locator('.settings-close').click();
+  const updateDialogMetrics = await page.evaluate(() => {
+    const dialog = document.querySelector('#program-update-dialog');
+    const list = document.querySelector('#program-update-history');
+    list.innerHTML = Array.from({ length: 14 }, (_, index) => `
+      <li><div><strong>v2.${150 - index}</strong><time>2026-11-28</time></div>
+        <p>Aktualisierung der Tourdaten, Hinweise und Offline-Funktionen.</p></li>
+    `).join('');
+    document.querySelector('#program-update-title').textContent = 'Neue Programmversion v2.150';
+    dialog.dataset.updateId = 'visual-check';
+    dialog.showModal();
+    const rect = dialog.getBoundingClientRect();
+    const scroll = dialog.querySelector('.program-update-scroll');
+    const buttons = [...dialog.querySelectorAll('.program-update-actions button')];
+    return {
+      insideViewport: rect.left >= 0 && rect.right <= window.innerWidth && rect.top >= 0 && rect.bottom <= window.innerHeight,
+      scrolls: scroll.scrollHeight > scroll.clientHeight && getComputedStyle(scroll).overflowY === 'auto',
+      buttonsInside: buttons.every((button) => {
+        const buttonRect = button.getBoundingClientRect();
+        return buttonRect.width >= 44 && buttonRect.height >= 44
+          && buttonRect.left >= rect.left && buttonRect.right <= rect.right;
+      }),
+      noHorizontalOverflow: dialog.scrollWidth <= dialog.clientWidth,
+    };
+  });
+  record('Update-Dialog: Changelog scrollbar und Bedienelemente im Viewport',
+    updateDialogMetrics.insideViewport && updateDialogMetrics.scrolls
+      && updateDialogMetrics.buttonsInside && updateDialogMetrics.noHorizontalOverflow,
+    `Dialog im Viewport=${updateDialogMetrics.insideViewport}; Changelog scrollbar=${updateDialogMetrics.scrolls}; `
+      + `Buttons >=44px und innerhalb=${updateDialogMetrics.buttonsInside}; kein horizontaler Überlauf=${updateDialogMetrics.noHorizontalOverflow}`);
+  await page.locator('#program-update-later').click();
+  const laterResult = await page.evaluate(() => ({
+    closed: !document.querySelector('#program-update-dialog').open,
+    dismissedThisSession: sessionStorage.getItem('balkan-ride-dismissed-update') === 'visual-check',
+  }));
+  record('Update-Dialog: „Später“ schließt den Hinweis für diese Sitzung',
+    laterResult.closed && laterResult.dismissedThisSession,
+    `geschlossen=${laterResult.closed}; in dieser Sitzung zurückgestellt=${laterResult.dismissedThisSession}`);
+  const dataNoticeMetrics = await page.evaluate(() => {
+    const notice = document.querySelector('#data-update-notice');
+    const list = document.querySelector('#data-update-list');
+    list.innerHTML = '<li>Etappe 03 · Vršič / Soča · GPX-Daten</li><li>Galerie-Bilder</li>';
+    notice.hidden = false;
+    const rect = notice.getBoundingClientRect();
+    return {
+      visible: rect.width > 0 && rect.height > 0,
+      insideViewport: rect.left >= 0 && rect.right <= window.innerWidth && rect.top >= 0 && rect.bottom <= window.innerHeight,
+      closeSize: (() => {
+        const close = document.querySelector('#data-update-close').getBoundingClientRect();
+        return close.width >= 44 && close.height >= 44;
+      })(),
+      noHorizontalOverflow: notice.scrollWidth <= notice.clientWidth,
+    };
+  });
+  record('Datenhinweis: lesbare Liste, Schließen-Touchziel und kein Überlauf',
+    dataNoticeMetrics.visible && dataNoticeMetrics.insideViewport && dataNoticeMetrics.closeSize
+      && dataNoticeMetrics.noHorizontalOverflow,
+    `sichtbar=${dataNoticeMetrics.visible}; im Viewport=${dataNoticeMetrics.insideViewport}; `
+      + `Schließen >=44px=${dataNoticeMetrics.closeSize}; kein horizontaler Überlauf=${dataNoticeMetrics.noHorizontalOverflow}`);
+  await page.locator('#data-update-close').click();
+  const dataNoticeClosed = await page.locator('#data-update-notice').evaluate((notice) => notice.hidden);
+  record('Datenhinweis: Schließen-Button blendet den Hinweis aus', dataNoticeClosed, `ausgeblendet=${dataNoticeClosed}`);
   await page.evaluate(() => {
     const dialog = document.querySelector('#settings-dialog');
     dialog.scrollTop = dialog.scrollHeight;
@@ -1353,6 +1415,7 @@ async function checkViewport(browser, origin, viewport, results, screenshots) {
     `scrollbar nötig=${afterScroll.scrollable}, Ende erreichbar=${afterScroll.atEnd}`);
 
   if (viewport.slug === 'iphone-12-mini') {
+    await page.locator('#settings-toggle').click();
     await page.locator('[data-slideshow-setting="idleSeconds"]').fill('5');
     await page.locator('[data-slideshow-setting="idleSeconds"]').dispatchEvent('change');
     await page.locator('.settings-close').click();

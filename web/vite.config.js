@@ -9,12 +9,9 @@ import { validateTourInfo } from './src/tour-overview.js';
 
 const webDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = path.resolve(webDirectory, '..');
+const appVersion = JSON.parse(await readFile(path.join(webDirectory, 'public/version.json'), 'utf8')).version;
 const contentDirectory = path.resolve(webDirectory, '../content');
 const gpxDirectory = path.resolve(webDirectory, '../assets/gpx');
-const virtualModuleId = 'virtual:roadbook-content';
-const resolvedVirtualModuleId = `\0${virtualModuleId}`;
-const tourModuleId = 'virtual:tour-info';
-const resolvedTourModuleId = `\0${tourModuleId}`;
 const base = '/balkan-ride-2027/';
 const zipName = 'balkan-ride-2027-alle-etappen.zip';
 
@@ -98,56 +95,49 @@ async function validateDay(data, fileName) {
   }
 }
 
+async function loadRoadbookData() {
+  const files = (await readdir(contentDirectory))
+    .filter((name) => /^tag-\d{2}\.md$/.test(name))
+    .sort();
+  const source = await readFile(path.join(contentDirectory, 'tour.md'), 'utf8');
+  const dayTags = files.map((name) => Number(name.slice(4, 6)));
+  const tourInfo = validateTourInfo(matter(source).data, dayTags);
+  const days = await Promise.all(files.map(async (fileName) => {
+    const markdown = await readFile(path.join(contentDirectory, fileName), 'utf8');
+    const parsed = matter(markdown);
+    await validateDay(parsed.data, fileName);
+    return {
+      sourcePath: `content/${fileName}`,
+      frontmatter: parsed.data,
+      body: parsed.content.trim(),
+    };
+  }));
+  return { days, tourInfo };
+}
+
 function roadbookContentPlugin() {
   return {
     name: 'roadbook-content',
-    resolveId(id) {
-      if (id === virtualModuleId) return resolvedVirtualModuleId;
-      return id === tourModuleId ? resolvedTourModuleId : null;
-    },
-    async load(id) {
-      if (id !== resolvedVirtualModuleId && id !== resolvedTourModuleId) {
-        return null;
-      }
-
-      const files = (await readdir(contentDirectory))
-        .filter((name) => /^tag-\d{2}\.md$/.test(name))
-        .sort();
-      if (id === resolvedTourModuleId) {
-        const source = await readFile(path.join(contentDirectory, 'tour.md'), 'utf8');
-        const dayTags = files.map((name) => Number(name.slice(4, 6)));
-        return `export default ${JSON.stringify(validateTourInfo(matter(source).data, dayTags))};`;
-      }
-      const days = await Promise.all(files.map(async (fileName) => {
-        const source = await readFile(path.join(contentDirectory, fileName), 'utf8');
-        const parsed = matter(source);
-        await validateDay(parsed.data, fileName);
-        return {
-          sourcePath: `content/${fileName}`,
-          frontmatter: parsed.data,
-          body: parsed.content.trim(),
-        };
-      }));
-
-      return `export default ${JSON.stringify(days)};`;
-    },
     handleHotUpdate({ file, server }) {
       const name = path.basename(file);
       if (path.dirname(file) !== contentDirectory || !(/^tag-\d{2}\.md$/.test(name) || name === 'tour.md')) {
         return;
       }
-      const modules = [resolvedVirtualModuleId, resolvedTourModuleId]
-        .map((moduleId) => server.moduleGraph.getModuleById(moduleId))
-        .filter(Boolean);
-      if (modules.length) {
-        modules.forEach((module) => server.moduleGraph.invalidateModule(module));
-        server.ws.send({ type: 'full-reload' });
-        return modules;
-      }
+      server.ws.send({ type: 'full-reload' });
     },
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url, 'http://localhost').pathname;
+        if (pathname === `${base}roadbook-data.json`) {
+          try {
+            response.setHeader('Content-Type', 'application/json; charset=utf-8');
+            response.setHeader('Cache-Control', 'no-cache');
+            response.end(JSON.stringify(await loadRoadbookData()));
+          } catch (error) {
+            next(error);
+          }
+          return;
+        }
         if (pathname === `${base}assets/gpx/${zipName}`) {
           try {
             const archive = createGpxZip(await loadGpxFiles());
@@ -175,6 +165,11 @@ function roadbookContentPlugin() {
       });
     },
     async generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'roadbook-data.json',
+        source: JSON.stringify(await loadRoadbookData()),
+      });
       const gpxFiles = await loadGpxFiles();
       for (const [fileName, source] of gpxFiles) {
         this.emitFile({
@@ -194,5 +189,11 @@ function roadbookContentPlugin() {
 
 export default defineConfig({
   base,
+  build: {
+    manifest: 'asset-manifest.json',
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [tailwindcss(), roadbookContentPlugin()],
 });

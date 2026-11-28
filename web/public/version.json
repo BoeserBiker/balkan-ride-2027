@@ -1,7 +1,17 @@
 {
-  "version": "v2.149",
-  "serviceWorkerCache": "v162",
+  "version": "v2.151",
+  "serviceWorkerCache": "v164",
   "serviceWorkerHistory": [
+    {
+      "version": "v164",
+      "date": "2026-11-28",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v163",
+      "date": "2026-11-28",
+      "message": "Offline Network-First, getrennte Daten- und Programmupdates mit Changelog-Scrollbox sowie 50 % groessere mobile Schrift"
+    },
     {
       "version": "v162",
       "date": "2026-11-28",
@@ -364,6 +374,16 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.151",
+      "date": "2026-11-28",
+      "message": "fix(pwa): Android maskable Icons, Service Worker Cache und iOS Splashscreens korrigiert"
+    },
+    {
+      "version": "v2.150",
+      "date": "2026-11-28",
+      "message": "Offline Network-First, getrennte Daten- und Programmupdates mit Changelog-Scrollbox sowie 50 % groessere mobile Schrift"
+    },
     {
       "version": "v2.149",
       "date": "2026-11-28",

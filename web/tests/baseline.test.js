@@ -65,7 +65,9 @@ const baselineChecks = [
       assert.equal(overview.dayCount, days.length);
       assert.equal(overview.unknownDays, 0, 'jede Etappe nennt ihren Transport');
       const mainSource = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-      assert.match(mainSource, /from\s+(['"])virtual:tour-info\1/);
+      assert.match(mainSource, /fetch\(`\$\{import\.meta\.env\.BASE_URL\}roadbook-data\.json`/);
+      const viteConfig = await readFile(new URL('../vite.config.js', import.meta.url), 'utf8');
+      assert.match(viteConfig, /fileName:\s*'roadbook-data\.json'/);
     },
   },
 ];
