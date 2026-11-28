@@ -665,7 +665,7 @@ async function runLandingChecks(page, record, shot) {
           && /^\d{2} \S/.test(links[0].text) && links[0].text === text && links[0].target === '_blank' && links[0].rel.includes('noopener') && links[0].rel.includes('noreferrer')
           && links[0].protocol === 'https:' && links[0].host === 'de.wikipedia.org' && links[0].underlined
           && links[0].width >= 44 && links[0].height >= 44)
-        && tourMap.route.visible && tourMap.route.text === 'Recklinghausen ↔ Recklinghausen'
+        && tourMap.route.visible && tourMap.route.text === 'Start 08.09.2027 · 22 Etappen'
         && tourMap.route.display === 'flex' && tourMap.route.align === 'center' && tourMap.route.justify === 'space-between' && tourMap.route.gap === '12px'
         && tourMap.route.right <= tourMap.cta.left && tourMap.route.left < tourMap.cta.left - 40
         && tourMap.route.top < tourMap.cta.bottom && tourMap.route.bottom > tourMap.cta.top

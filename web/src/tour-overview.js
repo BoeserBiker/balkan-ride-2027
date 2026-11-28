@@ -185,6 +185,7 @@ export function buildTourOverview(days, info) {
     calendarDays: Math.round((to.getTime() - from.getTime()) / DAY_MS) + 1,
     range: formatDateRange(from, to),
     compactRange: formatCompactDateRange(from, to),
+    startDate: `${two(from.getUTCDate())}.${two(from.getUTCMonth() + 1)}.${from.getUTCFullYear()}`,
     totalKm: sumKm(entries),
     tourKm: sumKm(tour),
     motorcycleKm: sumKm(motorcycle),
@@ -484,7 +485,7 @@ export function renderTourOverview(overview, info) {
       ${renderFacts(overview)}
       </div>
       <div class="tour-cta-row">
-        <p class="tour-mobile-route">${place(overview.startPlace)} ${overview.startPlace === overview.endPlace ? '↔' : '→'} ${place(overview.endPlace)}</p>
+        <p class="tour-mobile-route"><span>Start ${escapeHtml(overview.startDate)}</span> · <span>${overview.dayCount} Etappen</span></p>
         <a class="button button-primary tour-cta" href="#roadbook" data-view-link><span class="tour-cta-desktop">Zu den ${overview.dayCount} Etappen</span><span class="tour-cta-mobile">Zur Tour</span> <span aria-hidden="true">→</span></a>
       </div>
     </div>

@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'balkan-ride-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v167`;
+const CACHE_NAME = `${CACHE_PREFIX}v170`;
 const NETWORK_TIMEOUT_MS = 3000;
 const ICON_PATHS = ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png'];
 const DATA_FILE_PATTERN = /\.(?:gpx|zip|json|md|avif|gif|jpe?g|png|webp)$/i;

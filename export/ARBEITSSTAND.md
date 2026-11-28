@@ -7,7 +7,7 @@
 
 ## Aktueller Stand
 
-- Web-Stand (Datei-Stand 2026-11-28): App-Version `v2.153`, Service-Worker-Cache `v166`
+- Web-Stand (Datei-Stand 2026-11-28): App-Version `v2.156`, Service-Worker-Cache `v169`
   (synchron laut `web/public/version.json` und `web/public/sw.js`, lokale
   Änderungen noch nicht committet). Die App
   startet auf einer **Tourübersicht** (`#start`, P01/P02) mit Direkteinstieg in
@@ -182,6 +182,26 @@
   ausgeschlossen und werden bei einem Git-Klon nicht übertragen.
 
 ## Chronologie
+
+### 2026-11-28 – KPI-Überlauf in Stufe 5 und Startseiten-Footer (lokal)
+
+- Ursache des Actions-Fehlers (317/319, iPhone 12 mini / Android 6,4 Zoll):
+  `4.825 km` brach in Stufe 5 mit der breiteren Linux-Schrift zweizeilig um;
+  zusätzlich lässt `line-height: 1` hohe Schriften vertikal überstehen.
+- Fix (`web/src/style.css`, < 768 px): KPI-Zahlen `nowrap`; die Bento-Karten
+  sind Size-Container, Schriftgröße per `min(…, 19cqi)` an der Kartenbreite
+  gekappt; Hero-Zahl `line-height: 1.2`.
+- Footer neben „Zur Tour →“: statt „Recklinghausen ↔ Recklinghausen“ jetzt
+  „Start 08.09.2027 · 22 Etappen“ (aus Etappendaten, `startDate`/`dayCount`).
+  Beide Teile sind `nowrap` und brechen nur am „·“ um (Stufe 5 auf ≤ 412 px);
+  `min(…, 10cqi)` verhindert Überlauf. Start/Ziel stehen weiter im Abschnitt
+  „Länder und Route“.
+- Stresstest mit breiter Ersatzschrift (Verdana) bei 360/375/390/412 px,
+  Stufen 2 und 5: kein Überlauf (scroll = client).
+- Version `v2.156`, Cache `v169` (der gestagte Zwischenschritt v2.155/v168
+  stammt aus dem letzten Commit-Hook). Tests und Visual-Check angepasst.
+- Verifikation lokal: 69/69 Node-Tests, Build und 319/319 Visual-Prüfungen.
+  Kein Commit oder Push.
 
 ### 2026-11-28 – iPhone-Header, globale Schriftskalierung, mobile Update-Hinweise (lokal)
 

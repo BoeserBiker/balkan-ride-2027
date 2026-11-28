@@ -275,7 +275,7 @@ test('hero has one CTA after the map and an accessible ferry legend', () => {
   assert.equal(css.declarations('.tour-hero-main')['grid-template-areas'], '"copy map" "facts map"');
   const row = hero.querySelector('.tour-cta-row');
   assert.deepEqual([...row.children].map((element) => element.className), ['tour-mobile-route', 'button button-primary tour-cta']);
-  assert.match(normalizeText(row.querySelector('.tour-mobile-route')), /^.+ [↔→] .+$/);
+  assert.equal(normalizeText(row.querySelector('.tour-mobile-route')), 'Start 08.09.2027 · 22 Etappen');
   const rowStyle = css.declarations('.tour-cta-row');
   assert.equal(rowStyle.display, 'flex');
   assert.equal(rowStyle['align-items'], 'center');
@@ -314,8 +314,15 @@ test('compact highlights and summary use the same validated tour data', () => {
   assert.ok(summary.includes(rounded.format(overview.totalKm)));
   assert.ok(summary.includes(rounded.format(overview.tourKm)));
   assert.ok(info.laender.every((country) => summary.includes(country)));
-  assert.doesNotMatch(summary, /↔|→/, 'Start und Ziel stehen neben dem Button, nicht in der Zusammenfassung');
-  assert.equal(normalizeText(document.querySelector('.tour-mobile-route')), `${overview.startPlace} ${overview.startPlace === overview.endPlace ? '↔' : '→'} ${overview.endPlace}`);
+  assert.doesNotMatch(summary, /↔|→/, 'die Zusammenfassung nennt keine Start-Ziel-Route');
+  assert.equal(normalizeText(document.querySelector('.tour-mobile-route')), `Start ${overview.startDate} · ${overview.dayCount} Etappen`);
+  assert.doesNotMatch(normalizeText(document.querySelector('.tour-cta-row')), /↔|Recklinghausen/, 'keine redundante Rundtour-Angabe neben dem Button');
+  assert.equal(css.declarations('.tour-mobile-route span', '@media (max-width: 767px)')['white-space'], 'nowrap');
+  for (const selector of ['.tour-bento-hero strong', '.tour-bento-cell strong']) {
+    const rule = css.declarations(selector, '@media (max-width: 767px)');
+    assert.equal(rule['white-space'], 'nowrap', `${selector} bleibt einzeilig`);
+    assert.match(rule['font-size'], /^min\(calc\(.+\* var\(--font-scale\)\), \d+cqi\)$/, `${selector} ist an der Kartenbreite gekappt`);
+  }
   assert.equal(normalizeText(document.querySelector('.tour-cta-mobile')), 'Zur Tour');
 });
 
@@ -359,7 +366,7 @@ test('final mobile layout: compact highlights beside a full-height map and the b
   assert.equal(css.declarations('#tour-map', mobile).flex, '1 1 auto');
   assert.equal(css.declarations('.tour-mobile-highlights li > a', mobile)['min-height'], '44px');
   for (const selector of ['.tour-bento span', '.tour-bento-hero strong', '.tour-bento-cell strong', '.tour-bento-matrix li']) {
-    assert.match(css.declarations(selector, mobile)['font-size'], /^calc\(clamp\(\d+px, [\d.]+rem, \d+px\) \* var\(--font-scale\)\)$/, selector);
+    assert.match(css.declarations(selector, mobile)['font-size'], /^(min\()?calc\(clamp\(\d+px, [\d.]+rem, \d+px\) \* var\(--font-scale\)\)(, \d+cqi\))?$/, selector);
   }
 });
 

@@ -1,7 +1,22 @@
 {
-  "version": "v2.154",
-  "serviceWorkerCache": "v167",
+  "version": "v2.157",
+  "serviceWorkerCache": "v170",
   "serviceWorkerHistory": [
+    {
+      "version": "v170",
+      "date": "2026-11-28",
+      "message": "fix(ui,pwa): iPhone-Header-Layout, globale Schriftgrößen-Skalierung & mobile Update-Hinweise (v2.153)"
+    },
+    {
+      "version": "v169",
+      "date": "2026-11-28",
+      "message": "KPI-Umbruch in Stufe 5 behoben und Startseiten-Footer auf Startdatum/Etappen umgestellt"
+    },
+    {
+      "version": "v168",
+      "date": "2026-11-28",
+      "message": "fix(ui,pwa): iPhone-Header-Layout, globale Schriftgrößen-Skalierung & mobile Update-Hinweise (v2.153)"
+    },
     {
       "version": "v167",
       "date": "2026-11-28",
@@ -389,6 +404,21 @@
     }
   ],
   "history": [
+    {
+      "version": "v2.157",
+      "date": "2026-11-28",
+      "message": "fix(ui,pwa): iPhone-Header-Layout, globale Schriftgrößen-Skalierung & mobile Update-Hinweise (v2.153)"
+    },
+    {
+      "version": "v2.156",
+      "date": "2026-11-28",
+      "message": "KPI-Umbruch in Stufe 5 behoben und Startseiten-Footer auf Startdatum/Etappen umgestellt"
+    },
+    {
+      "version": "v2.155",
+      "date": "2026-11-28",
+      "message": "fix(ui,pwa): iPhone-Header-Layout, globale Schriftgrößen-Skalierung & mobile Update-Hinweise (v2.153)"
+    },
     {
       "version": "v2.154",
       "date": "2026-11-28",

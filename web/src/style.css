@@ -680,11 +680,13 @@ h1, h2, h3, p { margin-top: 0; }
   .tour-bento span { color: var(--muted); font-size: calc(clamp(9px, .65rem, 11px) * var(--font-scale)); line-height: 1.25; }
   .tour-bento > div > span:first-child { font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
   .tour-bento > .tour-bento-hero { grid-area: hero; justify-content: center; background: linear-gradient(145deg, var(--panel-raised), var(--panel)); }
-  .tour-bento-hero strong { margin: 2px 0; font-size: calc(clamp(24px, 1.75rem, 30px) * var(--font-scale)); font-weight: 700; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tour-bento > .tour-bento-hero, .tour-bento > .tour-bento-cell { container-type: inline-size; }
+  /* KPI-Zahlen bleiben einzeilig; cqi kappt Stufe 4/5 an der Kartenbreite. */
+  .tour-bento-hero strong { margin: 2px 0; font-size: min(calc(clamp(24px, 1.75rem, 30px) * var(--font-scale)), 19cqi); white-space: nowrap; font-weight: 700; letter-spacing: -.04em; line-height: 1.2; font-variant-numeric: tabular-nums; }
   .tour-bento-split { display: flex; height: 4px; gap: 2px; margin: 3px 0 2px; overflow: hidden; border-radius: 999px; }
   .tour-bento-split-part { flex: 0 1 0; background: var(--route-muted); }
   .tour-bento-split-part.is-accent { background: var(--accent); }
-  .tour-bento-cell strong { font-size: calc(clamp(14px, 1rem, 17px) * var(--font-scale)); font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .tour-bento-cell strong { font-size: min(calc(clamp(14px, 1rem, 17px) * var(--font-scale)), 19cqi); white-space: nowrap; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .tour-bento-cell.is-accent strong { color: var(--accent); }
   .tour-bento-countries { grid-area: countries; }
   .tour-bento-matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
@@ -707,7 +709,9 @@ h1, h2, h3, p { margin-top: 0; }
   .tour-slideshow-close { position: absolute; top: 6px; right: 6px; display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 1px solid rgba(255, 255, 255, .35); border-radius: 999px; background: rgba(0, 0, 0, .68); color: #fff; font-size: calc(22px * var(--font-scale)); line-height: 1; cursor: pointer; }
   .tour-slideshow-close:focus-visible { outline: 2px solid var(--marker-highlight); outline-offset: 2px; }
   .tour-cta-mobile { display: inline; }
-  .tour-mobile-route { display: block; min-width: 0; margin: 0; font-size: calc(clamp(10px, .75rem, 12px) * var(--font-scale)); line-height: 1.2; overflow-wrap: anywhere; }
+  /* Einzeilig, solange Platz ist; sonst nur am „·“ umbrechen. cqi verhindert Überlauf bei breiten Fallback-Schriften. */
+  .tour-mobile-route { display: block; flex: 1 1 0; min-width: 0; margin: 0; container-type: inline-size; font-size: calc(clamp(10px, .75rem, 12px) * var(--font-scale)); line-height: 1.2; }
+  .tour-mobile-route span { font-size: min(calc(clamp(10px, .75rem, 12px) * var(--font-scale)), 10cqi); white-space: nowrap; }
   .tour-start .tour-cta { min-width: 44px; }
   .tour-start .tour-cta { padding-inline: .9rem; font-size: calc(clamp(11px, .8125rem, 13px) * var(--font-scale)); }
 }
